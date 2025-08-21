@@ -6,6 +6,7 @@ import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
+import FormCheckbox from './FormCheckbox'
 import FormTextarea from './FormTextarea'
 import FormDateSelect from './FormDateSelect'
 import FormSelect from "./FormSelect";
@@ -13,7 +14,7 @@ import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 
-export default function CreateResearchForm() {
+export default function CreateAcademicForm() {
   const [formData, setFormData] = useState({
     year: "2568",
     type: "",
@@ -38,85 +39,30 @@ export default function CreateResearchForm() {
   });
 
   const handleSubmit = (e) => {
-    e.preventDefault()
-    console.log('Form submitted:', formData)
-  }
+    e.preventDefault();
+    console.log("Form submitted:", formData);
+  };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
-        {/* Basic Information */}
         <FormSection>
           <FormFieldBlock>
-            <FormInput
-              mini={true}
-              label="ปีงบประมาณ"
-              type="number"
-              value={formData.year}
-              onChange={(value) => handleInputChange("year", value)}
-              placeholder="2568"
-            />
-          </FormFieldBlock>
-          <FormFieldBlock>
-            <FormRadio
-              inline={false}
-              required
-              label="ประเภทโครงการ"
-              options={[
-                { label: "โครงการวิจัย", value: "โครงการวิจัย" },
-                {
-                  label: "โครงการพัฒนาวิชาการประเภทงานวิจัย",
-                  value: "โครงการพัฒนาวิชาการประเภทงานวิจัย",
-                },
-              ]}
-              value={formData.type}
-              onChange={(value) => handleInputChange("type", value)}
-            />
-          </FormFieldBlock>
-          <FormFieldBlock>
-            <FormRadio
-              inline={true}
-              required
-              label="ลักษณะโครงการวิจัย"
-              options={[
-                { label: "โครงการวิจัยเดี่ยว", value: "โครงการวิจัยเดี่ยว" },
-                {
-                  label: "แผนงานวิจัย หรือชุดโครงการวิจัย",
-                  value: "แผนงานวิจัย หรือชุดโครงการวิจัย",
-                },
-              ]}
-              value={formData.type2}
-              onChange={(value) => handleInputChange("type2", value)}
-            />
-          </FormFieldBlock>
-
-          <FormFieldBlock className="grid grid-cols-1 gap-6">
-            <FormInput
-              mini={true}
-              label="จำนวนโครงการย่อย"
-              type="number"
-              value={formData.subProjectCount}
-              onChange={(value) => handleInputChange("subProjectCount", value)}
-              placeholder="0"
-            />
-          </FormFieldBlock>
-
-          <FormFieldBlock className="grid grid-cols-1 gap-6">
             <FormTextarea
-              label="ชื่อแผนงานวิจัยหรือชุดโครงการวิจัย/โครงการวิจัย (ไทย)"
+              label="ชื่อผลงาน (ไทย)"
+              required
               value={formData.titleThai}
               onChange={(value) => handleInputChange("titleThai", value)}
               placeholder=""
             />
-          </FormFieldBlock>
 
-          <FormFieldBlock className="grid grid-cols-1 gap-6">
             <FormTextarea
-              label="ชื่อแผนงานวิจัยหรือชุดโครงการวิจัย/โครงการวิจัย (อังกฤษ)"
+              label="ชื่อผลงาน (อังกฤษ)"
+              required
               value={formData.titleEnglish}
               onChange={(value) => handleInputChange("titleEnglish", value)}
               placeholder=""
@@ -165,6 +111,27 @@ export default function CreateResearchForm() {
             </div>
           </FormFieldBlock>
           <FormFieldBlock>
+            <FormTextarea
+              label="ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)"
+              required
+              value={formData.titleThai}
+              onChange={(value) => handleInputChange("titleThai", value)}
+              placeholder=""
+            />
+            <FormInput
+              label="DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI"
+              type="text"
+              value={formData.doi}
+              onChange={(value) => handleInputChange("doi", value)}
+              placeholder=""
+            />
+            <FormInput
+              label="ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)"
+              type="text"
+              value={formData.isbn}
+              onChange={(value) => handleInputChange("isbn", value)}
+              placeholder=""
+            />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <p className="text-zinc-700">
@@ -192,30 +159,151 @@ export default function CreateResearchForm() {
                 />
               </div>
             </div>
-          </FormFieldBlock>
-
-          <FormFieldBlock>
-            <FormSelect
-              label="ประเภทงานวิจัย"
+            <FormInput
+              mini={true}
               required
-              value={formData.researchType}
-              onChange={(value) => handleInputChange("researchType", value)}
-              className="max-w-lg"
-              options={[{ value: null, label: "เลือกประเภทงานวิจัย" }]}
+              label="ค่าใช้จ่าย"
+              type="number"
+              value={formData.subProjectCount}
+              onChange={(value) => handleInputChange("subProjectCount", value)}
+              placeholder="0"
+            />
+            <FormRadio
+              inline={true}
+              required
+              label="การนำเสนอผลงาน"
+              options={[
+                {
+                  label: "ได้รับเชิญ (Invited Paper.)",
+                  value: "ได้รับเชิญ (Invited Paper.)",
+                },
+                {
+                  label: "เสนอเอง",
+                  value: "เสนอเอง",
+                },
+              ]}
+              value={formData.type}
+              onChange={(value) => handleInputChange("type", value)}
+            />
+            <FormRadio
+              inline={true}
+              required
+              label="ประเภทการนำเสนอ"
+              options={[
+                {
+                  label: "ภาคบรรยาย (Oral)",
+                  value: "ภาคบรรยาย (Oral)",
+                },
+                {
+                  label: "ภาคโปสเตอร์ (Poster)",
+                  value: "ภาคโปสเตอร์ (Poster)",
+                },
+                {
+                  label: "เข้าร่วมประชุมวิชาการ",
+                  value: "เข้าร่วมประชุมวิชาการ",
+                },
+              ]}
+              value={formData.type2}
+              onChange={(value) => handleInputChange("type2", value)}
+            />
+            <FormRadio
+              inline={true}
+              required
+              label="ลักษณะของบทความ"
+              options={[
+                {
+                  label: "Abstract อย่างเดียว",
+                  value: "Abstract อย่างเดียว",
+                },
+                {
+                  label: "เรื่องเต็ม",
+                  value: "เรื่องเต็ม",
+                },
+              ]}
+              value={formData.type3}
+              onChange={(value) => handleInputChange("type3", value)}
             />
           </FormFieldBlock>
 
           <FormFieldBlock>
-            <FormSelect
-              label="ประเภทแหล่งทุน"
+            <FormTextarea
+              label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
               required
-              value={formData.fundType}
-              onChange={(value) => handleInputChange("fundType", value)}
-              className="max-w-lg"
-              options={[{ value: null, label: "เลือกข้อมูล" }]}
+              value={formData.fundName}
+              onChange={(value) => handleInputChange("fundName", value)}
+              placeholder=""
+            />
+            <FormTextarea
+              label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
+              required
+              value={formData.fundName}
+              onChange={(value) => handleInputChange("fundName", value)}
+              placeholder=""
             />
           </FormFieldBlock>
 
+          <FormFieldBlock>
+            <FormTextarea
+              label="กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)"
+              required
+              value={formData.fundName}
+              onChange={(value) => handleInputChange("fundName", value)}
+              placeholder=""
+            />
+          </FormFieldBlock>
+
+          <FormFieldBlock>
+            <FileUploadField
+              label="อัปโหลดไฟล์"
+              onFilesChange={(files) => handleInputChange("attachments", files)}
+              accept=".pdf,.doc,.docx"
+              multiple
+            />
+          </FormFieldBlock>
+
+          <FormFieldBlock>
+            <FormRadio
+              inline={true}
+              required
+              label="ระดับการนำเสนอ"
+              options={[
+                {
+                  label: "ระดับชาติ",
+                  value: "ระดับชาติ",
+                },
+                {
+                  label: "ระดับนานาชาติ",
+                  value: "ระดับนานาชาติ",
+                },
+              ]}
+              value={formData.type3}
+              onChange={(value) => handleInputChange("type3", value)}
+            />
+            <FormSelect
+              label="ประเทศ"
+              required
+              value={formData.icType}
+              onChange={(value) => handleInputChange("impact", value)}
+              className="max-w-lg"
+              options={[{ value: null, label: "เลือกประเทศ" }]}
+            />
+            <FormSelect
+              label="มลรัฐ/จังหวัด"
+              required
+              value={formData.icType}
+              onChange={(value) => handleInputChange("impact", value)}
+              className="max-w-lg"
+              options={[{ value: null, label: "เลือกมลรัฐ/จังหวัด" }]}
+            />
+            <FormSelect
+              label="เมือง"
+              required
+              value={formData.icType}
+              onChange={(value) => handleInputChange("impact", value)}
+              className="max-w-lg"
+              options={[{ value: null, label: "เลือกเมือง" }]}
+            />
+          </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อแหล่งทุน"
@@ -225,55 +313,13 @@ export default function CreateResearchForm() {
               placeholder=""
             />
           </FormFieldBlock>
-
-          <FormFieldBlock>
-            <FormInput
-              mini={true}
-              required
-              label="งบวิจัย"
-              type="number"
-              value={formData.subProjectCount}
-              onChange={(value) => handleInputChange("subProjectCount", value)}
-              placeholder="0"
-            />
-          </FormFieldBlock>
-
           <FormFieldBlock>
             <FormTextarea
               label="คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)"
               required
-              value={formData.keywords}
-              onChange={(value) => handleInputChange("keywords", value)}
+              value={formData.fundName}
+              onChange={(value) => handleInputChange("fundName", value)}
               placeholder=""
-            />
-          </FormFieldBlock>
-
-          <FormFieldBlock>
-            <FormSelect
-              label="IC Types"
-              required
-              value={formData.icType}
-              onChange={(value) => handleInputChange("icType", value)}
-              className="max-w-lg"
-              options={[{ value: null, label: "เลือกข้อมูล" }]}
-            />
-
-            <FormSelect
-              label="Impact"
-              required
-              value={formData.icType}
-              onChange={(value) => handleInputChange("impact", value)}
-              className="max-w-lg"
-              options={[{ value: null, label: "เลือกข้อมูล" }]}
-            />
-
-            <FormSelect
-              label="SDG"
-              required
-              value={formData.icType}
-              onChange={(value) => handleInputChange("sdg", value)}
-              className="max-w-lg"
-              options={[{ value: null, label: "เลือกข้อมูล" }]}
             />
           </FormFieldBlock>
         </FormSection>
@@ -328,42 +374,25 @@ export default function CreateResearchForm() {
               />
             </div>
             <div>
-              <FormSelect
-                label="ประเภทผู้ร่วมโครงการวิจัย"
-                required
-                value={formData.icType}
-                onChange={(value) => handleInputChange("impact", value)}
-                className="max-w-lg"
+              <FormCheckbox
+                inline={true}
+                label="ผู้รับผิดชอบบทความ"
                 options={[
-                  { value: null, label: "เลือกประเภทผู้ร่วมโครงการวิจัย" },
+                  {
+                    label: "",
+                    value: "ผู้รับผิดชอบบทความ",
+                  },
                 ]}
-              />
-            </div>
-            <div>
-              <FormInput
-                mini={false}
-                label="สัดส่วนการวิจัย"
-                type="text"
-                value={formData.subProjectName}
-                onChange={(value) => handleInputChange("subProjectName", value)}
-                placeholder="0.00%"
+                value={formData.type}
+                onChange={(value) => handleInputChange("type", value)}
               />
             </div>
           </FormFieldBlock>
         </FormSection>
-        
+
         {/* Research Team Table */}
         <FormSection>
           <ResearchTeamTable />
-        </FormSection>
-
-        <FormSection>
-          <FileUploadField
-            label="อัปโหลดไฟล์"
-            onFilesChange={(files) => handleInputChange("attachments", files)}
-            accept=".pdf,.doc,.docx"
-            multiple
-          />
         </FormSection>
 
         {/* Form Actions */}

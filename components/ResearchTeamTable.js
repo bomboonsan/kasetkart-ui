@@ -97,13 +97,16 @@ export default function ResearchTeamTable() {
                   ชื่อ-นามสกุล
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  ตำแหน่ง
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   หน่วยงาน
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  บทบาท
+                  ประเภทผู้ร่วมโครงการวิจัย
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  หมายเหตุ
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  สัดส่วนการวิจัย (%)
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   จัดการ
@@ -150,10 +153,13 @@ export default function ResearchTeamTable() {
                     <div className="text-sm text-gray-900">{member.role}</div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <div className="text-sm text-gray-900">{member.member}</div>
+                    <div className="text-sm text-gray-900">-</div>
+                  </td>
+                  <td className="px-4 py-4 whitespace-nowrap">
+                    {/* <div className="text-sm text-gray-900">{member.member}</div> */}
                     {member.contribution && (
                       <div className="text-sm text-gray-500">
-                        {member.contribution}
+                        {member.contribution}%
                       </div>
                     )}
                   </td>
