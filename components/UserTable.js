@@ -8,7 +8,7 @@ export default function UserTable({ users, onUserAction }) {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ผู้ใช้
+                ชื่อ-นามสกุล
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 บทบาท
@@ -47,5 +47,5 @@ export default function UserTable({ users, onUserAction }) {
         </table>
       </div>
     </div>
-  )
+  );
 }

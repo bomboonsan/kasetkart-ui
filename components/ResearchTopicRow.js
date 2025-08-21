@@ -36,7 +36,7 @@ export default function ResearchTopicRow({ research, index }) {
         {/* Title */}
         <div className="col-span-3">
           <Link
-            href={`/dashboard/research/${research.id}`}
+            href={`/dashboard/research/demo`}
             className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
           >
             {research.title}

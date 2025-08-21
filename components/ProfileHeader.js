@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Button from './Button'
 import ProfileStats from "@/components/ProfileStats";
+import Link from 'next/link';
 
 export default function ProfileHeader() {
   return (
@@ -31,7 +32,9 @@ export default function ProfileHeader() {
 
           {/* Action Button */}
           <div className="flex-shrink-0">
-            <Button variant="outline">Edit profile</Button>
+            <Link href="/dashboard/profile/edit">
+              <Button variant="outline">Edit profile</Button>
+            </Link>
           </div>
         </div>
       </div>

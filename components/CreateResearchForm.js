@@ -12,6 +12,7 @@ import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
+import Link from 'next/link'
 
 export default function CreateResearchForm() {
   const [formData, setFormData] = useState({
@@ -368,14 +369,16 @@ export default function CreateResearchForm() {
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">
-          <Button variant="outline" type="button">
-            Cancel
-          </Button>
+          <Link href="/dashboard/form/overview">
+            <Button variant="outline" type="button">
+              Cancel
+            </Button>
+          </Link>
           <Button variant="secondary" type="button">
             Save Draft
           </Button>
           <Button variant="primary" type="submit">
-            Submit
+            Submits
           </Button>
         </div>
       </form>

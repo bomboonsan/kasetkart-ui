@@ -4,45 +4,45 @@ import ResearchTopicRow from './ResearchTopicRow'
 const mockResearchData = [
   {
     id: 1,
-    number: '2548',
-    title: 'ข้อนำเสนอข้อมูลการวิจัยเก่าที่สำคัญแก่ประเทศ',
+    number: "2568",
+    title: "ข้อนำเสนอข้อมูลการวิจัยเก่าที่สำคัญแก่ประเทศ",
     budget: 0,
-    status: 'Done',
-    color: 'green'
+    status: "Done",
+    color: "green",
   },
   {
     id: 2,
-    number: '2547',
-    title: 'Stent PM 2.5 กับการ์บอนของหิน',
+    number: "2568",
+    title: "Stent PM 2.5 กับการ์บอนของหิน",
     budget: 120000,
-    status: 'Draft',
-    color: 'green'
+    status: "Draft",
+    color: "green",
   },
   {
     id: 3,
-    number: '2546',
-    title: 'AIR CONDITIONER FOR YOUTH THAN AND',
+    number: "2568",
+    title: "AIR CONDITIONER FOR YOUTH THAN AND",
     budget: 1000000,
-    status: 'Draft',
-    color: 'green'
+    status: "Draft",
+    color: "green",
   },
   {
     id: 4,
-    number: '2545',
-    title: 'Telemeter for thai people',
+    number: "2567",
+    title: "Telemeter for thai people",
     budget: 50000,
-    status: 'Draft',
-    color: 'green'
+    status: "Draft",
+    color: "green",
   },
   {
     id: 5,
-    number: '2543',
-    title: 'คิวอนแลกซ์',
+    number: "2567",
+    title: "คิวอนแลกซ์",
     budget: 200000,
-    status: 'Draft',
-    color: 'green'
-  }
-]
+    status: "Draft",
+    color: "green",
+  },
+];
 
 export default function ResearchTopicsTable() {
   return (
