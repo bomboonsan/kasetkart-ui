@@ -2,8 +2,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 
 const menuItems = [
-  { id: "home", url: "#", label: "Home", active: false },
-  { id: "profile", url: "#", label: "Profile", active: false },
+  { id: "home", url: "/dashboard", label: "Home", active: false },
+  { id: "profile", url: "/dashboard/profile", label: "Profile", active: false },
   {
     id: "dashboard/form/overview",
     url: "/dashboard/form/overview",

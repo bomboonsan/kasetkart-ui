@@ -7,6 +7,8 @@
 
 @theme {
   --font-sans: var(--font-ibm-plex-sans-thai);
+  --color-primary: #006765;
+  --color-secondary: #B2BB1E;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -20,4 +22,19 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-ibm-plex-sans-thai), 'IBM Plex Sans Thai', sans-serif;
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
