@@ -4,6 +4,7 @@ import { useState } from 'react'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
+import FormModal from './FormModal'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormTextarea from './FormTextarea'
@@ -197,6 +198,17 @@ export default function CreateResearchForm() {
 
           <FormFieldBlock>
             <FormSelect
+              label="หน่วยงานหลักที่รับผิดชอบโครงการวิจัย (หน่วยงานที่ขอทุน)"
+              required
+              value={formData.researchType}
+              onChange={(value) => handleInputChange("researchType", value)}
+              className="max-w-lg"
+              options={[{ value: null, label: "คณะบริหารธุรกิจ" }]}
+            />
+          </FormFieldBlock>
+
+          <FormFieldBlock>
+            <FormSelect
               label="ประเภทงานวิจัย"
               required
               value={formData.researchType}
@@ -317,6 +329,17 @@ export default function CreateResearchForm() {
                 />
                 ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)
               </label>
+            </div>
+            <div>
+              <FormModal
+                mini={false}
+                label="ผู้ร่วมโครงการวิจัย"
+                btnText="คลิกเพื่อเลือกผู้ร่วมโครงการวิจัย"
+                type="text"
+                value={formData.subProjectName}
+                onChange={(value) => handleInputChange("subProjectName", value)}
+                placeholder=""
+              />
             </div>
             <div>
               <FormInput

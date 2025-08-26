@@ -106,25 +106,29 @@ export default function ReportTable() {
         <table className="w-full">
           <thead>
             <tr>
-              <th className="bg-blue-100 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
+              <th
+                className="bg-blue-100 px-4 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider border-r"
+                rowSpan="2"
+              >
                 Discipline
               </th>
-              <th className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
-                Total
-                <br />
-                Members
+              <th
+                className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r"
+                rowSpan="2"
+              >
+                Total<br />Members
               </th>
-              <th className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
-                Members
-                <br />
-                Without
-                <br />
-                ICs
+              <th
+                className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r"
+                rowSpan="2"
+              >
+                Members<br />Without<br />ICs
               </th>
-              <th className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
-                Members
-                <br />
-                With ICs
+              <th
+                className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r"
+                rowSpan="2"
+              >
+                Members<br />With ICs
               </th>
               <th
                 className="bg-pink-200 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r"
@@ -146,44 +150,23 @@ export default function ReportTable() {
               </th>
             </tr>
             <tr>
-              <th className="bg-gray-50 px-4 py-2 text-left text-xs font-medium text-gray-500 border-r"></th>
-              <th className="bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 border-r"></th>
-              <th className="bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 border-r"></th>
-              <th className="bg-gray-50 px-4 py-2 text-center text-xs font-medium text-gray-500 border-r"></th>
-              <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
-                BDS
-              </th>
-              <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
-                AIS
-              </th>
-              <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
-                TLS
-              </th>
-              <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
-                TOTAL
-              </th>
+              <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">BDS</th>
+              <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">AIS</th>
+              <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">TLS</th>
+              <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">TOTAL</th>
+
+              <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">BDS</th>
               <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
-                BDS
+                APR/ER<br /><span className="text-[10px]">PROCEEDING</span>
               </th>
-              <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
-                APR/ER
-                <br />
-                <span className="text-[10px]">PROCEEDING</span>
-              </th>
-              <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
-                ALL OTHER
-              </th>
-              <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
-                TOTAL
-              </th>
-              <th className="bg-yellow-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
-                PART
-              </th>
-              <th className="bg-yellow-100 px-2 py-2 text-center text-xs font-medium text-gray-700">
-                ALL
-              </th>
+              <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">ALL OTHER</th>
+              <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">TOTAL</th>
+
+              <th className="bg-yellow-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">PART</th>
+              <th className="bg-yellow-100 px-2 py-2 text-center text-xs font-medium text-gray-700">ALL</th>
             </tr>
           </thead>
+
           <tbody className="bg-white divide-y divide-gray-200">
             {reportData.map((row, index) => (
               <tr key={index} className="hover:bg-gray-50">

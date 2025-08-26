@@ -4,6 +4,7 @@ import { useState } from "react";
 import FormSection from "./FormSection";
 import FormFieldBlock from "./FormFieldBlock";
 import FormField from "./FormField";
+import FormModal from "./FormModal";
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from "./FormCheckbox";
@@ -36,6 +37,10 @@ export default function CreateAcademicForm() {
     impact: "",
     sdg: "",
     attachments: [],
+
+    level: "",
+    isJournalDatabase: false,
+    inDatabase: []
   });
 
   const handleSubmit = (e) => {
@@ -44,6 +49,9 @@ export default function CreateAcademicForm() {
   };
 
   const handleInputChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+  };
+  const handleCheckboxChange = (field, value) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -116,6 +124,15 @@ export default function CreateAcademicForm() {
               required
               value={formData.titleThai}
               onChange={(value) => handleInputChange("titleThai", value)}
+              placeholder=""
+            />
+            <FormModal
+              mini={false}
+              label="โครงการวิจัย"
+              btnText="คลิกเพื่อเลือกโครงการวิจัย"
+              type="text"
+              value={formData.subProjectName}
+              onChange={(value) => handleInputChange("subProjectName", value)}
               placeholder=""
             />
             <FormInput
@@ -269,40 +286,65 @@ export default function CreateAcademicForm() {
               options={[
                 {
                   label: "ระดับชาติ",
-                  value: "ระดับชาติ",
+                  value: "1",
                 },
                 {
                   label: "ระดับนานาชาติ",
-                  value: "ระดับนานาชาติ",
+                  value: "2",
                 },
               ]}
-              value={formData.type3}
-              onChange={(value) => handleInputChange("type3", value)}
+              value={formData.level}
+              onChange={(value) => handleInputChange("level", value)}
             />
-            <FormSelect
-              label="ประเทศ"
-              required
-              value={formData.icType}
-              onChange={(value) => handleInputChange("impact", value)}
-              className="max-w-lg"
-              options={[{ value: null, label: "เลือกประเทศ" }]}
+            <FormRadio
+              disabled={formData.level === "1"}
+              inline={true}
+              label=""
+              options={[
+                {
+                  label: "วารสารที่อยู่ในฐานข้อมูล",
+                  value: "1",
+                },
+                {
+                  label: "วารสารที่ไม่อยู่ในฐานข้อมูล",
+                  value: "2",
+                },
+              ]}
+              value={formData.isJournalDatabase}
+              onChange={(value) => handleInputChange("isJournalDatabase", value)}
             />
-            <FormSelect
-              label="มลรัฐ/จังหวัด"
-              required
-              value={formData.icType}
-              onChange={(value) => handleInputChange("impact", value)}
-              className="max-w-lg"
-              options={[{ value: null, label: "เลือกมลรัฐ/จังหวัด" }]}
-            />
-            <FormSelect
-              label="เมือง"
-              required
-              value={formData.icType}
-              onChange={(value) => handleInputChange("impact", value)}
-              className="max-w-lg"
-              options={[{ value: null, label: "เลือกเมือง" }]}
-            />
+            {formData.isJournalDatabase == "1" && (
+              <div>
+                <FormCheckbox
+                  label="จากฐานข้อมูล"
+                  inline={true}
+                  col={2}
+                  options={[
+                    {
+                      label: "Scopus",
+                      value: "1",
+                    },
+                    {
+                      label: "Web of Science",
+                      value: "2",
+                    },
+                    {
+                      label: "ABDC",
+                      value: "3",
+                    },
+                    {
+                      label: "AJG",
+                      value: "4",
+                    }, {
+                      label: "Social Science Research Network",
+                      value: "5",
+                    }
+                  ]}
+                  value={formData.inDatabase}
+                  onChange={(value) => handleCheckboxChange("inDatabase", !value)}
+                />
+              </div>
+            )}
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
@@ -319,6 +361,22 @@ export default function CreateAcademicForm() {
               required
               value={formData.fundName}
               onChange={(value) => handleInputChange("fundName", value)}
+              placeholder=""
+            />
+          </FormFieldBlock>
+          <FormFieldBlock>
+            <FormTextarea
+              label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
+              required
+              value={formData.thaiAbstract}
+              onChange={(value) => handleInputChange("thaiAbstract", value)}
+              placeholder=""
+            />
+            <FormTextarea
+              label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
+              required
+              value={formData.englishAbstract}
+              onChange={(value) => handleInputChange("englishAbstract", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -362,6 +420,17 @@ export default function CreateAcademicForm() {
                 />
                 ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)
               </label>
+            </div>
+            <div>
+              <FormModal
+                mini={false}
+                label="ชื่อผู้ร่วมงาน"
+                btnText="คลิกเพื่อเลือกชื่อผู้ร่วมงาน"
+                type="text"
+                value={formData.subProjectName}
+                onChange={(value) => handleInputChange("subProjectName", value)}
+                placeholder=""
+              />
             </div>
             <div>
               <FormInput

@@ -9,9 +9,10 @@ export default function FormCheckbox({
   className = "",
   inline = false,
   options = [],
+  col = null
 }) {
   return (
-    <div className="space-y-1 flex items-center flex-wrap">
+    <div className="space-y-1 flex items-start flex-wrap">
       <div className={inline ? "w-1/3" : "w-full"}>
         <label className="block text-sm font-medium text-gray-700">
           {label}
@@ -19,28 +20,54 @@ export default function FormCheckbox({
         </label>
       </div>
       <div className="flex-1">
-        <div className="flex gap-3 items-center">
-          {options &&
-            options.map((option) => (
-              <label key={option.value} className="flex items-center gap-3 text-zinc-700">
-                <input
-                  type={type}
-                  value={option.value}
-                  checked={value === option.value}
-                  onChange={(e) => onChange && onChange(e.target.value)}
-                  className={`
-                    text-zinc-700
-                    px-3 py-2 border border-gray-300 rounded-md
-                    placeholder-gray-400 focus:outline-none focus:ring-2
-                    focus:ring-blue-500 focus:border-blue-500
-                    transition-colors duration-200
-                    ${className}
-                `}
-                />
-                {option.label}
-              </label>
-            ))}
-        </div>
+        {col ? (
+          <div className="grid grid-cols-2 gap-4">
+            {options &&
+              options.map((option) => (
+                <label key={option.value} className="flex items-center gap-3 text-zinc-700">
+                  <input
+                    type={type}
+                    value={option.value}
+                    checked={value === option.value}
+                    onChange={(e) => onChange && onChange(e.target.value)}
+                    className={`
+                      text-zinc-700
+                      px-3 py-2 border border-gray-300 rounded-md
+                      placeholder-gray-400 focus:outline-none focus:ring-2
+                      focus:ring-blue-500 focus:border-blue-500
+                      transition-colors duration-200
+                      ${className}
+                  `}
+                  />
+                  {option.label}
+                </label>
+              ))}
+          </div>
+        ) : (
+            <div className="flex gap-4">
+              {options &&
+                options.map((option) => (
+                  <label key={option.value} className="flex items-center gap-3 text-zinc-700">
+                    <input
+                      type={type}
+                      value={option.value}
+                      checked={value === option.value}
+                      onChange={(e) => onChange && onChange(e.target.value)}
+                      className={`
+                      text-zinc-700
+                      px-3 py-2 border border-gray-300 rounded-md
+                      placeholder-gray-400 focus:outline-none focus:ring-2
+                      focus:ring-blue-500 focus:border-blue-500
+                      transition-colors duration-200
+                      ${className}
+                  `}
+                    />
+                    {option.label}
+                  </label>
+                ))}
+            </div>
+        )
+        }
       </div>
     </div>
   );

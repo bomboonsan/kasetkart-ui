@@ -76,6 +76,20 @@ export default function CreateFundingForm() {
               onChange={(value) => handleInputChange("subProjectName", value)}
               placeholder=""
             />
+            <div>
+                <button
+                  type="button"
+                  className={`
+                    font-medium py-2 px-4 rounded-md transition-colors duration-200
+                    focus:outline-none focus:ring-2 focus:ring-offset-2
+                    disabled:opacity-50 disabled:cursor-not-allowed
+                    text-zinc-600 text-sm
+                    bg-white hover:bg-gray-50 border border-gray-300 shadow-sm
+                  `}
+                >
+                เพิ่มผู้แต่งร่วม
+              </button>
+            </div>
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea

@@ -10,17 +10,11 @@ import {
   ChartArea,
   UsersRound,
   File,
+  FileUser,
 } from "lucide-react";
 
 
 const menuItems = [
-  {
-    id: "dashbaord",
-    url: "/dashboard",
-    icon: <LayoutDashboard />,
-    label: "แดชบอร์ด",
-    active: false,
-  },
   {
     id: "profile",
     url: "/dashboard/profile",
@@ -28,6 +22,13 @@ const menuItems = [
     label: "โปรไฟล์ของฉัน",
     active: false,
   },
+  {
+    id: "form/overview",
+    url: "/dashboard/form/overview",
+    icon: <FileUser />,
+    label: "โครงการของฉัน",
+    active: false,
+  },  
   // Forms will be rendered as a nav-group (collapsible). children are defined below
   {
     id: "dashboard/form/add",
@@ -72,17 +73,17 @@ const menuItems = [
         active: false,
       }
     ]
-  },  
-  {
-    id: "form/overview",
-    url: "/dashboard/form/overview",
-    icon: <UserPen />,
-    label: "โครงการของฉัน",
-    active: false,
-  },
+  },    
 ];
 
 const adminMenuItems = [
+  {
+    id: "dashbaord",
+    url: "/dashboard",
+    icon: <LayoutDashboard />,
+    label: "แดชบอร์ด",
+    active: false,
+  },
   {
     id: "reports",
     url: "/dashboard/report",

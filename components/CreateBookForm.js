@@ -4,6 +4,7 @@ import { useState } from 'react'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
+import FormModal from './FormModal'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from './FormCheckbox'
@@ -171,6 +172,17 @@ export default function CreateBookForm() {
                 />
                 ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)
               </label>
+            </div>
+            <div>
+              <FormModal
+                mini={false}
+                label="ชื่อผู้ร่วมงาน"
+                btnText="คลิกเพื่อเลือกชื่อผู้ร่วมงาน"
+                type="text"
+                value={formData.subProjectName}
+                onChange={(value) => handleInputChange("subProjectName", value)}
+                placeholder=""
+              />
             </div>
             <div>
               <FormInput

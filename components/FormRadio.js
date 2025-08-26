@@ -24,6 +24,7 @@ export default function FormRadio({
             options.map((option) => (
               <label key={option.value} className="flex items-center gap-3 text-zinc-700">
                 <input
+                  disabled={disabled}
                   type={type}
                   value={option.value}
                   checked={value === option.value}
