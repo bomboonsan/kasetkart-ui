@@ -38,7 +38,7 @@ const menuItems = [
     active: false,
     children: [
       {
-        id: "conference",
+        id: "project",
         url: "/dashboard/form/create",
         icon: <File />,
         label: "ทุนโครงการวิจัย",
@@ -108,7 +108,8 @@ export default function Sidebar() {
   }
 
   return (
-    <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
+    <div className="sticky top-0 w-64 bg-white border-r border-gray-200 h-screen flex flex-col justify-between">
+      <div>
       {/* Logo */}
       <div className="p-4 border-b border-gray-200">
         <div className="flex items-center space-x-2">
@@ -211,6 +212,19 @@ export default function Sidebar() {
           ))}
         </ul>
       </nav>
+      </div>
+
+      {/* User Detail */}
+      <div className="px-6">
+        <hr className="my-4 border-gray-200" />
+        <div className="flex items-center py-2">
+          <div className="w-10 h-10 rounded-full bg-gray-300 mr-3"></div>
+          <div>
+            <p className="text-sm text-gray-900">ธีรวิชญ์ วงศเพียร</p>
+            <Link href="/dashboard/profile" className="text-xs text-gray-600">โปรไฟล์ของฉัน</Link>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
