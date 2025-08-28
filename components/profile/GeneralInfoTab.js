@@ -1,0 +1,210 @@
+'use client'
+
+import { useState } from 'react'
+import ProfileImageUpload from './ProfileImageUpload'
+import FormField from '@/components/FormField'
+import SelectField from '@/components/SelectField'
+import Button from '@/components/Button'
+import { Trash2 } from "lucide-react"
+
+export default function GeneralInfoTab() {
+  const [formData, setFormData] = useState({
+    firstName: 'ธีรวิชญ์',
+    lastName: 'วงศเพียร',
+    email: 'theerawich@ku.ac.th',
+    phone: '+66-2-942-8177 ต่อ 111205',
+    nameEn: 'Theerawich Wongpaye',
+    academicPosition: 'ผศ.ดร.',
+    department: 'Accounting & Finance'
+  })
+
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleSave = () => {
+    console.log('Saving profile data:', formData)
+    // TODO: Implement save logic
+  }
+
+  const handleCancel = () => {
+    // TODO: Implement cancel logic or navigate back
+    console.log('Cancel edit')
+  }
+
+  const [educations, setEducations] = useState([
+    { degree: '', institution: 'มหาวิทยาลัยเกษตรศาสตร์', major: 'Accounting & Finance', year: '2010' },
+    { degree: 'ปริญญาโท', institution: 'มหาวิทยาลัยเกษตรศาสตร์', major: 'Accounting & Finance', year: '2010' },
+    { degree: 'ปริญญาตรี', institution: 'มหาวิทยาลัยเกษตรศาสตร์', major: 'Accounting & Finance', year: '2024' }
+  ])
+
+  const addEducation = () => {
+    setEducations(prev => [...prev, { degree: '', institution: '', major: '', year: '' }])
+  }
+
+  const updateEducation = (index, field, value) => {
+    setEducations(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e))
+  }
+
+  const removeEducation = (index) => {
+    setEducations(prev => prev.filter((_, i) => i !== index))
+  }
+
+  return (
+    <>
+      <div className='bg-white rounded-lg shadow-sm'>
+
+        <div className="space-y-8 p-6">
+          {/* Profile Image Section */}
+          <div className="space-y-4 lg:space-y-0 lg:space-x-8">
+            <div className="">
+              <ProfileImageUpload />
+            </div>
+
+            <div className="flex-1 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  label="ชื่อ"
+                  value={formData.firstName}
+                  onChange={(value) => handleInputChange('firstName', value)}
+                  placeholder="กรุณาระบุชื่อ"
+                />
+                <FormField
+                  label="นามสกุล"
+                  value={formData.lastName}
+                  onChange={(value) => handleInputChange('lastName', value)}
+                  placeholder="กรุณาระบุนามสกุล"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  label="ตำแหน่งทางวิชาการ"
+                  value={formData.academicPosition}
+                  onChange={(value) => handleInputChange('academicPosition', value)}
+                  placeholder=""
+                />
+                <FormField
+                  label="อีเมล"
+                  type="email"
+                  value={formData.email}
+                  onChange={(value) => handleInputChange('email', value)}
+                  placeholder="กรุณาระบุอีเมล"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  label="เบอร์ติดต่อ"
+                  value={formData.phone}
+                  onChange={(value) => handleInputChange('phone', value)}
+                  placeholder=""
+                />
+                <FormField
+                  label="ภาควิชา"
+                  value={formData.department}
+                  onChange={(value) => handleInputChange('department', value)}
+                  placeholder="กรุณาระบุภาควิชา"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex justify-start space-x-4">
+            <Button variant="primary" onClick={handleSave}>
+              บันทึก
+            </Button>
+            <Button variant="outline" onClick={handleCancel}>
+              ยกเลิก
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className='bg-white rounded-lg shadow-sm mt-6'>
+        <div className="space-y-6 p-6">
+          <h2 className='text-lg text-gray-900'>วุฒิการศึกษา</h2>
+
+          <div className="space-y-4">
+            {educations.map((edu, idx) => (
+              <div key={idx} className="grid grid-cols-12 gap-4 items-end pb-4 border-b last:border-b-0">
+                <div className="col-span-12 md:col-span-3">
+                  <label className="block text-sm text-gray-600 mb-1">ระดับวุฒิการศึกษา</label>
+                  <select
+                    value={edu.degree}
+                    onChange={(e) => updateEducation(idx, 'degree', e.target.value)}
+                    className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-white"
+                  >
+                    <option value="">เลือกระดับวุฒิการศึกษา</option>
+                    <option value="ปริญญาตรี">ปริญญาตรี</option>
+                    <option value="ปริญญาโท">ปริญญาโท</option>
+                    <option value="ปริญญาเอก">ปริญญาเอก</option>
+                  </select>
+                </div>
+
+                <div className="col-span-12 md:col-span-4">
+                  <FormField
+                    label="ชื่อสถาบันการศึกษา"
+                    value={edu.institution}
+                    onChange={(value) => updateEducation(idx, 'institution', value)}
+                    placeholder="กรุณาระบุชื่อสถาบันการศึกษา"
+                  />
+                </div>
+
+                <div className="col-span-12 md:col-span-3">
+                  <FormField
+                    label="สาขาวิชา"
+                    value={edu.major}
+                    onChange={(value) => updateEducation(idx, 'major', value)}
+                    placeholder="กรุณาระบุสาขาวิชา"
+                  />
+                </div>
+
+                <div className="col-span-9 md:col-span-1">
+                  <FormField
+                    label="ปีที่สำเร็จ"
+                    value={edu.year}
+                    onChange={(value) => updateEducation(idx, 'year', value)}
+                    placeholder="ปี"
+                  />
+                </div>
+
+                <div className="col-span-3 md:col-span-1 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => removeEducation(idx)}
+                    className="w-10 h-10 inline-flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200"
+                    aria-label={`ลบวุฒิการศึกษา ${idx + 1}`}
+                  >
+                    <Trash2 className="h-4 w-4 text-gray-600" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex items-center space-x-4 pt-2">
+            <button
+              type="button"
+              onClick={addEducation}
+              className="inline-flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+              </svg>
+              <span>เพิ่มวุฒิการศึกษา</span>
+            </button>
+
+            <Button variant="primary" onClick={() => { console.log('Save educations', educations) }}>
+              บันทึก
+            </Button>
+            <Button variant="outline" onClick={() => { console.log('Cancel educations edit') }}>
+              ยกเลิก
+            </Button>
+          </div>
+        </div>
+      </div>
+    </>
+  )
+}

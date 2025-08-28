@@ -1,6 +1,6 @@
 'use client'
 import { User , LockKeyhole , Bell } from "lucide-react"
-export default function SecurityTab({ activeTab, onTabChange }) {
+export default function ProfileEditTabs({ activeTab, onTabChange }) {
   const tabs = [
     { id: 'general', label: 'บัญชีของฉัน', icon: <User /> },
     { id: 'security', label: 'ตั้งค่าความปลอดภัย', icon: <LockKeyhole /> },

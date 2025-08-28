@@ -1,10 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import ProfileEditTabs from './ProfileEditTabs'
 import GeneralInfoTab from './GeneralInfoTab'
-import WorkInfoTab from './WorkInfoTab'
-import SystemAccessTab from './SystemAccessTab'
+import ProfileEditTabs from './ProfileEditTabs'
+import NotificationTab from './NotificationTab'
+import SecurityTab from './SecurityTab'
 
 export default function ProfileEditForm() {
   const [activeTab, setActiveTab] = useState('general')
@@ -14,9 +14,9 @@ export default function ProfileEditForm() {
       case 'general':
         return <GeneralInfoTab />
       case 'security':
-        return <WorkInfoTab />
+        return <SecurityTab />
       case 'notification':
-        return <SystemAccessTab />
+        return <NotificationTab />
       default:
         return <GeneralInfoTab />
     }
@@ -28,11 +28,7 @@ export default function ProfileEditForm() {
         activeTab={activeTab} 
         onTabChange={setActiveTab} 
       />
-  <div className="bg-white rounded-lg shadow-sm">      
-    <div className="p-6">
       {renderTabContent()}
-    </div>
-    </div>
     </>
   )
 }
