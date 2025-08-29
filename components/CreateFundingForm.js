@@ -15,26 +15,20 @@ import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 
 export default function CreateFundingForm() {
+  // Align to FundingDetail fields
   const [formData, setFormData] = useState({
-    year: "2568",
-    type: "",
-    type2: "",
-    type3: "",
-    subProjectCount: "",
-    titleThai: "",
-    titleEnglish: "",
-
-    budget: "",
-    thaiAbstract: "",
-    englishAbstract: "",
-    objectives: "",
-    methodology: "",
-    researcher: "",
-    coResearcher: "",
-    budget: "",
-    funding: "",
-    impact: "",
-    sdg: "",
+    fullName: "", // FundingDetail.fullName
+    position: "", // FundingDetail.position
+    faculty: "", // FundingDetail.faculty
+    kind: "", // FundingDetail.kind
+    contentDesc: "", // FundingDetail.contentDesc
+    priorWorks: "", // FundingDetail.priorWorks
+    objectives: "", // FundingDetail.objectives
+    targetAudience: "", // FundingDetail.targetAudience
+    chaptersOutline: "", // FundingDetail.chaptersOutline
+    approxPages: "", // FundingDetail.approxPages
+    approxTimeline: "", // FundingDetail.approxTimeline
+    bibliography: "", // FundingDetail.bibliography
     attachments: [],
   });
 
@@ -56,24 +50,24 @@ export default function CreateFundingForm() {
               mini={false}
               label="ชื่อ-นามสกุล"
               type="text"
-              value={formData.subProjectName}
-              onChange={(value) => handleInputChange("subProjectName", value)}
+              value={formData.fullName}
+              onChange={(value) => handleInputChange("fullName", value)}
               placeholder=""
             />
             <FormInput
               mini={false}
               label="ตำแหน่ง"
               type="text"
-              value={formData.subProjectName}
-              onChange={(value) => handleInputChange("subProjectName", value)}
+              value={formData.position}
+              onChange={(value) => handleInputChange("position", value)}
               placeholder=""
             />
             <FormInput
               mini={false}
               label="สังกัดคณะ/สถาบัน"
               type="text"
-              value={formData.subProjectName}
-              onChange={(value) => handleInputChange("subProjectName", value)}
+              value={formData.faculty}
+              onChange={(value) => handleInputChange("faculty", value)}
               placeholder=""
             />
             <div>
@@ -94,32 +88,32 @@ export default function CreateFundingForm() {
           <FormFieldBlock>
             <FormTextarea
               label="คำอธิบายเนื้อหาของตำราหรือหนังสือ"
-              value={formData.titleEnglish}
-              onChange={(value) => handleInputChange("titleEnglish", value)}
+              value={formData.contentDesc}
+              onChange={(value) => handleInputChange("contentDesc", value)}
               placeholder=""
             />
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
               label="เอกสารทางวิชาการ ตำรา หรือ หนังสือ <br/> ที่ผู้ขอทุนเคยมีประสบการณ์แต่งมาแล้ว (ถ้ามีโปรดระบุ)"
-              value={formData.titleEnglish}
-              onChange={(value) => handleInputChange("titleEnglish", value)}
+              value={formData.priorWorks}
+              onChange={(value) => handleInputChange("priorWorks", value)}
               placeholder=""
             />
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
               label="วัตถุประสงค์ของตำราหรือหนังสือ"
-              value={formData.titleEnglish}
-              onChange={(value) => handleInputChange("titleEnglish", value)}
+              value={formData.objectives}
+              onChange={(value) => handleInputChange("objectives", value)}
               placeholder=""
             />
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
               label="กลุ่มเป้าหมายของตำราหรือหนังสือ"
-              value={formData.titleThai}
-              onChange={(value) => handleInputChange("titleThai", value)}
+              value={formData.targetAudience}
+              onChange={(value) => handleInputChange("targetAudience", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -132,8 +126,8 @@ export default function CreateFundingForm() {
                 • ระบุหัวข้อในแต่ละบท พร้อมอธิบายเนื้อหาโดยสรุปเกี่ยวกับหัวข้อในบท
                 </span>
                 `}
-              value={formData.titleThai}
-              onChange={(value) => handleInputChange("titleThai", value)}
+              value={formData.chaptersOutline}
+              onChange={(value) => handleInputChange("chaptersOutline", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -142,8 +136,8 @@ export default function CreateFundingForm() {
               mini={true}
               label="ตำรา หรือ หนังสือ มีจำนวนประมาณ"
               type="text"
-              value={formData.subProjectName}
-              onChange={(value) => handleInputChange("subProjectName", value)}
+              value={formData.approxPages}
+              onChange={(value) => handleInputChange("approxPages", value)}
               placeholder=""
               after="หน้า"
             />
@@ -153,8 +147,8 @@ export default function CreateFundingForm() {
               mini={true}
               label="ระยะเวลา (ปี หรือ เดือน) ที่จะใช้ในการเขียนประมาณ"
               type="text"
-              value={formData.subProjectName}
-              onChange={(value) => handleInputChange("subProjectName", value)}
+              value={formData.approxTimeline}
+              onChange={(value) => handleInputChange("approxTimeline", value)}
               placeholder=""
               after="(ระบุเป้นช่วงเวลาได้)"
             />
@@ -167,8 +161,8 @@ export default function CreateFundingForm() {
                 เพิ่มเติมความเหมาะสมได้
                 </span>
                 `}
-              value={formData.titleThai}
-              onChange={(value) => handleInputChange("titleThai", value)}
+              value={formData.bibliography}
+              onChange={(value) => handleInputChange("bibliography", value)}
               placeholder=""
             />
           </FormFieldBlock>

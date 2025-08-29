@@ -16,26 +16,35 @@ import Button from './Button'
 import Link from 'next/link'
 
 export default function CreateResearchForm() {
+  // Align form keys to Project model in schema.prisma
   const [formData, setFormData] = useState({
-    year: "2568",
-    type: "",
-    type2: "",
-    type3: "",
-    subProjectCount: "",
-    titleThai: "",
-    titleEnglish: "",
+    fiscalYear: "2568", // Project.fiscalYear (Int)
+    projectType: "", // Project.projectType (String)
+    projectMode: "", // Project.projectMode (String)
+    subProjectCount: "", // Project.subProjectCount (Int)
+    nameTh: "", // Project.nameTh (Text)
+    nameEn: "", // Project.nameEn (Text)
 
-    budget: "",
-    thaiAbstract: "",
-    englishAbstract: "",
-    objectives: "",
-    methodology: "",
-    researcher: "",
-    coResearcher: "",
-    budget: "",
-    funding: "",
-    impact: "",
-    sdg: "",
+    isEnvironmentallySustainable: undefined, // Project.isEnvironmentallySustainable (Boolean)
+    durationStart: "", // Project.durationStart (DateTime)
+    durationEnd: "", // Project.durationEnd (DateTime)
+
+    researchKind: "", // Project.researchKind (String)
+    fundType: "", // Project.fundType (String)
+    fundName: "", // Project.fundName (String)
+    budget: "", // Project.budget (Int)
+    keywords: "", // Project.keywords (Text)
+    icTypes: "", // Project.icTypes (String)
+    impact: "", // Project.impact (String)
+    sdg: "", // Project.sdg (String)
+
+    // ProjectPartner-like fields for the team section
+    isInternal: undefined, // ProjectPartner.isInternal (Boolean)
+    fullname: "", // ProjectPartner.fullname (String)
+    orgName: "", // ProjectPartner.orgName (String)
+    partnerType: "", // ProjectPartner.partnerType (String)
+    proportion: "", // ProjectPartner.proportion (Int)
+
     attachments: [],
   });
 
@@ -58,8 +67,8 @@ export default function CreateResearchForm() {
               mini={true}
               label="ปีงบประมาณ"
               type="number"
-              value={formData.year}
-              onChange={(value) => handleInputChange("year", value)}
+              value={formData.fiscalYear}
+              onChange={(value) => handleInputChange("fiscalYear", value)}
               placeholder="2568"
             />
           </FormFieldBlock>
@@ -75,8 +84,8 @@ export default function CreateResearchForm() {
                   value: "โครงการพัฒนาวิชาการประเภทงานวิจัย",
                 },
               ]}
-              value={formData.type}
-              onChange={(value) => handleInputChange("type", value)}
+              value={formData.projectType}
+              onChange={(value) => handleInputChange("projectType", value)}
             />
           </FormFieldBlock>
           <FormFieldBlock>
@@ -91,8 +100,8 @@ export default function CreateResearchForm() {
                   value: "แผนงานวิจัย หรือชุดโครงการวิจัย",
                 },
               ]}
-              value={formData.type2}
-              onChange={(value) => handleInputChange("type2", value)}
+              value={formData.projectMode}
+              onChange={(value) => handleInputChange("projectMode", value)}
             />
           </FormFieldBlock>
 
@@ -110,8 +119,8 @@ export default function CreateResearchForm() {
           <FormFieldBlock className="grid grid-cols-1 gap-6">
             <FormTextarea
               label="ชื่อแผนงานวิจัยหรือชุดโครงการวิจัย/โครงการวิจัย (ไทย)"
-              value={formData.titleThai}
-              onChange={(value) => handleInputChange("titleThai", value)}
+              value={formData.nameTh}
+              onChange={(value) => handleInputChange("nameTh", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -119,8 +128,8 @@ export default function CreateResearchForm() {
           <FormFieldBlock className="grid grid-cols-1 gap-6">
             <FormTextarea
               label="ชื่อแผนงานวิจัยหรือชุดโครงการวิจัย/โครงการวิจัย (อังกฤษ)"
-              value={formData.titleEnglish}
-              onChange={(value) => handleInputChange("titleEnglish", value)}
+              value={formData.nameEn}
+              onChange={(value) => handleInputChange("nameEn", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -130,11 +139,9 @@ export default function CreateResearchForm() {
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="เกี่ยวข้อง กับสิ่งแวดล้อมและความยั่งยืน"
-                  checked={
-                    formData.type3 === "เกี่ยวข้อง กับสิ่งแวดล้อมและความยั่งยืน"
-                  }
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
+                  value="true"
+                  checked={formData.isEnvironmentallySustainable === true}
+                  onChange={() => handleInputChange("isEnvironmentallySustainable", true)}
                   className={`
                     text-zinc-700
                     px-3 py-2 border border-gray-300 rounded-md
@@ -148,12 +155,9 @@ export default function CreateResearchForm() {
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="ไม่เกี่ยวข้อง กับสิ่งแวดล้อมและความยั่งยืน"
-                  checked={
-                    formData.type3 ===
-                    "ไม่เกี่ยวข้อง กับสิ่งแวดล้อมและความยั่งยืน"
-                  }
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
+                  value="false"
+                  checked={formData.isEnvironmentallySustainable === false}
+                  onChange={() => handleInputChange("isEnvironmentallySustainable", false)}
                   className={`
                     text-zinc-700
                     px-3 py-2 border border-gray-300 rounded-md
@@ -178,19 +182,15 @@ export default function CreateResearchForm() {
               <div>
                 <FormDateSelect
                   title="เริ่มต้น"
-                  value={formData.researchDuration}
-                  onChange={(value) =>
-                    handleInputChange("researchDuration", value)
-                  }
+                  value={formData.durationStart}
+                  onChange={(value) => handleInputChange("durationStart", value)}
                 />
               </div>
               <div>
                 <FormDateSelect
                   title="สิ้นสุด"
-                  value={formData.researchDuration}
-                  onChange={(value) =>
-                    handleInputChange("researchDuration", value)
-                  }
+                  value={formData.durationEnd}
+                  onChange={(value) => handleInputChange("durationEnd", value)}
                 />
               </div>
             </div>
@@ -200,8 +200,8 @@ export default function CreateResearchForm() {
             <FormSelect
               label="หน่วยงานหลักที่รับผิดชอบโครงการวิจัย (หน่วยงานที่ขอทุน)"
               required
-              value={formData.researchType}
-              onChange={(value) => handleInputChange("researchType", value)}
+              value={formData.orgName}
+              onChange={(value) => handleInputChange("orgName", value)}
               className="max-w-lg"
               options={[{ value: null, label: "คณะบริหารธุรกิจ" }]}
             />
@@ -211,8 +211,8 @@ export default function CreateResearchForm() {
             <FormSelect
               label="ประเภทงานวิจัย"
               required
-              value={formData.researchType}
-              onChange={(value) => handleInputChange("researchType", value)}
+              value={formData.researchKind}
+              onChange={(value) => handleInputChange("researchKind", value)}
               className="max-w-lg"
               options={[{ value: null, label: "เลือกประเภทงานวิจัย" }]}
             />
@@ -245,8 +245,8 @@ export default function CreateResearchForm() {
               required
               label="งบวิจัย"
               type="number"
-              value={formData.subProjectCount}
-              onChange={(value) => handleInputChange("subProjectCount", value)}
+              value={formData.budget}
+              onChange={(value) => handleInputChange("budget", value)}
               placeholder="0"
             />
           </FormFieldBlock>
@@ -265,8 +265,8 @@ export default function CreateResearchForm() {
             <FormSelect
               label="IC Types"
               required
-              value={formData.icType}
-              onChange={(value) => handleInputChange("icType", value)}
+              value={formData.icTypes}
+              onChange={(value) => handleInputChange("icTypes", value)}
               className="max-w-lg"
               options={[{ value: null, label: "เลือกข้อมูล" }]}
             />
@@ -274,7 +274,7 @@ export default function CreateResearchForm() {
             <FormSelect
               label="Impact"
               required
-              value={formData.icType}
+              value={formData.impact}
               onChange={(value) => handleInputChange("impact", value)}
               className="max-w-lg"
               options={[{ value: null, label: "เลือกข้อมูล" }]}
@@ -283,7 +283,7 @@ export default function CreateResearchForm() {
             <FormSelect
               label="SDG"
               required
-              value={formData.icType}
+              value={formData.sdg}
               onChange={(value) => handleInputChange("sdg", value)}
               className="max-w-lg"
               options={[{ value: null, label: "เลือกข้อมูล" }]}
@@ -297,9 +297,9 @@ export default function CreateResearchForm() {
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="ภายใน มก."
-                  checked={formData.type3 === "ภายใน มก."}
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
+                  value="true"
+                  checked={formData.isInternal === true}
+                  onChange={() => handleInputChange("isInternal", true)}
                   className={`
                       text-zinc-700
                       px-3 py-2 border border-gray-300 rounded-md
@@ -313,12 +313,9 @@ export default function CreateResearchForm() {
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)"
-                  checked={
-                    formData.type3 ===
-                    "ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)"
-                  }
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
+                  value="false"
+                  checked={formData.isInternal === false}
+                  onChange={() => handleInputChange("isInternal", false)}
                   className={`
                       text-zinc-700
                       px-3 py-2 border border-gray-300 rounded-md
@@ -336,8 +333,8 @@ export default function CreateResearchForm() {
                 label="ผู้ร่วมโครงการวิจัย"
                 btnText="คลิกเพื่อเลือกผู้ร่วมโครงการวิจัย"
                 type="text"
-                value={formData.subProjectName}
-                onChange={(value) => handleInputChange("subProjectName", value)}
+                value={formData.fullname}
+                onChange={(value) => handleInputChange("fullname", value)}
                 placeholder=""
               />
             </div>
@@ -346,8 +343,8 @@ export default function CreateResearchForm() {
                 mini={false}
                 label="ชื่อหน่วยงาน"
                 type="text"
-                value={formData.subProjectName}
-                onChange={(value) => handleInputChange("subProjectName", value)}
+                value={formData.orgName}
+                onChange={(value) => handleInputChange("orgName", value)}
                 placeholder=""
               />
             </div>
@@ -355,8 +352,8 @@ export default function CreateResearchForm() {
               <FormSelect
                 label="ประเภทผู้ร่วมโครงการวิจัย"
                 required
-                value={formData.icType}
-                onChange={(value) => handleInputChange("impact", value)}
+                value={formData.partnerType}
+                onChange={(value) => handleInputChange("partnerType", value)}
                 className="max-w-lg"
                 options={[
                   { value: null, label: "เลือกประเภทผู้ร่วมโครงการวิจัย" },
@@ -368,8 +365,8 @@ export default function CreateResearchForm() {
                 mini={false}
                 label="สัดส่วนการวิจัย"
                 type="text"
-                value={formData.subProjectName}
-                onChange={(value) => handleInputChange("subProjectName", value)}
+                value={formData.proportion}
+                onChange={(value) => handleInputChange("proportion", value)}
                 placeholder="0.00%"
               />
             </div>

@@ -16,26 +16,20 @@ import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 
 export default function CreateBookForm() {
+  // Align to BookDetail fields
   const [formData, setFormData] = useState({
-    year: "2568",
-    type: "",
-    type2: "",
-    type3: "",
-    subProjectCount: "",
-    titleThai: "",
-    titleEnglish: "",
+    kind: "", // BookDetail.kind (หนังสือ/ตำรา)
+    titleTh: "", // BookDetail.titleTh
+    titleEn: "", // BookDetail.titleEn
+    detail: "", // BookDetail.detail
+    level: "", // BookDetail.level (NATIONAL/INTERNATIONAL)
+    occurredAt: "", // BookDetail.occurredAt (Date)
 
-    budget: "",
-    thaiAbstract: "",
-    englishAbstract: "",
-    objectives: "",
-    methodology: "",
-    researcher: "",
-    coResearcher: "",
-    budget: "",
-    funding: "",
-    impact: "",
-    sdg: "",
+    // team-like
+    isInternal: undefined,
+    fullname: "",
+    orgName: "",
+    partnerType: "",
     attachments: [],
   });
 
@@ -67,24 +61,24 @@ export default function CreateBookForm() {
                   value: "ตำรา",
                 },
               ]}
-              value={formData.type}
-              onChange={(value) => handleInputChange("type", value)}
+              value={formData.kind}
+              onChange={(value) => handleInputChange("kind", value)}
             />
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
               required
-              value={formData.titleThai}
-              onChange={(value) => handleInputChange("titleThai", value)}
+              value={formData.titleTh}
+              onChange={(value) => handleInputChange("titleTh", value)}
               placeholder=""
             />
 
             <FormTextarea
               label="ชื่อผลงาน (อังกฤษ)"
               required
-              value={formData.titleEnglish}
-              onChange={(value) => handleInputChange("titleEnglish", value)}
+              value={formData.titleEn}
+              onChange={(value) => handleInputChange("titleEn", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -92,8 +86,8 @@ export default function CreateBookForm() {
             <FormTextarea
               label="รายละเอียดเบื่องต้นของหนังสือ หรือ ตำรา"
               required
-              value={formData.titleThai}
-              onChange={(value) => handleInputChange("titleThai", value)}
+              value={formData.detail}
+              onChange={(value) => handleInputChange("detail", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -105,22 +99,22 @@ export default function CreateBookForm() {
               options={[
                 {
                   label: "ระดับชาติ",
-                  value: "ระดับชาติ",
+                  value: "NATIONAL",
                 },
                 {
                   label: "ระดับนานาชาติ",
-                  value: "ระดับนานาชาติ",
+                  value: "INTERNATIONAL",
                 },
               ]}
-              value={formData.type}
-              onChange={(value) => handleInputChange("type", value)}
+              value={formData.level}
+              onChange={(value) => handleInputChange("level", value)}
             />
             <FormInput
               mini={false}
               label="วันที่เกิดผลงาน"
               type="date"
-              value={formData.subProjectName}
-              onChange={(value) => handleInputChange("subProjectName", value)}
+              value={formData.occurredAt}
+              onChange={(value) => handleInputChange("occurredAt", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -140,9 +134,9 @@ export default function CreateBookForm() {
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="ภายใน มก."
-                  checked={formData.type3 === "ภายใน มก."}
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
+                  value="true"
+                  checked={formData.isInternal === true}
+                  onChange={() => handleInputChange("isInternal", true)}
                   className={`
                       text-zinc-700
                       px-3 py-2 border border-gray-300 rounded-md
@@ -156,12 +150,9 @@ export default function CreateBookForm() {
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)"
-                  checked={
-                    formData.type3 ===
-                    "ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)"
-                  }
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
+                  value="false"
+                  checked={formData.isInternal === false}
+                  onChange={() => handleInputChange("isInternal", false)}
                   className={`
                       text-zinc-700
                       px-3 py-2 border border-gray-300 rounded-md
@@ -179,8 +170,8 @@ export default function CreateBookForm() {
                 label="ชื่อผู้ร่วมงาน"
                 btnText="คลิกเพื่อเลือกชื่อผู้ร่วมงาน"
                 type="text"
-                value={formData.subProjectName}
-                onChange={(value) => handleInputChange("subProjectName", value)}
+                value={formData.fullname}
+                onChange={(value) => handleInputChange("fullname", value)}
                 placeholder=""
               />
             </div>
@@ -189,8 +180,8 @@ export default function CreateBookForm() {
                 mini={false}
                 label="ชื่อหน่วยงาน"
                 type="text"
-                value={formData.subProjectName}
-                onChange={(value) => handleInputChange("subProjectName", value)}
+                value={formData.orgName}
+                onChange={(value) => handleInputChange("orgName", value)}
                 placeholder=""
               />
             </div>
@@ -204,8 +195,8 @@ export default function CreateBookForm() {
                     value: "ผู้รับผิดชอบบทความ",
                   },
                 ]}
-                value={formData.type}
-                onChange={(value) => handleInputChange("type", value)}
+                value={formData.partnerType}
+                onChange={(value) => handleInputChange("partnerType", value)}
               />
             </div>
           </FormFieldBlock>

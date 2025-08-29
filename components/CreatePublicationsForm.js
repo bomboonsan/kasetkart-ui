@@ -16,31 +16,37 @@ import ResearchTeamTable from "./ResearchTeamTable";
 import Button from "./Button";
 
 export default function CreateAcademicForm() {
+  // Align form keys to PublicationDetail model in schema.prisma
   const [formData, setFormData] = useState({
-    year: "2568",
-    type: "",
-    type2: "",
-    type3: "",
-    subProjectCount: "",
-    titleThai: "",
-    titleEnglish: "",
+    titleTh: "", // PublicationDetail.titleTh
+    titleEn: "", // PublicationDetail.titleEn
+    isEnvironmentallySustainable: undefined, // PublicationDetail.isEnvironmentallySustainable
 
-    budget: "",
-    thaiAbstract: "",
-    englishAbstract: "",
-    objectives: "",
-    methodology: "",
-    researcher: "",
-    coResearcher: "",
-    budget: "",
-    funding: "",
-    impact: "",
-    sdg: "",
+    journalName: "", // PublicationDetail.journalName
+    projectId: "", // For linking ResearchWork.projectId (placeholder)
+    doi: "", // PublicationDetail.doi
+    issn: "", // PublicationDetail.issn
+
+    durationYearStart: "", // PublicationDetail.durationYearStart
+    durationYearEnd: "", // PublicationDetail.durationYearEnd
+    // durationMonthStart/End could be added later if needed
+
+    level: "", // PublicationDetail.level (NATIONAL/INTERNATIONAL)
+    isJournalDatabase: undefined, // PublicationDetail.isJournalDatabase (Boolean)
+
+    // Database flags
+    scopus: undefined,
+    WebOfScience: undefined,
+    ABDC: undefined,
+    AJG: undefined,
+    SocialScienceResearchNetwork: undefined,
+
+    fundName: "", // PublicationDetail.fundName
+    keywords: "", // PublicationDetail.keywords
+    abstractTh: "", // PublicationDetail.abstractTh
+    abstractEn: "", // PublicationDetail.abstractEn
+
     attachments: [],
-
-    level: "",
-    isJournalDatabase: false,
-    inDatabase: []
   });
 
   const handleSubmit = (e) => {
@@ -63,16 +69,16 @@ export default function CreateAcademicForm() {
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
               required
-              value={formData.titleThai}
-              onChange={(value) => handleInputChange("titleThai", value)}
+              value={formData.titleTh}
+              onChange={(value) => handleInputChange("titleTh", value)}
               placeholder=""
             />
 
             <FormTextarea
               label="ชื่อผลงาน (อังกฤษ)"
               required
-              value={formData.titleEnglish}
-              onChange={(value) => handleInputChange("titleEnglish", value)}
+              value={formData.titleEn}
+              onChange={(value) => handleInputChange("titleEn", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -82,11 +88,9 @@ export default function CreateAcademicForm() {
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="เกี่ยวข้อง กับสิ่งแวดล้อมและความยั่งยืน"
-                  checked={
-                    formData.type3 === "เกี่ยวข้อง กับสิ่งแวดล้อมและความยั่งยืน"
-                  }
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
+                  value="true"
+                  checked={formData.isEnvironmentallySustainable === true}
+                  onChange={() => handleInputChange("isEnvironmentallySustainable", true)}
                   className={`
                     text-zinc-700
                     px-3 py-2 border border-gray-300 rounded-md
@@ -100,12 +104,9 @@ export default function CreateAcademicForm() {
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="ไม่เกี่ยวข้อง กับสิ่งแวดล้อมและความยั่งยืน"
-                  checked={
-                    formData.type3 ===
-                    "ไม่เกี่ยวข้อง กับสิ่งแวดล้อมและความยั่งยืน"
-                  }
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
+                  value="false"
+                  checked={formData.isEnvironmentallySustainable === false}
+                  onChange={() => handleInputChange("isEnvironmentallySustainable", false)}
                   className={`
                     text-zinc-700
                     px-3 py-2 border border-gray-300 rounded-md
@@ -120,10 +121,10 @@ export default function CreateAcademicForm() {
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
-              label="ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)"
+              label="ชื่อวารสาร/แหล่งตีพิมพ์"
               required
-              value={formData.titleThai}
-              onChange={(value) => handleInputChange("titleThai", value)}
+              value={formData.journalName}
+              onChange={(value) => handleInputChange("journalName", value)}
               placeholder=""
             />
             <FormModal
@@ -131,22 +132,22 @@ export default function CreateAcademicForm() {
               label="โครงการวิจัย"
               btnText="คลิกเพื่อเลือกโครงการวิจัย"
               type="text"
-              value={formData.subProjectName}
-              onChange={(value) => handleInputChange("subProjectName", value)}
+              value={formData.projectId}
+              onChange={(value) => handleInputChange("projectId", value)}
               placeholder=""
             />
             <FormInput
-              label="DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI"
+              label="DOI (ถ้าไม่มีให้ใส่ “-”)"
               type="text"
               value={formData.doi}
               onChange={(value) => handleInputChange("doi", value)}
               placeholder=""
             />
             <FormInput
-              label="ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)"
+              label="ISSN (ถ้ามี)"
               type="text"
-              value={formData.isbn}
-              onChange={(value) => handleInputChange("isbn", value)}
+              value={formData.issn}
+              onChange={(value) => handleInputChange("issn", value)}
               placeholder=""
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -160,31 +161,19 @@ export default function CreateAcademicForm() {
               <div>
                 <FormDateSelect
                   title="เริ่มต้น"
-                  value={formData.researchDuration}
-                  onChange={(value) =>
-                    handleInputChange("researchDuration", value)
-                  }
+                  value={formData.durationYearStart}
+                  onChange={(value) => handleInputChange("durationYearStart", value)}
                 />
               </div>
               <div>
                 <FormDateSelect
                   title="สิ้นสุด"
-                  value={formData.researchDuration}
-                  onChange={(value) =>
-                    handleInputChange("researchDuration", value)
-                  }
+                  value={formData.durationYearEnd}
+                  onChange={(value) => handleInputChange("durationYearEnd", value)}
                 />
               </div>
             </div>
-            <FormInput
-              mini={true}
-              required
-              label="ค่าใช้จ่าย"
-              type="number"
-              value={formData.subProjectCount}
-              onChange={(value) => handleInputChange("subProjectCount", value)}
-              placeholder="0"
-            />
+            {/* No cost field in PublicationDetail; omitted for schema alignment */}
             <FormRadio
               inline={true}
               required
@@ -199,8 +188,8 @@ export default function CreateAcademicForm() {
                   value: "เสนอเอง",
                 },
               ]}
-              value={formData.type}
-              onChange={(value) => handleInputChange("type", value)}
+              value={""}
+              onChange={() => {}}
             />
             <FormRadio
               inline={true}
@@ -220,8 +209,8 @@ export default function CreateAcademicForm() {
                   value: "เข้าร่วมประชุมวิชาการ",
                 },
               ]}
-              value={formData.type2}
-              onChange={(value) => handleInputChange("type2", value)}
+              value={""}
+              onChange={() => {}}
             />
             <FormRadio
               inline={true}
@@ -237,8 +226,8 @@ export default function CreateAcademicForm() {
                   value: "เรื่องเต็ม",
                 },
               ]}
-              value={formData.type3}
-              onChange={(value) => handleInputChange("type3", value)}
+              value={""}
+              onChange={() => {}}
             />
           </FormFieldBlock>
 
@@ -246,15 +235,15 @@ export default function CreateAcademicForm() {
             <FormTextarea
               label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
               required
-              value={formData.fundName}
-              onChange={(value) => handleInputChange("fundName", value)}
+              value={formData.abstractTh}
+              onChange={(value) => handleInputChange("abstractTh", value)}
               placeholder=""
             />
             <FormTextarea
               label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
               required
-              value={formData.fundName}
-              onChange={(value) => handleInputChange("fundName", value)}
+              value={formData.abstractEn}
+              onChange={(value) => handleInputChange("abstractEn", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -286,62 +275,70 @@ export default function CreateAcademicForm() {
               options={[
                 {
                   label: "ระดับชาติ",
-                  value: "1",
+                  value: "NATIONAL",
                 },
                 {
                   label: "ระดับนานาชาติ",
-                  value: "2",
+                  value: "INTERNATIONAL",
                 },
               ]}
               value={formData.level}
               onChange={(value) => handleInputChange("level", value)}
             />
             <FormRadio
-              disabled={formData.level === "1"}
+              disabled={formData.level === "NATIONAL"}
               inline={true}
               label=""
               options={[
                 {
                   label: "วารสารที่อยู่ในฐานข้อมูล",
-                  value: "1",
+                  value: "true",
                 },
                 {
                   label: "วารสารที่ไม่อยู่ในฐานข้อมูล",
-                  value: "2",
+                  value: "false",
                 },
               ]}
-              value={formData.isJournalDatabase}
-              onChange={(value) => handleInputChange("isJournalDatabase", value)}
+              value={String(formData.isJournalDatabase)}
+              onChange={(value) => handleInputChange("isJournalDatabase", value === "true")}
             />
-            {formData.isJournalDatabase == "1" && (
+            {formData.isJournalDatabase === true && (
               <div>
-                <FormCheckbox
-                  label="จากฐานข้อมูล"
+                {/* Flags for journal database presence */}
+                <FormRadio
                   inline={true}
-                  col={2}
-                  options={[
-                    {
-                      label: "Scopus",
-                      value: "1",
-                    },
-                    {
-                      label: "Web of Science",
-                      value: "2",
-                    },
-                    {
-                      label: "ABDC",
-                      value: "3",
-                    },
-                    {
-                      label: "AJG",
-                      value: "4",
-                    }, {
-                      label: "Social Science Research Network",
-                      value: "5",
-                    }
-                  ]}
-                  value={formData.inDatabase}
-                  onChange={(value) => handleCheckboxChange("inDatabase", !value)}
+                  label="Scopus"
+                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
+                  value={String(formData.scopus)}
+                  onChange={(value) => handleInputChange("scopus", value === "true")}
+                />
+                <FormRadio
+                  inline={true}
+                  label="Web of Science"
+                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
+                  value={String(formData.WebOfScience)}
+                  onChange={(value) => handleInputChange("WebOfScience", value === "true")}
+                />
+                <FormRadio
+                  inline={true}
+                  label="ABDC"
+                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
+                  value={String(formData.ABDC)}
+                  onChange={(value) => handleInputChange("ABDC", value === "true")}
+                />
+                <FormRadio
+                  inline={true}
+                  label="AJG"
+                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
+                  value={String(formData.AJG)}
+                  onChange={(value) => handleInputChange("AJG", value === "true")}
+                />
+                <FormRadio
+                  inline={true}
+                  label="Social Science Research Network"
+                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
+                  value={String(formData.SocialScienceResearchNetwork)}
+                  onChange={(value) => handleInputChange("SocialScienceResearchNetwork", value === "true")}
                 />
               </div>
             )}
@@ -359,8 +356,8 @@ export default function CreateAcademicForm() {
             <FormTextarea
               label="คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)"
               required
-              value={formData.fundName}
-              onChange={(value) => handleInputChange("fundName", value)}
+              value={formData.keywords}
+              onChange={(value) => handleInputChange("keywords", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -368,15 +365,15 @@ export default function CreateAcademicForm() {
             <FormTextarea
               label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
               required
-              value={formData.thaiAbstract}
-              onChange={(value) => handleInputChange("thaiAbstract", value)}
+              value={formData.abstractTh}
+              onChange={(value) => handleInputChange("abstractTh", value)}
               placeholder=""
             />
             <FormTextarea
               label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
               required
-              value={formData.englishAbstract}
-              onChange={(value) => handleInputChange("englishAbstract", value)}
+              value={formData.abstractEn}
+              onChange={(value) => handleInputChange("abstractEn", value)}
               placeholder=""
             />
           </FormFieldBlock>
