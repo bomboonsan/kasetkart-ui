@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
@@ -14,8 +14,10 @@ import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import { api } from '@/lib/api'
+import ProjectPicker from './ProjectPicker'
+import UserPicker from './UserPicker'
 
-export default function CreateFundingForm() {
+export default function CreateFundingForm({ mode = 'create', workId, initialData }) {
   // Align to FundingDetail fields
   const [formData, setFormData] = useState({
     fullName: "", // FundingDetail.fullName
@@ -30,11 +32,21 @@ export default function CreateFundingForm() {
     approxPages: "", // FundingDetail.approxPages
     approxTimeline: "", // FundingDetail.approxTimeline
     bibliography: "", // FundingDetail.bibliography
+    projectId: "",
     attachments: [],
   });
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+
+  // Prefill when editing
+  useEffect(() => {
+    if (!initialData) return
+    setFormData(prev => ({
+      ...prev,
+      ...initialData,
+    }))
+  }, [initialData])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -55,8 +67,31 @@ export default function CreateFundingForm() {
         approxTimeline: formData.approxTimeline || undefined,
         bibliography: formData.bibliography || undefined,
       }
-      await api.post('/works', { type: 'FUNDING', status: 'DRAFT', detail, authors: [], attachments: [] })
-      alert('บันทึกคำขอรับทุนเขียนตำราสำเร็จ')
+      const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
+      const authors = formData.userId ? [{ userId: parseInt(formData.userId), isCorresponding: true }] : []
+      const payload = { type: 'FUNDING', status: 'DRAFT', detail, authors, attachments }
+      if (mode === 'edit' && workId) {
+        await api.put(`/works/${workId}`, payload)
+        alert('อัปเดตคำขอรับทุนเขียนตำราสำเร็จ')
+      } else if (formData.projectId) {
+        // create under project context when projectId selected
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        const res = await fetch(`${base}/projects/${formData.projectId}/works`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+          body: JSON.stringify(payload),
+          credentials: 'include'
+        })
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}))
+          throw new Error(data?.error?.message || 'บันทึกไม่สำเร็จ')
+        }
+        alert('บันทึกคำขอรับทุนเขียนตำราสำเร็จ')
+      } else {
+        await api.post('/works', payload)
+        alert('บันทึกคำขอรับทุนเขียนตำราสำเร็จ')
+      }
     } catch (err) {
       setError(err.message || 'บันทึกไม่สำเร็จ')
     } finally {
@@ -76,6 +111,11 @@ export default function CreateFundingForm() {
         )}
         <FormSection title=" รายละเอียดของผู้แต่งร่วม (ถ้ามี)">
           <FormFieldBlock>
+            <ProjectPicker
+              label="โครงการวิจัย"
+              selectedProject={formData.__projectObj}
+              onSelect={(p) => setFormData(prev => ({ ...prev, projectId: String(p.id), __projectObj: p }))}
+            />
             <FormInput
               mini={false}
               label="ชื่อ-นามสกุล"
@@ -194,6 +234,27 @@ export default function CreateFundingForm() {
               value={formData.bibliography}
               onChange={(value) => handleInputChange("bibliography", value)}
               placeholder=""
+            />
+          </FormFieldBlock>
+          <FormFieldBlock>
+            <FileUploadField
+              label="อัปโหลดไฟล์"
+              onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
+              accept=".pdf,.doc,.docx"
+              multiple
+            />
+          </FormFieldBlock>
+        </FormSection>
+
+        <FormSection title="* ผู้ร่วมวิจัย">
+          <FormFieldBlock>
+            <UserPicker
+              label="ชื่อผู้ร่วมงาน"
+              selectedUser={formData.__userObj}
+              onSelect={(u) => {
+                const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
+                setFormData(prev => ({ ...prev, fullName: display, userId: u.id, __userObj: u }))
+              }}
             />
           </FormFieldBlock>
         </FormSection>

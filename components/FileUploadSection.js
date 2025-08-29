@@ -7,14 +7,6 @@ export default function FileUploadSection() {
       status: 'รอประมวลเก่า',
       fileName: 'เอกสารส่วนเพิ่มเติม.doc',
       highlight: false
-    },
-    {
-      id: 2, 
-      type: 'ข้อมูลและสรุปผลการดำเนินงาน',
-      description: 'รอบการประมวลผลพื้นฐาน',
-      status: 'รอดใส่ วิปะ รวมกับอื่นๆมี',
-      fileName: null,
-      highlight: true
     }
   ]
 

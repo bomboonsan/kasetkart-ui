@@ -1,19 +1,38 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Button from '@/components/Button'
+import { uploadAPI, API_BASE, api } from '@/lib/api'
 
 export default function ProfileImageUpload() {
   const [imagePreview, setImagePreview] = useState(null)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleImageUpload = (event) => {
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const me = await api.get('/profiles/me')
+        const url = me?.Profile?.[0]?.avatarUrl
+        if (url) setImagePreview(url)
+      } catch {}
+    })()
+  }, [])
+
+  const handleImageUpload = async (event) => {
     const file = event.target.files[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setImagePreview(e.target.result)
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+    try {
+      setError('')
+      setUploading(true)
+      const [attachment] = await uploadAPI.uploadFiles([file])
+      const fullUrl = `${API_BASE}${attachment.url}`
+      await api.patch('/profiles/me', { avatarUrl: fullUrl })
+      setImagePreview(fullUrl)
+    } catch (err) {
+      setError(err.message || 'อัปโหลดรูปภาพไม่สำเร็จ')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -51,10 +70,11 @@ export default function ProfileImageUpload() {
       
       <div className="text-center space-x-2 space-y-3">
         {/* <p className="text-sm text-gray-600 mb-2">อัปโหลดรูปภาพ</p> */}
-        <Button variant="primary" size="sm" onClick={() => document.querySelector('input[type="file"]').click()}>
-          อัปโหลดรูปภาพ
+        <Button variant="primary" size="sm" onClick={() => document.querySelector('input[type="file"]').click()} disabled={uploading}>
+          {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดรูปภาพ'}
         </Button>
-        <p className="text-xs text-gray-500">JPG, PNG ขนาดไม่เกิน 2MB</p>
+        <p className="text-xs text-gray-500">JPG, PNG ขนาดไม่เกิน 10MB</p>
+        {error && <div className="text-xs text-red-600">{error}</div>}
       </div>
     </div>
   )

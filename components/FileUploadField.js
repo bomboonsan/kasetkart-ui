@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { uploadAPI } from '@/lib/api'
 
 export default function FileUploadField({ 
   label, 
@@ -11,11 +12,22 @@ export default function FileUploadField({
 }) {
   const [dragActive, setDragActive] = useState(false)
   const [files, setFiles] = useState([])
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleFiles = (fileList) => {
+  const doUpload = async (fileList) => {
     const filesArray = Array.from(fileList)
     setFiles(filesArray)
-    onFilesChange(filesArray)
+    setError('')
+    setUploading(true)
+    try {
+      const attachments = await uploadAPI.uploadFiles(filesArray)
+      onFilesChange && onFilesChange(attachments)
+    } catch (err) {
+      setError(err.message || 'อัปโหลดไฟล์ไม่สำเร็จ')
+    } finally {
+      setUploading(false)
+    }
   }
 
   const handleDrag = (e) => {
@@ -34,14 +46,14 @@ export default function FileUploadField({
     setDragActive(false)
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files)
+      doUpload(e.dataTransfer.files)
     }
   }
 
   const handleChange = (e) => {
     e.preventDefault()
     if (e.target.files && e.target.files[0]) {
-      handleFiles(e.target.files)
+      doUpload(e.target.files)
     }
   }
 
@@ -91,8 +103,8 @@ export default function FileUploadField({
             />
           </svg>
           <div className="text-sm text-gray-600">
-            <p>Upload a file or drag and drop</p>
-            <p className="text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
+            <p>{uploading ? 'กำลังอัปโหลด...' : 'Upload a file or drag and drop'}</p>
+            <p className="text-xs text-gray-500">PDF, DOC, DOCX, Images up to 10MB</p>
           </div>
         </div>
       </div>
@@ -111,6 +123,7 @@ export default function FileUploadField({
               </li>
             ))}
           </ul>
+          {error && <div className="text-sm text-red-600">{error}</div>}
         </div>
       )}
     </div>

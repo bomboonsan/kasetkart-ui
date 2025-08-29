@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
-import FormModal from './FormModal'
+import UserPicker from './UserPicker'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormTextarea from './FormTextarea'
@@ -98,6 +98,7 @@ export default function CreateResearchForm() {
         partners: [
           {
             isInternal: formData.isInternal === true,
+            userId: formData.userId ? parseInt(formData.userId) : undefined,
             fullname: formData.fullname || undefined,
             orgName: formData.orgName || undefined,
             partnerType: formData.partnerType || undefined,
@@ -105,7 +106,12 @@ export default function CreateResearchForm() {
           },
         ],
       }
-      await api.post('/projects', payload)
+      const project = await api.post('/projects', payload)
+      // attach files if any
+      if ((formData.attachments || []).length > 0 && project?.id) {
+        const ids = formData.attachments.map(a => a.id)
+        await api.patch(`/projects/${project.id}/attachments`, { attachmentIds: ids })
+      }
       alert('สร้างโครงการสำเร็จ')
     } catch (err) {
       setError(err.message || 'บันทึกโครงการไม่สำเร็จ')
@@ -419,14 +425,13 @@ export default function CreateResearchForm() {
               </label>
             </div>
             <div>
-              <FormModal
-                mini={false}
+              <UserPicker
                 label="ผู้ร่วมโครงการวิจัย"
-                btnText="คลิกเพื่อเลือกผู้ร่วมโครงการวิจัย"
-                type="text"
-                value={formData.fullname}
-                onChange={(value) => handleInputChange("fullname", value)}
-                placeholder=""
+                selectedUser={formData.__userObj}
+                onSelect={(u) => {
+                  const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
+                  setFormData(prev => ({ ...prev, fullname: display, userId: u.id, __userObj: u }))
+                }}
               />
             </div>
             <div>
@@ -476,7 +481,7 @@ export default function CreateResearchForm() {
         <FormSection>
           <FileUploadField
             label="อัปโหลดไฟล์"
-            onFilesChange={(files) => handleInputChange("attachments", files)}
+            onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
             accept=".pdf,.doc,.docx"
             multiple
           />

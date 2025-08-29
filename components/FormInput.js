@@ -21,7 +21,7 @@ export default function FormInput({
       <div className="flex-1 space-x-3">
         <input
           type={type}
-          value={value}
+          value={value ?? ''}
           onChange={(e) => onChange && onChange(e.target.value)}
           placeholder={placeholder}
           required={required}

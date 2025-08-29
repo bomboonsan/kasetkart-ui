@@ -11,10 +11,10 @@ export default function UserTable({ users, onUserAction }) {
                 ชื่อ-นามสกุล
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                ภควิชา
+                ภาควิชา
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                หน่วยงาน
+                คณะ
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 สถานะ
@@ -23,7 +23,7 @@ export default function UserTable({ users, onUserAction }) {
                 บทบาท
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                การกระทำ
+                {/* การกระทำ */}
               </th>
             </tr>
           </thead>

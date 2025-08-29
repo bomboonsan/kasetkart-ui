@@ -65,13 +65,13 @@ export default function UserFilters({ onFilter }) {
         />
 
         <SelectField
-          label="หน่วยงาน"
+          label="ภาควิชา"
           value={filters.department}
           onChange={(value) => handleFilterChange('department', value)}
           options={[
             { value: 'all', label: 'ทั้งหมด' },
-            { value: 'IT Department', label: 'แผนกไอที' },
-            { value: 'Research Department', label: 'แผนกวิจัย' },
+            { value: 'คณะแพทยศาสตร์', label: 'คณะแพทยศาสตร์' },
+            { value: 'คณะนิเทศศาสตร์', label: 'คณะนิเทศศาสตร์' },
             { value: 'Academic Affairs', label: 'กิจการนักศึกษา' },
             { value: 'Finance Department', label: 'แผนกการเงิน' },
             { value: 'HR Department', label: 'แผนกทรัพยากรมนุษย์' }

@@ -36,7 +36,7 @@ export default function ResearchTopicRow({ research, index }) {
         {/* Title */}
         <div className="col-span-3">
           <Link
-            href={`/dashboard/research/demo`}
+            href={research.href || `/research/view/${research.id}`}
             className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
           >
             {research.title}
@@ -64,12 +64,12 @@ export default function ResearchTopicRow({ research, index }) {
 
         {/* Actions */}
         <div className="col-span-1">
-          <button
-            // onClick={handleEdit}
+          <Link
+            href={research.editHref || `/research/edit/${research.id}`}
             className="text-sm text-red-600 hover:text-red-800 hover:underline"
           >
             Edit
-          </button>
+          </Link>
         </div>
       </div>
     </div>

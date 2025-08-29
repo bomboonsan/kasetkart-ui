@@ -13,6 +13,8 @@ export default function ManageUsersPage() {
     }
   }
 
+  console.log(userManagementRef);
+
   return (
     <div className="space-y-6">
       <PageHeader 

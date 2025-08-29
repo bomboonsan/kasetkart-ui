@@ -22,6 +22,8 @@ export default function ResearchTopicsTable({ tab = 1 }) {
             budget: p.budget || 0,
             status: p.status || 'DRAFT',
             color: 'green',
+            href: `/research/view/${p.id}`,
+            editHref: `/research/edit/${p.id}`,
           }))
           setItems(mapped)
         } else {
@@ -36,6 +38,8 @@ export default function ResearchTopicsTable({ tab = 1 }) {
             budget: 0,
             status: w.status || 'DRAFT',
             color: 'green',
+            href: `/works/view/${w.id}`,
+            editHref: `/works/edit/${w.id}`,
           }))
           setItems(mapped)
         }

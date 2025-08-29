@@ -1,10 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
-import FormModal from './FormModal'
+import ProjectPicker from './ProjectPicker'
+import UserPicker from './UserPicker'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from './FormCheckbox'
@@ -16,7 +17,7 @@ import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import { api } from '@/lib/api'
 
-export default function CreateAcademicForm() {
+export default function CreateAcademicForm({ mode = 'create', workId, initialData }) {
   // Align to ConferenceDetail fields
   const [formData, setFormData] = useState({
     titleTh: "",
@@ -52,6 +53,17 @@ export default function CreateAcademicForm() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Prefill when editing
+  useEffect(() => {
+    if (!initialData) return
+    setFormData(prev => ({
+      ...prev,
+      ...initialData,
+      durationStart: initialData.durationStart ? String(initialData.durationStart).slice(0,10) : '',
+      durationEnd: initialData.durationEnd ? String(initialData.durationEnd).slice(0,10) : '',
+    }))
+  }, [initialData])
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('')
@@ -80,8 +92,24 @@ export default function CreateAcademicForm() {
         city: formData.city || undefined,
         fundName: formData.fundName || undefined,
       }
-      await api.post('/works', { type: 'CONFERENCE', status: 'DRAFT', detail, authors: [], attachments: [] })
-      alert('บันทึกผลงานประชุมวิชาการสำเร็จ')
+      const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
+      const authors = formData.userId ? [{ userId: parseInt(formData.userId), isCorresponding: true }] : []
+      const payload = { type: 'CONFERENCE', status: 'DRAFT', detail, authors, attachments }
+      if (mode === 'edit' && workId) {
+        await api.put(`/works/${workId}`, payload)
+        alert('อัปเดตผลงานประชุมวิชาการสำเร็จ')
+      } else if (formData.projectId) {
+        const base = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
+        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
+        const res = await fetch(`${base}/projects/${formData.projectId}/works`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(payload), credentials: 'include'
+        })
+        if (!res.ok) { const data = await res.json().catch(()=>({})); throw new Error(data?.error?.message || 'บันทึกไม่สำเร็จ') }
+        alert('บันทึกผลงานประชุมวิชาการสำเร็จ')
+      } else {
+        await api.post('/works', payload)
+        alert('บันทึกผลงานประชุมวิชาการสำเร็จ')
+      }
     } catch (err) {
       setError(err.message || 'บันทึกไม่สำเร็จ')
     } finally {
@@ -162,14 +190,12 @@ export default function CreateAcademicForm() {
               onChange={(value) => handleInputChange("journalName", value)}
               placeholder=""
             />
-            <FormModal
-              mini={false}
+            <ProjectPicker
               label="โครงการวิจัย"
-              btnText="คลิกเพื่อเลือกโครงการวิจัย"
-              type="text"
-              value={formData.projectId}
-              onChange={(value) => handleInputChange("projectId", value)}
-              placeholder=""
+              selectedProject={formData.__projectObj}
+              onSelect={(p) => {
+                setFormData(prev => ({ ...prev, projectId: String(p.id), __projectObj: p }))
+              }}
             />
             <FormInput
               label="DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI"
@@ -304,7 +330,7 @@ export default function CreateAcademicForm() {
           <FormFieldBlock>
             <FileUploadField
               label="อัปโหลดไฟล์"
-              onFilesChange={(files) => handleInputChange("attachments", files)}
+              onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
               accept=".pdf,.doc,.docx"
               multiple
             />
@@ -425,14 +451,13 @@ export default function CreateAcademicForm() {
               </label>
             </div>
             <div>
-              <FormModal
-                mini={false}
+              <UserPicker
                 label="ชื่อผู้ร่วมงาน"
-                btnText="คลิกเพื่อเลือกชื่อผู้ร่วมงาน"
-                type="text"
-                value={formData.fullname}
-                onChange={(value) => handleInputChange("fullname", value)}
-                placeholder=""
+                selectedUser={formData.__userObj}
+                onSelect={(u) => {
+                  const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
+                  setFormData(prev => ({ ...prev, fullname: display, userId: u.id, __userObj: u }))
+                }}
               />
             </div>
             <div>

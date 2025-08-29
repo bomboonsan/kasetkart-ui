@@ -16,7 +16,7 @@ export default function FormField({
       </label>
       <input
         type={type}
-        value={value}
+        value={value ?? ''}
         onChange={(e) => onChange && onChange(e.target.value)}
         placeholder={placeholder}
         required={required}

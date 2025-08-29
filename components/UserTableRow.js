@@ -4,7 +4,7 @@ import { useState } from "react";
 
 export default function UserTableRow({ user, onAction }) {
   const [showDropdown, setShowDropdown] = useState(false);
-
+  
   const getStatusBadge = (status) => {
     const styles = {
       Active: "bg-green-100 text-green-800",
