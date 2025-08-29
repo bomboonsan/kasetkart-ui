@@ -1,4 +1,4 @@
-import UserTableRow from './UserTableRow'
+import UserTableRow from "./UserTableRow";
 
 export default function UserTable({ users, onUserAction }) {
   return (
@@ -11,7 +11,7 @@ export default function UserTable({ users, onUserAction }) {
                 ชื่อ-นามสกุล
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                บทบาท
+                ภควิชา
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 หน่วยงาน
@@ -20,7 +20,7 @@ export default function UserTable({ users, onUserAction }) {
                 สถานะ
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                เข้าสู่ระบบครั้งล่าสุด
+                บทบาท
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                 การกระทำ

@@ -1,49 +1,53 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
+import { useState } from "react";
 
 export default function UserTableRow({ user, onAction }) {
-  const [showDropdown, setShowDropdown] = useState(false)
+  const [showDropdown, setShowDropdown] = useState(false);
 
   const getStatusBadge = (status) => {
     const styles = {
-      Active: 'bg-green-100 text-green-800',
-      Inactive: 'bg-red-100 text-red-800',
-      Pending: 'bg-yellow-100 text-yellow-800'
-    }
-    
+      Active: "bg-green-100 text-green-800",
+      Inactive: "bg-red-100 text-red-800",
+      Pending: "bg-yellow-100 text-yellow-800",
+    };
+
     const labels = {
-      Active: 'ใช้งานอยู่',
-      Inactive: 'ไม่ใช้งาน',
-      Pending: 'รอการอนุมัติ'
-    }
+      Active: "ใช้งานอยู่",
+      Inactive: "ไม่ใช้งาน",
+      Pending: "รอการอนุมัติ",
+    };
 
     return (
-      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}>
+      <span
+        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${styles[status]}`}
+      >
         {labels[status]}
       </span>
-    )
-  }
+    );
+  };
 
   const getRoleBadge = (role) => {
     const styles = {
-      Admin: 'bg-purple-100 text-purple-800',
-      Moderator: 'bg-blue-100 text-blue-800',
-      User: 'bg-gray-100 text-gray-800'
-    }
+      Admin: "bg-purple-100 text-purple-800",
+      Moderator: "bg-blue-100 text-blue-800",
+      User: "bg-gray-100 text-gray-800",
+    };
 
     const labels = {
-      Admin: 'ผู้ดูแลระบบ',
-      Moderator: 'ผู้ดูแล',
-      User: 'ผู้ใช้'
-    }
+      Admin: "Super Admin",
+      Moderator: "Admin",
+      User: "User",
+    };
 
     return (
-      <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${styles[role]}`}>
+      <span
+        className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${styles[role]}`}
+      >
         {labels[role]}
       </span>
-    )
-  }
+    );
+  };
 
   return (
     <tr className="hover:bg-gray-50">
@@ -60,17 +64,17 @@ export default function UserTableRow({ user, onAction }) {
           </div>
         </div>
       </td>
-      <td className="px-6 py-4 whitespace-nowrap">
-        {getRoleBadge(user.role)}
-      </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
         {user.department}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.organization}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
         {getStatusBadge(user.status)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-        {user.lastLogin}
+        {getRoleBadge(user.role)}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
         <div className="relative inline-block text-left">
@@ -80,8 +84,17 @@ export default function UserTableRow({ user, onAction }) {
             onClick={() => setShowDropdown(!showDropdown)}
           >
             การกระทำ
-            <svg className="-mr-1 ml-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-              <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+            <svg
+              className="-mr-1 ml-2 h-5 w-5"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+                clipRule="evenodd"
+              />
             </svg>
           </button>
 
@@ -90,8 +103,8 @@ export default function UserTableRow({ user, onAction }) {
               <div className="py-1">
                 <button
                   onClick={() => {
-                    onAction('view', user)
-                    setShowDropdown(false)
+                    onAction("view", user);
+                    setShowDropdown(false);
                   }}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                 >
@@ -99,18 +112,18 @@ export default function UserTableRow({ user, onAction }) {
                 </button>
                 <button
                   onClick={() => {
-                    onAction('edit', user)
-                    setShowDropdown(false)
+                    onAction("edit", user);
+                    setShowDropdown(false);
                   }}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                 >
                   แก้ไข
                 </button>
-                {user.status === 'Active' ? (
+                {user.status === "Active" ? (
                   <button
                     onClick={() => {
-                      onAction('deactivate', user)
-                      setShowDropdown(false)
+                      onAction("deactivate", user);
+                      setShowDropdown(false);
                     }}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                   >
@@ -119,8 +132,8 @@ export default function UserTableRow({ user, onAction }) {
                 ) : (
                   <button
                     onClick={() => {
-                      onAction('activate', user)
-                      setShowDropdown(false)
+                      onAction("activate", user);
+                      setShowDropdown(false);
                     }}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                   >
@@ -129,8 +142,8 @@ export default function UserTableRow({ user, onAction }) {
                 )}
                 <button
                   onClick={() => {
-                    onAction('delete', user)
-                    setShowDropdown(false)
+                    onAction("delete", user);
+                    setShowDropdown(false);
                   }}
                   className="block px-4 py-2 text-sm text-red-700 hover:bg-red-50 w-full text-left"
                 >
@@ -142,5 +155,5 @@ export default function UserTableRow({ user, onAction }) {
         </div>
       </td>
     </tr>
-  )
+  );
 }
