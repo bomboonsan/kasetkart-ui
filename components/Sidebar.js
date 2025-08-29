@@ -226,7 +226,7 @@ export default function Sidebar() {
           <div className="w-10 h-10 rounded-full bg-gray-300 mr-3"></div>
           <div>
             <p className="text-sm text-gray-900">ธีรวิชญ์ วงศเพียร</p>
-            <Link href="/dashboard/profile" className="text-xs text-gray-600">โปรไฟล์ของฉัน</Link>
+            <Link href="/profile" className="text-xs text-gray-600">โปรไฟล์ของฉัน</Link>
           </div>
         </div>
         {/* Logout */}
