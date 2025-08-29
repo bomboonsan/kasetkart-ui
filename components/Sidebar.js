@@ -13,18 +13,19 @@ import {
   FileUser,
 } from "lucide-react";
 
+import { logout } from '@/lib/auth'
 
 const menuItems = [
   {
     id: "profile",
-    url: "/dashboard/profile",
+    url: "/profile",
     icon: <UserPen />,
     label: "โปรไฟล์ของฉัน",
     active: false,
   },
   {
     id: "form/overview",
-    url: "/dashboard/form/overview",
+    url: "/form/overview",
     icon: <FileUser />,
     label: "โครงการของฉัน",
     active: false,
@@ -39,35 +40,35 @@ const menuItems = [
     children: [
       {
         id: "project",
-        url: "/dashboard/form/create",
+        url: "/form/create/project",
         icon: <File />,
         label: "ทุนโครงการวิจัย",
         active: false,
       },
       {
         id: "conference",
-        url: "/dashboard/form/create/conference",
+        url: "/form/create/conference",
         icon: <File />,
         label: "ประชุมวิชาการ",
         active: false,
       },
       {
         id: "publications",
-        url: "/dashboard/form/create/publications",
+        url: "/form/create/publications",
         icon: <File />,
         label: "ตีพิมพ์ทางวิชาการ",
         active: false,
       },
       {
         id: "funding",
-        url: "/dashboard/form/create/funding",
+        url: "/form/create/funding",
         icon: <File />,
         label: "ขอรับทุนเขียนตำรา",
         active: false,
       },
       {
         id: "book",
-        url: "/dashboard/form/create/book",
+        url: "/form/create/book",
         icon: <File />,
         label: "หนังสือและตำรา",
         active: false,
@@ -105,6 +106,10 @@ export default function Sidebar() {
 
   function toggleGroup(id) {
     setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  function handleLogout() {
+    logout()
   }
 
   return (
@@ -224,7 +229,14 @@ export default function Sidebar() {
             <Link href="/dashboard/profile" className="text-xs text-gray-600">โปรไฟล์ของฉัน</Link>
           </div>
         </div>
+        {/* Logout */}
+        <div className='mt-3'>
+          <button onClick={handleLogout}>
+            Logout
+          </button>
+        </div>
       </div>
+      
     </div>
   )
 }

@@ -1,6 +1,6 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
@@ -14,6 +14,7 @@ import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import Link from 'next/link'
+import { api } from '@/lib/api'
 
 export default function CreateResearchForm() {
   // Align form keys to Project model in schema.prisma
@@ -48,9 +49,69 @@ export default function CreateResearchForm() {
     attachments: [],
   });
 
-  const handleSubmit = (e) => {
+  const [orgOptions, setOrgOptions] = useState([])
+  const [deptOptions, setDeptOptions] = useState([])
+  const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
+
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const [orgs, depts] = await Promise.all([
+          api.get('/organizations'),
+          api.get('/departments'),
+        ])
+        const orgOpts = (orgs?.data || []).map(o => ({ value: o.id, label: o.name }))
+        const deptOpts = (depts?.data || []).map(d => ({ value: d.id, label: d.name }))
+        setOrgOptions(orgOpts)
+        setDeptOptions(deptOpts)
+      } catch (err) {
+        setError(err.message || 'โหลดข้อมูลตัวเลือกไม่สำเร็จ')
+      }
+    })()
+  }, [])
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    console.log('Form submitted:', formData)
+    setError('')
+    setSubmitting(true)
+    try {
+      // Map to API payload
+      const payload = {
+        fiscalYear: parseInt(formData.fiscalYear) || undefined,
+        projectType: formData.projectType || undefined,
+        projectMode: formData.projectMode || undefined,
+        subProjectCount: formData.subProjectCount ? parseInt(formData.subProjectCount) : undefined,
+        nameTh: formData.nameTh || undefined,
+        nameEn: formData.nameEn || undefined,
+        isEnvironmentallySustainable: formData.isEnvironmentallySustainable,
+        durationStart: formData.durationStart || undefined,
+        durationEnd: formData.durationEnd || undefined,
+        researchKind: formData.researchKind || undefined,
+        fundType: formData.fundType || undefined,
+        fundName: formData.fundName || undefined,
+        budget: formData.budget ? parseInt(formData.budget) : undefined,
+        keywords: formData.keywords || undefined,
+        icTypes: formData.icTypes || undefined,
+        impact: formData.impact || undefined,
+        sdg: formData.sdg || undefined,
+        partners: [
+          {
+            isInternal: formData.isInternal === true,
+            fullname: formData.fullname || undefined,
+            orgName: formData.orgName || undefined,
+            partnerType: formData.partnerType || undefined,
+            proportion: formData.proportion ? parseInt(formData.proportion) : undefined,
+          },
+        ],
+      }
+      await api.post('/projects', payload)
+      alert('สร้างโครงการสำเร็จ')
+    } catch (err) {
+      setError(err.message || 'บันทึกโครงการไม่สำเร็จ')
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const handleInputChange = (field, value) => {
@@ -60,6 +121,9 @@ export default function CreateResearchForm() {
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
+        {error && (
+          <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
+        )}
         {/* Basic Information */}
         <FormSection>
           <FormFieldBlock>
@@ -82,7 +146,7 @@ export default function CreateResearchForm() {
                 {
                   label: "โครงการพัฒนาวิชาการประเภทงานวิจัย",
                   value: "โครงการพัฒนาวิชาการประเภทงานวิจัย",
-                },
+                },                
               ]}
               value={formData.projectType}
               onChange={(value) => handleInputChange("projectType", value)}
@@ -203,7 +267,7 @@ export default function CreateResearchForm() {
               value={formData.orgName}
               onChange={(value) => handleInputChange("orgName", value)}
               className="max-w-lg"
-              options={[{ value: null, label: "คณะบริหารธุรกิจ" }]}
+              options={[{ value: '', label: 'เลือกหน่วยงาน' }, ...orgOptions]}
             />
           </FormFieldBlock>
 
@@ -214,7 +278,13 @@ export default function CreateResearchForm() {
               value={formData.researchKind}
               onChange={(value) => handleInputChange("researchKind", value)}
               className="max-w-lg"
-              options={[{ value: null, label: "เลือกประเภทงานวิจัย" }]}
+              options={[
+                { value: '', label: "เลือกประเภทงานวิจัย" },
+                { label: "ประชุมวิชาการ", value: "ประชุมวิชาการ" },
+                { label: "ตีพิมพ์ทางวิชาการ", value: "ตีพิมพ์ทางวิชาการ" },
+                { label: "ขอรับทุนเขียนตำรา", value: "ขอรับทุนเขียนตำรา" },
+                { label: "หนังสือและตำรา", value: "หนังสือและตำรา" },
+              ]}
             />
           </FormFieldBlock>
 
@@ -225,7 +295,7 @@ export default function CreateResearchForm() {
               value={formData.fundType}
               onChange={(value) => handleInputChange("fundType", value)}
               className="max-w-lg"
-              options={[{ value: null, label: "เลือกข้อมูล" }]}
+              options={[{ value: '', label: "เลือกข้อมูล" }]}
             />
           </FormFieldBlock>
 
@@ -268,7 +338,7 @@ export default function CreateResearchForm() {
               value={formData.icTypes}
               onChange={(value) => handleInputChange("icTypes", value)}
               className="max-w-lg"
-              options={[{ value: null, label: "เลือกข้อมูล" }]}
+              options={[{ value: '', label: "เลือกข้อมูล" }]}
             />
 
             <FormSelect
@@ -277,7 +347,7 @@ export default function CreateResearchForm() {
               value={formData.impact}
               onChange={(value) => handleInputChange("impact", value)}
               className="max-w-lg"
-              options={[{ value: null, label: "เลือกข้อมูล" }]}
+              options={[{ value: '', label: "เลือกข้อมูล" }]}
             />
 
             <FormSelect
@@ -286,7 +356,7 @@ export default function CreateResearchForm() {
               value={formData.sdg}
               onChange={(value) => handleInputChange("sdg", value)}
               className="max-w-lg"
-              options={[{ value: null, label: "เลือกข้อมูล" }]}
+              options={[{ value: '', label: "เลือกข้อมูล" }]}
             />
           </FormFieldBlock>
         </FormSection>
@@ -397,8 +467,8 @@ export default function CreateResearchForm() {
           <Button variant="secondary" type="button">
             Save Draft
           </Button>
-          <Button variant="primary" type="submit">
-            Submits
+          <Button variant="primary" type="submit" disabled={submitting}>
+            {submitting ? 'Submitting...' : 'Submits'}
           </Button>
         </div>
       </form>

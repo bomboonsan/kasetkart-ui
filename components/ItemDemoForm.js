@@ -1,12 +1,11 @@
 'use client'
 
-import { useState } from 'react'
-import FormSection from './FormSection'
-import FormFieldBlock from "./FormFieldBlock";
-import FormField from "./FormField";
-import FormInput from "./FormInput";
-import FormRadio from "./FormRadio";
-import FormCheckbox from "./FormCheckbox";
+import ProjectForm from './ProjectForm'
+
+export default function ItemDemoForm({ projectId, readonly = true }) {
+  // Use ProjectForm component which has all the API integration
+  return <ProjectForm projectId={projectId} readonly={readonly} />
+}
 import FormTextarea from "./FormTextarea";
 import FormDateSelect from "./FormDateSelect";
 import FormSelect from "./FormSelect";

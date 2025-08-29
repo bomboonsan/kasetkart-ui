@@ -1,30 +1,61 @@
-'use client'
+"use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
 import { Trash2 } from "lucide-react"
+import { api } from '@/lib/api'
 
 export default function GeneralInfoTab() {
   const [formData, setFormData] = useState({
-    firstName: 'ธีรวิชญ์',
-    lastName: 'วงศเพียร',
-    email: 'theerawich@ku.ac.th',
-    phone: '+66-2-942-8177 ต่อ 111205',
-    nameEn: 'Theerawich Wongpaye',
-    academicPosition: 'ผศ.ดร.',
-    department: 'Accounting & Finance'
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    nameEn: '',
+    academicPosition: '',
+    department: ''
   })
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSave = () => {
-    console.log('Saving profile data:', formData)
-    // TODO: Implement save logic
+  useEffect(() => {
+    ;(async () => {
+      try {
+        const me = await api.get('/profiles/me')
+        const prof = me?.Profile?.[0] || me?.profile || {}
+        setFormData(prev => ({
+          ...prev,
+          firstName: prof.firstName || '',
+          lastName: prof.lastName || '',
+          email: me.email || '',
+          department: me.Department?.name || me.department?.name || ''
+        }))
+      } catch (err) {
+        setError(err.message || 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ')
+      } finally {
+        setLoading(false)
+      }
+    })()
+  }, [])
+
+  const handleSave = async () => {
+    try {
+      setError('')
+      await api.patch('/profiles/me', {
+        firstName: formData.firstName || undefined,
+        lastName: formData.lastName || undefined,
+      })
+      alert('บันทึกโปรไฟล์สำเร็จ')
+    } catch (err) {
+      setError(err.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
+    }
   }
 
   const handleCancel = () => {
@@ -55,8 +86,15 @@ export default function GeneralInfoTab() {
       <div className='bg-white rounded-lg shadow-sm'>
 
         <div className="space-y-8 p-6">
-          {/* Profile Image Section */}
-          <div className="space-y-4 lg:space-y-0 lg:space-x-8">
+          {error && (
+            <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
+          )}
+          {loading ? (
+            <div className="text-sm text-gray-500">กำลังโหลด...</div>
+          ) : (
+              <>
+            {/* Profile Image Section */}
+            <div className="space-y-4 lg:space-y-0 lg:space-x-8">
             <div className="">
               <ProfileImageUpload />
             </div>
@@ -119,6 +157,8 @@ export default function GeneralInfoTab() {
               ยกเลิก
             </Button>
           </div>
+              </>
+          )}
         </div>
       </div>
 

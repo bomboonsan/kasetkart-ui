@@ -14,6 +14,7 @@ import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
+import { api } from '@/lib/api'
 
 export default function CreateAcademicForm() {
   // Align to ConferenceDetail fields
@@ -48,9 +49,44 @@ export default function CreateAcademicForm() {
     attachments: [],
   });
 
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    setError('')
+    setSubmitting(true)
+    try {
+      const detail = {
+        titleTh: formData.titleTh,
+        titleEn: formData.titleEn || undefined,
+        isEnvironmentallySustainable: formData.isEnvironmentallySustainable,
+        journalName: formData.journalName || undefined,
+        doi: formData.doi || undefined,
+        isbn: formData.isbn || undefined,
+        durationStart: formData.durationStart,
+        durationEnd: formData.durationEnd,
+        cost: formData.cost ? parseInt(formData.cost) : undefined,
+        presentationWork: formData.presentationWork || undefined,
+        presentType: formData.presentType || undefined,
+        articleType: formData.articleType || undefined,
+        abstractTh: formData.abstractTh || undefined,
+        abstractEn: formData.abstractEn || undefined,
+        summary: formData.summary || undefined,
+        keywords: formData.keywords || undefined,
+        level: formData.level || undefined,
+        countryCode: formData.countryCode || undefined,
+        state: formData.state || undefined,
+        city: formData.city || undefined,
+        fundName: formData.fundName || undefined,
+      }
+      await api.post('/works', { type: 'CONFERENCE', status: 'DRAFT', detail, authors: [], attachments: [] })
+      alert('บันทึกผลงานประชุมวิชาการสำเร็จ')
+    } catch (err) {
+      setError(err.message || 'บันทึกไม่สำเร็จ')
+    } finally {
+      setSubmitting(false)
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -60,6 +96,9 @@ export default function CreateAcademicForm() {
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
+        {error && (
+          <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
+        )}
         <FormSection>
           <FormFieldBlock>
             <FormTextarea
@@ -421,8 +460,8 @@ export default function CreateAcademicForm() {
           <Button variant="secondary" type="button">
             Save Draft
           </Button>
-          <Button variant="primary" type="submit">
-            Submit
+          <Button variant="primary" type="submit" disabled={submitting}>
+            {submitting ? 'Submitting...' : 'Submit'}
           </Button>
         </div>
       </form>

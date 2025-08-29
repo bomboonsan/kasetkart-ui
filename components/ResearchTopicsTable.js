@@ -1,50 +1,50 @@
+"use client"
+
+import { useEffect, useState } from 'react'
 import ResearchTopicRow from './ResearchTopicRow'
+import { api } from '@/lib/api'
 
-// Mock data for research topics
-const mockResearchData = [
-  {
-    id: 1,
-    number: "2568",
-    title: "ข้อนำเสนอข้อมูลการวิจัยเก่าที่สำคัญแก่ประเทศ",
-    budget: 0,
-    status: "Done",
-    color: "green",
-  },
-  {
-    id: 2,
-    number: "2568",
-    title: "Stent PM 2.5 กับการ์บอนของหิน",
-    budget: 120000,
-    status: "Draft",
-    color: "green",
-  },
-  {
-    id: 3,
-    number: "2568",
-    title: "AIR CONDITIONER FOR YOUTH THAN AND",
-    budget: 1000000,
-    status: "Draft",
-    color: "green",
-  },
-  {
-    id: 4,
-    number: "2567",
-    title: "Telemeter for thai people",
-    budget: 50000,
-    status: "Draft",
-    color: "green",
-  },
-  {
-    id: 5,
-    number: "2567",
-    title: "คิวอนแลกซ์",
-    budget: 200000,
-    status: "Draft",
-    color: "green",
-  },
-];
+export default function ResearchTopicsTable({ tab = 1 }) {
+  const [items, setItems] = useState([])
+  const [error, setError] = useState('')
 
-export default function ResearchTopicsTable() {
+  useEffect(() => {
+    ;(async () => {
+      try {
+        setError('')
+        if (tab === 1) {
+          const res = await api.get('/projects?page=1&pageSize=20')
+          const data = res.data || res.items || []
+          const mapped = data.map(p => ({
+            id: p.id,
+            number: String(p.fiscalYear || ''),
+            title: p.nameTh || p.nameEn || `Project #${p.id}`,
+            budget: p.budget || 0,
+            status: p.status || 'DRAFT',
+            color: 'green',
+          }))
+          setItems(mapped)
+        } else {
+          const typeMap = { 2: 'CONFERENCE', 3: 'PUBLICATION', 4: 'FUNDING', 5: 'BOOK' }
+          const type = typeMap[tab]
+          const res = await api.get(`/works?type=${type}&page=1&pageSize=20`)
+          const data = res.data || []
+          const mapped = data.map(w => ({
+            id: w.id,
+            number: String(new Date(w.createdAt || Date.now()).getFullYear() + 543),
+            title: `${w.type} #${w.id}`,
+            budget: 0,
+            status: w.status || 'DRAFT',
+            color: 'green',
+          }))
+          setItems(mapped)
+        }
+      } catch (err) {
+        setError(err.message || 'โหลดข้อมูลไม่สำเร็จ')
+      }
+    })()
+  }, [tab])
+
   return (
     <div className="bg-white rounded-lg shadow">
       {/* Table Header */}
@@ -62,7 +62,10 @@ export default function ResearchTopicsTable() {
 
       {/* Table Body */}
       <div className="divide-y divide-gray-200">
-        {mockResearchData.map((research, index) => (
+        {error && (
+          <div className="px-6 py-4 text-sm text-red-600">{error}</div>
+        )}
+        {items.map((research, index) => (
           <ResearchTopicRow
             key={research.id}
             research={research}

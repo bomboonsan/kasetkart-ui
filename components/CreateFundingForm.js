@@ -13,6 +13,7 @@ import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
+import { api } from '@/lib/api'
 
 export default function CreateFundingForm() {
   // Align to FundingDetail fields
@@ -32,9 +33,35 @@ export default function CreateFundingForm() {
     attachments: [],
   });
 
-  const handleSubmit = (e) => {
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form submitted:", formData);
+    setError('')
+    setSubmitting(true)
+    try {
+      const detail = {
+        fullName: formData.fullName,
+        position: formData.position,
+        faculty: formData.faculty,
+        kind: formData.kind || undefined,
+        contentDesc: formData.contentDesc || undefined,
+        priorWorks: formData.priorWorks || undefined,
+        objectives: formData.objectives || undefined,
+        targetAudience: formData.targetAudience || undefined,
+        chaptersOutline: formData.chaptersOutline || undefined,
+        approxPages: formData.approxPages || undefined,
+        approxTimeline: formData.approxTimeline || undefined,
+        bibliography: formData.bibliography || undefined,
+      }
+      await api.post('/works', { type: 'FUNDING', status: 'DRAFT', detail, authors: [], attachments: [] })
+      alert('บันทึกคำขอรับทุนเขียนตำราสำเร็จ')
+    } catch (err) {
+      setError(err.message || 'บันทึกไม่สำเร็จ')
+    } finally {
+      setSubmitting(false)
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -44,6 +71,9 @@ export default function CreateFundingForm() {
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
+        {error && (
+          <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
+        )}
         <FormSection title=" รายละเอียดของผู้แต่งร่วม (ถ้ามี)">
           <FormFieldBlock>
             <FormInput
@@ -176,8 +206,8 @@ export default function CreateFundingForm() {
           <Button variant="secondary" type="button">
             Save Draft
           </Button>
-          <Button variant="primary" type="submit">
-            Submit
+          <Button variant="primary" type="submit" disabled={submitting}>
+            {submitting ? 'Submitting...' : 'Submit'}
           </Button>
         </div>
       </form>

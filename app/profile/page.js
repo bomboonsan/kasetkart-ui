@@ -1,4 +1,4 @@
-import ProfileHeader from '@/components/ProfileHeader'
+import ProfileHeader from '@/components/profile/ProfileHeader'
 import EducationSection from '@/components/EducationSection'
 import ResearchPublicationsSection from '@/components/ResearchPublicationsSection'
 

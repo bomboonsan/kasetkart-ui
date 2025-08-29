@@ -5,8 +5,17 @@ export default function InputField({
   name, 
   placeholder,
   required = false,
-  className = '' 
+  className = '',
+  value,
+  onChange,
+  disabled = false,
 }) {
+  const handleChange = (e) => {
+    if (typeof onChange === 'function') {
+      onChange(e.target.value)
+    }
+  }
+
   return (
     <div className="space-y-1">
       <label 
@@ -21,6 +30,9 @@ export default function InputField({
         name={name}
         placeholder={placeholder}
         required={required}
+        value={value}
+        onChange={handleChange}
+        disabled={disabled}
         className={`
             text-zinc-800
           block w-full px-3 py-2 border border-gray-300 rounded-md

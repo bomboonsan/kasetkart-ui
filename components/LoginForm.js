@@ -1,14 +1,32 @@
+"use client"
 import Image from 'next/image'
 import InputField from './InputField'
 import Button from './Button'
 import Checkbox from './Checkbox'
-import Link from 'next/link'
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { login } from '@/lib/auth'
 
 export default function LoginForm() {
-  const handleSubmit = (e) => {
+  const router = useRouter()
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // TODO: Handle login logic
-    console.log('Login submitted')
+    setError('')
+    setLoading(true)
+    try {
+      console.log(`email : ${email}`)
+      await login(email, password)
+      router.push('/dashboard')
+    } catch (err) {
+      setError(err.message || 'เข้าสู่ระบบล้มเหลว')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -30,12 +48,20 @@ export default function LoginForm() {
       </div>
 
       {/* Form Section */}
-      <form className="space-y-6">
+      <form className="space-y-6" onSubmit={handleSubmit}>
+        {error && (
+          <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">
+            {error}
+          </div>
+        )}
+
         <InputField
           label="Email address"
           type="email"
           id="email"
           name="email"
+          value={email}
+          onChange={setEmail}
           required
         />
 
@@ -44,6 +70,8 @@ export default function LoginForm() {
           type="password"
           id="password"
           name="password"
+          value={password}
+          onChange={setPassword}
           required
         />
 
@@ -62,13 +90,9 @@ export default function LoginForm() {
             Forgot your password?
           </a>
         </div>
-        <Link
-          href="/dashboard/form/overview"
-        >
-        <Button type="submit" fullWidth>
-          Sign in
+        <Button type="submit" fullWidth disabled={loading}>
+          {loading ? 'Signing in...' : 'Sign in'}
         </Button>
-        </Link>
       </form>
     </div>
   )
