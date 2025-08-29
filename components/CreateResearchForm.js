@@ -295,7 +295,13 @@ export default function CreateResearchForm() {
               value={formData.fundType}
               onChange={(value) => handleInputChange("fundType", value)}
               className="max-w-lg"
-              options={[{ value: '', label: "เลือกข้อมูล" }]}
+              options={[
+                { value: '', label: 'เลือกข้อมูล' },
+                { value: 'ราชการ', label: 'ราชการ' },
+                { value: 'เอกชน', label: 'เอกชน' },
+                { value: 'มก', label: 'มหาวิทยาลัย (มก.)' },
+                { value: 'ทุนต่างประเทศ', label: 'ทุนต่างประเทศ' },
+              ]}
             />
           </FormFieldBlock>
 
@@ -338,7 +344,12 @@ export default function CreateResearchForm() {
               value={formData.icTypes}
               onChange={(value) => handleInputChange("icTypes", value)}
               className="max-w-lg"
-              options={[{ value: '', label: "เลือกข้อมูล" }]}
+              options={[
+                { value: '', label: 'เลือกข้อมูล' },
+                { value: 'Applied', label: 'Applied' },
+                { value: 'Basic', label: 'Basic' },
+                { value: 'Translational', label: 'Translational' },
+              ]}
             />
 
             <FormSelect
@@ -347,7 +358,12 @@ export default function CreateResearchForm() {
               value={formData.impact}
               onChange={(value) => handleInputChange("impact", value)}
               className="max-w-lg"
-              options={[{ value: '', label: "เลือกข้อมูล" }]}
+              options={[
+                { value: '', label: 'เลือกข้อมูล' },
+                { value: 'Research', label: 'Research & Scholarly Impact' },
+                { value: 'Societal', label: 'Societal Impact' },
+                { value: 'Economic', label: 'Economic Impact' },
+              ]}
             />
 
             <FormSelect
@@ -356,7 +372,12 @@ export default function CreateResearchForm() {
               value={formData.sdg}
               onChange={(value) => handleInputChange("sdg", value)}
               className="max-w-lg"
-              options={[{ value: '', label: "เลือกข้อมูล" }]}
+              options={[
+                { value: '', label: 'เลือกข้อมูล' },
+                { value: 'SDG1', label: 'SDG 1 - No Poverty' },
+                { value: 'SDG8', label: 'SDG 8 - Decent Work and Economic Growth' },
+                { value: 'SDG13', label: 'SDG 13 - Climate Action' },
+              ]}
             />
           </FormFieldBlock>
         </FormSection>
@@ -425,9 +446,13 @@ export default function CreateResearchForm() {
                 value={formData.partnerType}
                 onChange={(value) => handleInputChange("partnerType", value)}
                 className="max-w-lg"
-                options={[
-                  { value: null, label: "เลือกประเภทผู้ร่วมโครงการวิจัย" },
-                ]}
+                  options={[
+                    { value: '', label: 'เลือกประเภทผู้ร่วมโครงการวิจัย' },
+                    { value: 'หัวหน้าโครงการ', label: 'หัวหน้าโครงการ' },
+                    { value: 'ผู้ร่วมวิจัย', label: 'ผู้ร่วมวิจัย' },
+                    { value: 'นิสิต', label: 'นิสิต' },
+                    { value: 'นักวิจัยร่วม', label: 'นักวิจัยร่วม' },
+                  ]}
               />
             </div>
             <div>

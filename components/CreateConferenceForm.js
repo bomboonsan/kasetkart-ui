@@ -334,7 +334,12 @@ export default function CreateAcademicForm() {
               value={formData.countryCode}
               onChange={(value) => handleInputChange("countryCode", value)}
               className="max-w-lg"
-              options={[{ value: null, label: "เลือกประเทศ" }]}
+              options={[
+                { value: '', label: 'เลือกประเทศ' },
+                { value: 'TH', label: 'Thailand' },
+                { value: 'US', label: 'United States' },
+                { value: 'UK', label: 'United Kingdom' },
+              ]}
             />
             <FormSelect
               label="มลรัฐ/จังหวัด"
@@ -342,7 +347,12 @@ export default function CreateAcademicForm() {
               value={formData.state}
               onChange={(value) => handleInputChange("state", value)}
               className="max-w-lg"
-              options={[{ value: null, label: "เลือกมลรัฐ/จังหวัด" }]}
+              options={[
+                { value: '', label: 'เลือกมลรัฐ/จังหวัด' },
+                { value: 'Bangkok', label: 'Bangkok' },
+                { value: 'ChiangMai', label: 'Chiang Mai' },
+                { value: 'Phuket', label: 'Phuket' },
+              ]}
             />
             <FormSelect
               label="เมือง"
@@ -350,7 +360,12 @@ export default function CreateAcademicForm() {
               value={formData.city}
               onChange={(value) => handleInputChange("city", value)}
               className="max-w-lg"
-              options={[{ value: null, label: "เลือกเมือง" }]}
+              options={[
+                { value: '', label: 'เลือกเมือง' },
+                { value: 'เมือง1', label: 'เมือง 1' },
+                { value: 'เมือง2', label: 'เมือง 2' },
+                { value: 'เมือง3', label: 'เมือง 3' },
+              ]}
             />
           </FormFieldBlock>
           <FormFieldBlock>
@@ -366,8 +381,8 @@ export default function CreateAcademicForm() {
             <FormTextarea
               label="คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)"
               required
-              value={formData.fundName}
-              onChange={(value) => handleInputChange("fundName", value)}
+              value={formData.keywords}
+              onChange={(value) => handleInputChange("keywords", value)}
               placeholder=""
             />
           </FormFieldBlock>

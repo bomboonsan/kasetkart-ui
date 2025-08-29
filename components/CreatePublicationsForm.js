@@ -227,8 +227,8 @@ export default function CreateAcademicForm() {
                   value: "เสนอเอง",
                 },
               ]}
-              value={""}
-              onChange={() => {}}
+              value={formData.presentationWork}
+              onChange={(v) => handleInputChange('presentationWork', v)}
             />
             <FormRadio
               inline={true}
@@ -248,8 +248,8 @@ export default function CreateAcademicForm() {
                   value: "เข้าร่วมประชุมวิชาการ",
                 },
               ]}
-              value={""}
-              onChange={() => {}}
+              value={formData.presentType}
+              onChange={(v) => handleInputChange('presentType', v)}
             />
             <FormRadio
               inline={true}
@@ -265,8 +265,8 @@ export default function CreateAcademicForm() {
                   value: "เรื่องเต็ม",
                 },
               ]}
-              value={""}
-              onChange={() => {}}
+              value={formData.articleType}
+              onChange={(v) => handleInputChange('articleType', v)}
             />
           </FormFieldBlock>
 
