@@ -317,7 +317,7 @@ export default function Sidebar() {
         </div>
         {/* Logout */}
         <div className='mt-3 pb-2'>
-          <button onClick={handleLogout} className='flex justify-center items-center w-full gap-4 p-1 rounded-md bg-red-700 text-white text-sm font-bold uppercase cursor-pointer hover:bg-red-600'>
+          <button onClick={handleLogout} className='flex justify-center items-center w-full gap-4 p-2 rounded-md bg-red-700 text-white font-bold uppercase cursor-pointer hover:bg-red-600'>
             Logout
           </button>
         </div>

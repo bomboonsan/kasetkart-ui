@@ -9,7 +9,7 @@ import DonutChart from '@/components/dashboard/DonutChart'
 import PersonnelChart from '@/components/dashboard/PersonnelChart'
 import ScholarshipTable from '@/components/dashboard/ScholarshipTable'
 import ScholarshipTableAll from '@/components/dashboard/ScholarshipTableAll'
-import { FileSearch, BookMarked, FileBadge, BookText , BookOpen } from "lucide-react";
+import { FileSearch, FileBadge, Presentation, HandCoins , BookOpen } from "lucide-react";
 
 // คลาส API client (มีการแนบ token อัตโนมัติ และตั้งค่า base url ไว้แล้ว)
 import { api } from '@/lib/api'
@@ -48,18 +48,24 @@ export default function DashboardHome() {
 
   // จัดเตรียมข้อมูลสำหรับการ์ดสถิติด้านบนสุด
   const academicWorkStats = [
-    { value: String(projectCount), label: 'โครงการ', icon: () => (
-      <FileSearch className='size-8 text-gray-600' />
-    ) },
+    { value: String(projectCount), label: 'ทุนโครงการวิจัย', icon: () => (
+      <HandCoins className='size-8 text-gray-600' />
+    )
+    },
+    {
+      value: String(workFunding), label: 'ทุนตำราหนังสือ', icon: () => (
+        <HandCoins className='size-8 text-gray-600' />
+      )
+    },
+    {
+      value: String(workPublication), label: 'การตีพิมพ์ทางวิชาการ', icon: () => (
+        <FileBadge className='size-8 text-gray-600' />
+      )
+    },    
     { value: String(workConference), label: 'การประชุมวิชาการ', icon: () => (
-      <FileBadge className='size-8 text-gray-600' />
+      <Presentation className='size-8 text-gray-600' />
     ) },
-    { value: String(workPublication), label: 'การตีพิมพ์ทางวิชาการ', icon: () => (
-      <BookMarked className='size-8 text-gray-600' />
-    ) },
-    { value: String(workFunding), label: 'ขอการทุน', icon: () => (
-      <BookText className='size-8 text-gray-600' />
-    ) },
+    
     { value: String(workBook), label: 'หนังสือและตำรา', icon: () => (
       <BookOpen className='size-8 text-gray-600' />
     ) },

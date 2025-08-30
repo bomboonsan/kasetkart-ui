@@ -12,10 +12,21 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
   const users = usersRes?.data || usersRes?.items || []
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [query, setQuery] = useState('')
   useEffect(() => {
     setLoading(!usersRes && open)
     if (usersErr) setError(usersErr.message || 'ต้องเป็นผู้ดูแลระบบจึงจะสามารถค้นหารายชื่อผู้ใช้ได้')
   }, [usersRes, usersErr, open])
+
+  // กรองรายชื่อผู้ใช้จากคำค้นหา โดยค้นจาก firstName/lastName (Profile) และอีเมล
+  const filtered = users.filter(u => {
+    const prof = Array.isArray(u.Profile) ? u.Profile[0] : u.Profile
+    const name = ((prof?.firstName || '') + ' ' + (prof?.lastName || '')).toLowerCase()
+    const email = (u.email || '').toLowerCase()
+    const q = query.trim().toLowerCase()
+    if (!q) return true
+    return name.includes(q) || email.includes(q)
+  })
 
   return (
     <div className="space-y-1 flex items-center">
@@ -40,23 +51,31 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
           <div className="absolute inset-0 bg-black/30" onClick={() => setOpen(false)} />
           <div className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 space-y-4">
             <div className="text-lg font-medium">เลือกผู้ร่วมงาน (USER)</div>
+            {/* ช่องค้นหาผู้ใช้ด้วยชื่อ/นามสกุล หรืออีเมล */}
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="ค้นหาด้วยชื่อ นามสกุล หรืออีเมล"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm"
+            />
             {error && <div className="text-sm text-red-600">{error}</div>}
             {loading ? (
               <div className="text-sm text-gray-500">กำลังโหลด...</div>
             ) : (
               <div className="max-h-80 overflow-auto divide-y divide-gray-100 border rounded">
-                {users.map(u => (
+                {filtered.map(u => (
                   <button
                     key={u.id}
                     type="button"
                     onClick={() => { onSelect && onSelect(u); setOpen(false) }}
                     className="w-full text-left p-3 hover:bg-gray-50"
                   >
-                    <div className="font-medium text-gray-900">{u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email}</div>
+                    <div className="font-medium text-gray-900">{(Array.isArray(u.Profile) ? u.Profile[0] : u.Profile) ? `${(Array.isArray(u.Profile) ? u.Profile[0] : u.Profile).firstName || ''} ${(Array.isArray(u.Profile) ? u.Profile[0] : u.Profile).lastName || ''}`.trim() : u.email}</div>
                     <div className="text-xs text-gray-600">{u.email}</div>
                   </button>
                 ))}
-                {users.length === 0 && (
+                {filtered.length === 0 && (
                   <div className="p-4 text-sm text-gray-500">ไม่มีรายชื่อผู้ใช้</div>
                 )}
               </div>

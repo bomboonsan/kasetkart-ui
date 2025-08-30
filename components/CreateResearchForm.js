@@ -408,9 +408,6 @@ export default function CreateResearchForm() {
               Cancel
             </Button>
           </Link>
-          <Button variant="secondary" type="button">
-            Save Draft
-          </Button>
           <Button variant="primary" type="submit" disabled={submitting}>
             {submitting ? 'Submitting...' : 'Submits'}
           </Button>

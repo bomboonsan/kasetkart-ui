@@ -264,9 +264,6 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
           <Button variant="outline" type="button">
             Cancel
           </Button>
-          <Button variant="secondary" type="button">
-            Save Draft
-          </Button>
           <Button variant="primary" type="submit" disabled={submitting}>
             {submitting ? 'Submitting...' : 'Submit'}
           </Button>

@@ -347,9 +347,6 @@ export default function PublicationForm() {
           <Button variant="outline" type="button">
             Back
           </Button>
-          <Button variant="secondary" type="button">
-            Save Draft
-          </Button>
           <Button variant="primary" type="submit">
             Submit
           </Button>

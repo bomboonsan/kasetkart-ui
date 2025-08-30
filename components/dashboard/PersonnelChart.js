@@ -150,7 +150,7 @@ export default function PersonnelChart({
           <select
             value={selectedDeptId}
             onChange={(e) => setSelectedDeptId(e.target.value)}
-            className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md"
+            className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md text-gray-900"
           >
             {departments.map((d) => (
               <option key={d.id} value={String(d.id)}>{d.name}</option>
