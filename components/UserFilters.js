@@ -31,7 +31,7 @@ export default function UserFilters({ onFilter }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
+    <div className="bg-white rounded-lg shadow p-6 flex gap-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <FormField
           label="ค้นหา"
@@ -70,11 +70,11 @@ export default function UserFilters({ onFilter }) {
           onChange={(value) => handleFilterChange('department', value)}
           options={[
             { value: 'all', label: 'ทั้งหมด' },
-            { value: 'บัญชี', label: 'บัญชี' },
-            { value: 'การเงิน', label: 'การเงิน' },
-            { value: 'การจัดการ', label: 'การจัดการ' },
-            { value: 'การจัดการเทคโนโลยีและการปฏิบัติการ', label: 'การจัดการเทคโนโลยีและการปฏิบัติการ' },
-            { value: 'การตลาด', label: 'การตลาด' },
+            { value: 'ภาควิชาบัญชี', label: 'ภาควิชาบัญชี' },
+            { value: 'ภาควิชาการเงิน', label: 'ภาควิชาการเงิน' },
+            { value: 'ภาควิชาการจัดการ', label: 'ภาควิชาการจัดการ' },
+            { value: 'ภาควิชาการจัดการเทคโนโลยีและการปฏิบัติการ', label: 'ภาควิชาการจัดการเทคโนโลยีและการปฏิบัติการ' },
+            { value: 'ภาควิชาการตลาด', label: 'ภาควิชาการตลาด' },
           ]}
         />
       </div>

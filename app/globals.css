@@ -48,3 +48,32 @@ body {
   width: 1.2rem;
   height: 1.2rem;
 }
+
+
+
+.custom-select-wrapper {
+  position: relative;
+  display: block;
+  width: 100%;
+}
+
+.custom-select {
+  /* ซ่อนลูกศรเดิมของเบราว์เซอร์ */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+
+.custom-arrow {
+  /* สร้างลูกศรใหม่ด้วย pseudo-element */
+  position: absolute;
+  top: 70%;
+  right: 10px; /* ย้ายลูกศรไปทางขวา 10px */
+  transform: translateY(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 5px solid #6b7280; /* สีลูกศร */
+  pointer-events: none; /* ทำให้คลิกผ่านได้ */
+}

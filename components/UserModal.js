@@ -11,7 +11,7 @@ export default function UserModal({ user, mode, onClose, onSave }) {
     email: '',
     role: 'User',
     department: '',
-    status: 'Pending'
+    approvalStatus: 'APPROVED'
   })
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function UserModal({ user, mode, onClose, onSave }) {
         email: user.email || '',
         role: user.role || 'User',
         department: user.department || '',
-        status: user.status || 'Pending'
+        approvalStatus: user.approvalStatus || 'APPROVED'
       })
     } else {
       setFormData({
@@ -29,7 +29,7 @@ export default function UserModal({ user, mode, onClose, onSave }) {
         email: '',
         role: 'User',
         department: '',
-        status: 'Pending'
+        approvalStatus: 'APPROVED'
       })
     }
   }, [user])

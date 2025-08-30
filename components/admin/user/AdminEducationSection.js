@@ -1,31 +1,28 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import SectionCard from './SectionCard'
-import EducationItem from './EducationItem'
-import { api } from '@/lib/api'
+import SectionCard from '@/components/SectionCard'
+import EducationItem from '@/components/EducationItem'
+import { userAPI } from '@/lib/api'
 
-export default function EducationSection() {
+export default function AdminEducationSection({ userId }) {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
 
   useEffect(() => {
     (async () => {
       try {
-        const me = await api.get('/profiles/me')
-        const prof = me?.Profile?.[0] || me?.profile || {}
-        const highDegree = prof?.highDegree || ''
-        const academicRank = prof?.academicRank || ''
-        // ปัจจุบันระบบยังไม่มีตารางการศึกษา แสดงจาก highDegree/academicRank เป็นประวัติแบบย่อ
+        const u = await userAPI.getUser(userId)
+        const prof = u?.Profile?.[0] || {}
         const list = []
-        if (highDegree) list.push({ degree: highDegree, school: me?.Faculty?.name || me?.Department?.name || '', period: '' })
-        if (academicRank) list.push({ degree: academicRank, school: me?.Faculty?.name || me?.Department?.name || '', period: '' })
+        if (prof.highDegree) list.push({ degree: prof.highDegree, school: u?.Faculty?.name || u?.Department?.name || '', period: '' })
+        if (prof.academicRank) list.push({ degree: prof.academicRank, school: u?.Faculty?.name || u?.Department?.name || '', period: '' })
         setItems(list)
       } catch (e) {
         setError(e.message || 'ไม่สามารถโหลดประวัติการศึกษา')
       }
     })()
-  }, [])
+  }, [userId])
 
   return (
     <SectionCard title="ประวัติการศึกษา">
@@ -48,3 +45,4 @@ export default function EducationSection() {
     </SectionCard>
   )
 }
+

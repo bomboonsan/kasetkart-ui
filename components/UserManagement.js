@@ -68,6 +68,7 @@ const UserManagement = forwardRef((props, ref) => {
           email: u.email,
           role: mapRoleToLabel(u.role),
           department: u.Department?.name || "-",
+          faculty: u.Faculty?.name || "-",
           organization: u.Organization?.name || "-",
           status: mapApprovalToStatus(u.approvalStatus),
           lastLogin: "Never",
@@ -75,6 +76,7 @@ const UserManagement = forwardRef((props, ref) => {
           rawData: u,
         };
       });
+      console.log("Mapped users:", mapped);
       setUsers(mapped);
       setFilteredUsers(mapped);
     } catch (err) {
@@ -151,6 +153,7 @@ const UserManagement = forwardRef((props, ref) => {
         }
         break;
       case "approve":
+      case "activate":
         if (user) {
           try {
             await userAPI.updateUserApproval(user.id, "APPROVED");
@@ -161,6 +164,7 @@ const UserManagement = forwardRef((props, ref) => {
         }
         break;
       case "disable":
+      case "deactivate":
         if (user) {
           try {
             await userAPI.updateUserApproval(user.id, "DISABLED");

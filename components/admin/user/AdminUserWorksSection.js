@@ -1,9 +1,9 @@
 "use client"
 
 import { useEffect, useMemo, useState } from 'react'
-import SectionCard from './SectionCard'
-import PublicationFilters from './PublicationFilters'
-import PublicationItem from './PublicationItem'
+import SectionCard from '@/components/SectionCard'
+import PublicationFilters from '@/components/PublicationFilters'
+import PublicationItem from '@/components/PublicationItem'
 import { worksAPI } from '@/lib/api'
 
 const TYPE_TABS = [
@@ -13,7 +13,7 @@ const TYPE_TABS = [
   { key: 'BOOK', label: 'หนังสือและตำรา' },
 ]
 
-export default function ResearchPublicationsSection() {
+export default function AdminUserWorksSection({ userId }) {
   const [works, setWorks] = useState([])
   const [activeType, setActiveType] = useState('CONFERENCE')
   const [error, setError] = useState('')
@@ -23,7 +23,7 @@ export default function ResearchPublicationsSection() {
     (async () => {
       try {
         setLoading(true)
-        const res = await worksAPI.getWorks({ pageSize: 100, mine: 1 })
+        const res = await worksAPI.getWorks({ pageSize: 100, userId })
         const data = res?.data || res?.items || res || []
         setWorks(data)
       } catch (e) {
@@ -32,7 +32,7 @@ export default function ResearchPublicationsSection() {
         setLoading(false)
       }
     })()
-  }, [])
+  }, [userId])
 
   const counts = useMemo(() => {
     const c = { CONFERENCE: 0, PUBLICATION: 0, FUNDING: 0, BOOK: 0 }
@@ -67,14 +67,14 @@ export default function ResearchPublicationsSection() {
     <SectionCard title="ผลงานการการเขียนตามประเภท">
       <div className="space-y-6">
         {/* Summary counters */}
-        {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {TYPE_TABS.map(t => (
             <div key={t.key} className="p-3 rounded border bg-gray-50 text-center">
               <div className="text-sm text-gray-600">{t.label}</div>
               <div className="text-xl font-semibold">{counts[t.key] || 0}</div>
             </div>
           ))}
-        </div> */}
+        </div>
 
         {/* Tabs */}
         <div className="flex gap-2 border-b">
@@ -89,10 +89,8 @@ export default function ResearchPublicationsSection() {
           ))}
         </div>
 
-        {/* Filters placeholder */}
-        {/* <PublicationFilters /> */}
+        <PublicationFilters />
 
-        {/* List */}
         {error ? (
           <div className="text-sm text-red-600">{error}</div>
         ) : loading ? (
@@ -122,3 +120,4 @@ export default function ResearchPublicationsSection() {
     </SectionCard>
   )
 }
+

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { logout } from '@/lib/auth'
+import { profileAPI } from '@/lib/api'
 
 const menuItems = [
   {
@@ -112,6 +113,23 @@ const adminMenuItems = [
 export default function Sidebar() {
   const router = useRouter();
   const [openGroups, setOpenGroups] = useState({})
+  const [userDisplayName, setUserDisplayName] = useState('')
+  const [userEmail, setUserEmail] = useState('')
+
+  useEffect(() => {
+    const loadMe = async () => {
+      try {
+        const me = await profileAPI.getMyProfile()
+        const prof = me?.Profile?.[0] || me?.profile || {}
+        const name = `${prof?.firstName || ''} ${prof?.lastName || ''}`.trim()
+        setUserDisplayName(name || me?.email || '')
+        setUserEmail(me?.email || '')
+      } catch (e) {
+        // ignore
+      }
+    }
+    loadMe()
+  }, [])
 
   function toggleGroup(id) {
     setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))
@@ -233,9 +251,11 @@ export default function Sidebar() {
       <div className="px-6">
         <hr className="my-4 border-gray-200" />
         <div className="flex items-center py-2">
-          <div className="w-10 h-10 rounded-full bg-gray-300 mr-3"></div>
+          <div className="w-10 h-10 rounded-full bg-gray-300 mr-3 flex items-center justify-center text-xs font-semibold text-white bg-blue-500">
+            {(userDisplayName || userEmail || 'U').split(' ').map(s => s[0]).join('').slice(0,2).toUpperCase()}
+          </div>
           <div>
-            <p className="text-sm text-gray-900">ธีรวิชญ์ วงศเพียร</p>
+            <p className="text-sm text-gray-900">{userDisplayName || userEmail || '-'}</p>
             <Link href="/profile" className="text-xs text-gray-600">โปรไฟล์ของฉัน</Link>
           </div>
         </div>

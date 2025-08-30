@@ -68,6 +68,7 @@ export default function UserTableRow({ user, onAction }) {
         {user.department}
       </td>
       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+        {user.faculty}<br />
         {user.organization}
       </td>
       <td className="px-6 py-4 whitespace-nowrap">
@@ -137,7 +138,7 @@ export default function UserTableRow({ user, onAction }) {
                     }}
                     className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                   >
-                    เปิดใช้งาน
+                    ยกเลิกระงับการใช้งาน
                   </button>
                 )}
                 <button
