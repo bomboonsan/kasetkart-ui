@@ -4,14 +4,48 @@ import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
 import useSWR from 'swr'
 import { api } from '@/lib/api'
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const { data: project } = useSWR(projectId ? `/projects/${projectId}` : null, api.get)
   const [localPartners, setLocalPartners] = useState([])
+  const [editingIndex, setEditingIndex] = useState(null)
+  // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
+  function recomputeProportions(list = []) {
+    const result = list.map(p => ({ ...p }))
+    const internalIdx = result.reduce((arr, p, idx) => (p.isInternal ? [...arr, idx] : arr), [])
+    const n = internalIdx.length
+    if (n === 0) return result.map(p => ({ ...p, partnerProportion: undefined }))
+    const base = parseFloat((1 / n).toFixed(2))
+    let assigned = 0
+    internalIdx.forEach((idx, i) => {
+      if (i < n - 1) {
+        result[idx].partnerProportion = base.toFixed(2)
+        assigned += base
+      } else {
+        const last = parseFloat((1 - assigned).toFixed(2))
+        result[idx].partnerProportion = last.toFixed(2)
+      }
+    })
+    return result.map(p => (p.isInternal ? p : { ...p, partnerProportion: undefined }))
+  }
+
   useEffect(() => {
-    if (project?.ProjectPartner) setLocalPartners(project.ProjectPartner)
+    if (project?.ProjectPartner) setLocalPartners(recomputeProportions(project.ProjectPartner))
   }, [project])
+
+  function resetForm() {
+    setFormData(prev => ({
+      ...prev,
+      __userObj: undefined,
+      partnerFullName: '',
+      orgName: '',
+      userId: undefined,
+      partnerType: '',
+      partnerComment: ''
+    }))
+    setEditingIndex(null)
+  }
 
   function handleAddPartner() {
     const internal = formData.isInternal === true
@@ -26,16 +60,58 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       orgName: internal ? (org || formData.orgName || '') : (formData.orgName || ''),
       partnerType: formData.partnerType || '',
       partnerComment: formData.partnerComment || '',
-      proportion: undefined,
+      partnerProportion: undefined,
       User: internal && u ? { email: u.email } : undefined,
     }
-    setLocalPartners(prev => [...prev, partner])
+    setLocalPartners(prev => {
+      const base = prev || []
+      if (editingIndex !== null && editingIndex >= 0 && editingIndex < base.length) {
+        const updated = base.slice()
+        updated[editingIndex] = { ...updated[editingIndex], ...partner }
+        return recomputeProportions(updated)
+      }
+      return recomputeProportions([...(base || []), partner])
+    })
+    setEditingIndex(null)
     const dlg = document.getElementById('my_modal_2'); if (dlg && dlg.close) dlg.close()
+    resetForm()
   }
 
   function handleRemovePartner(idx) {
-    setLocalPartners(prev => prev.filter((_, i) => i !== idx))
+    setLocalPartners(prev => recomputeProportions(prev.filter((_, i) => i !== idx)))
+    // รีเซ็ตฟอร์มใน dialog
+    setFormData(prev => ({
+      ...prev,
+      __userObj: undefined,
+      partnerFullName: '',
+      orgName: '',
+      userId: undefined,
+      partnerType: '',
+      partnerComment: ''
+    }))
+    setEditingIndex(null)
   }
+
+  function handleEditPartner(idx) {
+    const p = localPartners[idx]
+    if (!p) return
+    setEditingIndex(idx)
+    setFormData(prev => ({
+      ...prev,
+      isInternal: !!p.isInternal,
+      partnerFullName: p.fullname || '',
+      orgName: p.orgName || '',
+      partnerType: p.partnerType || '',
+      partnerComment: p.partnerComment || p.comment || '',
+      userId: p.userID || undefined,
+      __userObj: undefined
+    }))
+    const dlg = document.getElementById('my_modal_2'); if (dlg && dlg.showModal) dlg.showModal()
+    resetForm()
+  }
+
+  const hasFirstAuthor = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment) === 'First Author'), [localPartners])
+  const hasCorresponding = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment) === 'Corresponding Author'), [localPartners])
   return (
     <>
       <dialog id="my_modal_2" className="modal">
@@ -93,9 +169,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       mini={false}
                       label="ชื่อผู้ร่วมโครงการวิจัย"
                       type="text"
-                      value={formData.partnerFullName || ''}
-                      onChange={(value) => handleInputChange("partnerFullName", value)}
-                      placeholder=""
+                      value={formData.__userObj?.Profile ? `${formData.__userObj.Profile[0].firstName || ''} ${formData.__userObj.Profile[0].lastName || ''}`.trim() : ''}
+                      readOnly={true}
                     />
                   </div>
                   <div>
@@ -103,9 +178,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       mini={false}
                       label="ชื่อหน่วยงาน"
                       type="text"
-                      value={formData.orgName || ''}
-                      onChange={(value) => handleInputChange("orgName", value)}
-                      placeholder=""
+                      value={formData.__userObj?.Department?.name + ' ' + formData.__userObj?.Faculty?.name + ' ' + formData.__userObj?.Organization?.name || ''}
+                      readOnly={true}
                     />
                   </div>
                 </>
@@ -157,13 +231,13 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
             <div>
               <FormSelect
                 label="หมายเหตุ"
-                value={formData.partnerComment}
+                value={formData.partnerComment || ''}
                 onChange={(value) => handleInputChange("partnerComment", value)}
                 className="max-w-lg"
                 options={[
                   { value: '', label: 'เลือก' },
-                  { value: 'First Author', label: 'First Author' },
-                  { value: 'Corresponding Author', label: 'Corresponding Author' },
+                  ...(!hasFirstAuthor ? [{ value: 'First Author', label: 'First Author' }] : []),
+                  ...(!hasCorresponding ? [{ value: 'Corresponding Author', label: 'Corresponding Author' }] : []),
                 ]}
               />
             </div>
@@ -249,16 +323,21 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       <div className="text-sm text-gray-900">{p.partnerComment || '-'}</div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      {p.proportion && (
-                        <div className="text-sm text-gray-500">
-                          {p.proportion}%
+                      {p.partnerProportion && (
+                        <div className="text-sm text-gray-900">
+                          {p.partnerProportion}
                         </div>
                       )}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <button type="button" onClick={() => handleRemovePartner(index)} className="text-red-600 hover:text-red-900">
-                        ลบ
-                      </button>
+                      <div className="flex items-center gap-3 justify-end">
+                        <button type="button" onClick={() => handleEditPartner(index)} className="text-blue-600 hover:text-blue-900">
+                          แก้ไข
+                        </button>
+                        <button type="button" onClick={() => handleRemovePartner(index)} className="text-red-600 hover:text-red-900">
+                          ลบ
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

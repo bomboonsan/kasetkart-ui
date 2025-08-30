@@ -8,7 +8,8 @@ export default function FormInput({
   disabled = false,
   className = '',
   mini = false,
-  after = null
+  after = null,
+  readOnly = false
 }) {
   return (
     <div className="space-y-1 flex items-center">
@@ -26,6 +27,7 @@ export default function FormInput({
           placeholder={placeholder}
           required={required}
           disabled={disabled}
+          readOnly={readOnly}
           className={`
             ${mini ? "w-auto inline-block" : "w-full block"}
           text-zinc-700

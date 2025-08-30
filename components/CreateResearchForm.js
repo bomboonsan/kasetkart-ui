@@ -46,7 +46,7 @@ export default function CreateResearchForm() {
     orgName: "", // ProjectPartner.orgName (String)
     partnerType: "", // ProjectPartner.partnerType (String)
     partnerComment: "", // ProjectPartner.partnerComment (String)
-    proportion: "", // ProjectPartner.proportion (Int)
+    partnerProportion: "", // ProjectPartner.partnerProportion (Int)
     attachments: [],
   });
 
@@ -54,6 +54,8 @@ export default function CreateResearchForm() {
   const [deptOptions, setDeptOptions] = useState([])
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+
+  console.log('formData', formData)
 
   useEffect(() => {
     ;(async () => {
@@ -104,7 +106,7 @@ export default function CreateResearchForm() {
             orgName: formData.orgName || undefined,
             partnerType: formData.partnerType || undefined,
             partnerComment: formData.partnerComment || undefined,
-            proportion: formData.proportion ? parseInt(formData.proportion) : undefined,
+            partnerProportion: formData.partnerProportion ? parseInt(formData.partnerProportion) : undefined,
           },
         ],
       }
