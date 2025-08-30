@@ -17,7 +17,10 @@ export default function AdminUserHeader({ userId }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    (async () => {
+    if (!userId) return
+    setError('')
+    setUser(null)
+    ;(async () => {
       try {
         const u = await userAPI.getUser(userId)
         setUser(u)
@@ -42,9 +45,13 @@ export default function AdminUserHeader({ userId }) {
         )}
         <div className="flex flex-col lg:flex-row items-start space-y-4 lg:space-y-0 lg:space-x-6">
           <div className="flex-shrink-0">
-            <div className="w-24 h-24 rounded-full bg-primary text-white text-2xl font-bold flex items-center justify-center">
-              {initialsFrom(displayName, email)}
-            </div>
+            {prof?.avatarUrl ? (
+              <img src={prof.avatarUrl} alt="avatar" className="w-24 h-24 rounded-full object-cover" />
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-primary text-white text-2xl font-bold flex items-center justify-center">
+                {initialsFrom(displayName, email)}
+              </div>
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
@@ -67,4 +74,3 @@ export default function AdminUserHeader({ userId }) {
     </div>
   )
 }
-

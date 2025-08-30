@@ -10,7 +10,10 @@ export default function AdminEducationSection({ userId }) {
   const [error, setError] = useState('')
 
   useEffect(() => {
-    (async () => {
+    if (!userId) return
+    setError('')
+    setItems([])
+    ;(async () => {
       try {
         const u = await userAPI.getUser(userId)
         const prof = u?.Profile?.[0] || {}
@@ -45,4 +48,3 @@ export default function AdminEducationSection({ userId }) {
     </SectionCard>
   )
 }
-

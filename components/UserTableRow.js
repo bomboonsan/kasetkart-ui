@@ -54,13 +54,19 @@ export default function UserTableRow({ user, onAction }) {
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <div className="flex-shrink-0 h-10 w-10">
-            <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-gray-700">
-              {user.avatar}
-            </div>
+            {user.avatarUrl ? (
+              <img src={user.avatarUrl} alt="avatar" className="h-10 w-10 rounded-full object-cover" />
+            ) : (
+              <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-gray-700">
+                {user.avatar}
+              </div>
+            )}
           </div>
           <div className="ml-4">
-            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-            <div className="text-sm text-gray-500">{user.email}</div>
+            <a href={`/dashboard/admin/user/view/${user.id}`} className="hover:underline">
+              <div className="text-sm font-medium text-gray-900">{user.name}</div>
+              <div className="text-sm text-gray-500">{user.email}</div>
+            </a>
           </div>
         </div>
       </td>

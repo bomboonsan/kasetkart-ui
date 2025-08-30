@@ -73,6 +73,7 @@ const UserManagement = forwardRef((props, ref) => {
           status: mapApprovalToStatus(u.approvalStatus),
           lastLogin: "Never",
           avatar: toAvatar(displayName || u.email),
+          avatarUrl: prof?.avatarUrl || '',
           rawData: u,
         };
       });

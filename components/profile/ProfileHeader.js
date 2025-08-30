@@ -48,9 +48,13 @@ export default function ProfileHeader() {
           {/* Profile Image */}
           <div className="flex-shrink-0">
             <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
-              <div className="w-full h-full bg-primary text-white text-2xl font-bold flex items-center justify-center rounded-full">
-                {initials(displayName, email)}
-              </div>
+              {profObj?.avatarUrl ? (
+                <img src={profObj.avatarUrl} alt="avatar" className="w-24 h-24 object-cover rounded-full" />
+              ) : (
+                <div className="w-full h-full bg-primary text-white text-2xl font-bold flex items-center justify-center rounded-full">
+                  {initials(displayName, email)}
+                </div>
+              )}
             </div>
           </div>
 

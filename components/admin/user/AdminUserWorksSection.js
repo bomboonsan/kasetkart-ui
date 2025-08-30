@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import SectionCard from '@/components/SectionCard'
 import PublicationFilters from '@/components/PublicationFilters'
 import PublicationItem from '@/components/PublicationItem'
+import Button from '@/components/Button'
 import { worksAPI } from '@/lib/api'
 
 const TYPE_TABS = [
@@ -20,7 +21,10 @@ export default function AdminUserWorksSection({ userId }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    (async () => {
+    if (!userId) return
+    setError('')
+    setWorks([])
+    ;(async () => {
       try {
         setLoading(true)
         const res = await worksAPI.getWorks({ pageSize: 100, userId })
@@ -65,16 +69,21 @@ export default function AdminUserWorksSection({ userId }) {
 
   return (
     <SectionCard title="ผลงานการการเขียนตามประเภท">
+      <div className='flex justify-end -mt-16 mb-4'>
+        <Button >
+          เพิ่มผลงาน
+        </Button>
+      </div>
       <div className="space-y-6">
         {/* Summary counters */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {/* <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {TYPE_TABS.map(t => (
             <div key={t.key} className="p-3 rounded border bg-gray-50 text-center">
               <div className="text-sm text-gray-600">{t.label}</div>
               <div className="text-xl font-semibold">{counts[t.key] || 0}</div>
             </div>
           ))}
-        </div>
+        </div> */}
 
         {/* Tabs */}
         <div className="flex gap-2 border-b">
@@ -89,7 +98,7 @@ export default function AdminUserWorksSection({ userId }) {
           ))}
         </div>
 
-        <PublicationFilters />
+        {/* <PublicationFilters /> */}
 
         {error ? (
           <div className="text-sm text-red-600">{error}</div>
@@ -120,4 +129,3 @@ export default function AdminUserWorksSection({ userId }) {
     </SectionCard>
   )
 }
-
