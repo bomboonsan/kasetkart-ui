@@ -15,6 +15,7 @@ import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import Link from 'next/link'
 import { api } from '@/lib/api'
+import { use } from 'react'
 
 export default function CreateResearchForm() {
   // Align form keys to Project model in schema.prisma
@@ -32,6 +33,7 @@ export default function CreateResearchForm() {
 
     researchKind: "", // Project.researchKind (String)
     fundType: "", // Project.fundType (String)
+    fundSubType: "", // Project.fundType (String)
     fundName: "", // Project.fundName (String)
     budget: "", // Project.budget (Int)
     keywords: "", // Project.keywords (Text)
@@ -49,6 +51,7 @@ export default function CreateResearchForm() {
     partnerProportion: "", // ProjectPartner.partnerProportion (Int)
     attachments: [],
   });
+  
 
   const [orgOptions, setOrgOptions] = useState([])
   const [deptOptions, setDeptOptions] = useState([])
@@ -56,6 +59,45 @@ export default function CreateResearchForm() {
   const [submitting, setSubmitting] = useState(false)
 
   console.log('formData', formData)
+
+  const [subFundType, setSubFundType] = useState([])
+  const subFundType1 = [
+    { value: '', label: 'เลือกข้อมูล' },
+    { value: '19', label: 'องค์กรรัฐ' },
+    { value: '20', label: 'องค์กรอิสระและเอกชน' },
+    { value: '21', label: 'แหล่งทุนต่างประเทศ' },
+    { value: '23', label: 'รัฐวิสาหกิจ' },
+  ]
+  const subFundType2 = [
+    { value: '', label: 'เลือกข้อมูล' },
+    { value: '17', label: 'เงินรายได้มหาวิทยาลัย' },
+    { value: '18', label: 'เงินรายได้ส่วนงาน' },
+  ]
+  const subFundType3 = [
+    { value: '', label: 'เลือกข้อมูล' },
+    { value: '22', label: 'เงินทุนส่วนตัว' },
+  ]
+  const subFundType4 = [
+    { value: '', label: 'เลือกข้อมูล' },
+    { value: '14', label: 'เงินอุดหนุนรัฐบาลและเงินอุดหนุนอื่นที่รัฐบาลจัดสรรให้' },
+    { value: '15', label: 'เงินงบประมาณมหาวิทยาลัย' },
+  ]
+
+  useEffect(() => {
+    setSubFundType([])
+    if (formData.fundType === '12') {
+      setSubFundType(subFundType1)
+    } else if (formData.fundType === '11') {
+      setSubFundType(subFundType2)
+    } else if (formData.fundType === '13') {
+      setSubFundType(subFundType3)
+    } else if (formData.fundType === '10') {
+      setSubFundType(subFundType4)
+    } else {
+      setSubFundType([])
+    }
+  }, [formData.fundType])
+
 
   useEffect(() => {
     ;(async () => {
@@ -72,7 +114,7 @@ export default function CreateResearchForm() {
         setError(err.message || 'โหลดข้อมูลตัวเลือกไม่สำเร็จ')
       }
     })()
-  }, [])
+  }, [])  
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -184,10 +226,11 @@ export default function CreateResearchForm() {
               mini={true}
               label="จำนวนโครงการย่อย"
               type="number"
-              value={formData.subProjectCount}
+              value={formData.projectMode !== "แผนงานวิจัย หรือชุดโครงการวิจัย" ? 0 :formData.subProjectCount}
               onChange={(value) => handleInputChange("subProjectCount", value)}
               placeholder="0"
-              disabled={formData.projectMode === "โครงการวิจัยเดี่ยว"}
+              disabled={formData.projectMode === "แผนงานวิจัย หรือชุดโครงการวิจัย" ? false : true}
+              className={`border border-gray-300 rounded-md p-2 ${formData.projectMode === "แผนงานวิจัย หรือชุดโครงการวิจัย" ? '' : 'bg-gray-100 cursor-not-allowed'}`}
             />
           </FormFieldBlock>
 
@@ -197,6 +240,7 @@ export default function CreateResearchForm() {
               value={formData.nameTh}
               onChange={(value) => handleInputChange("nameTh", value)}
               placeholder=""
+              required
             />
           </FormFieldBlock>
 
@@ -206,6 +250,7 @@ export default function CreateResearchForm() {
               value={formData.nameEn}
               onChange={(value) => handleInputChange("nameEn", value)}
               placeholder=""
+              required
             />
           </FormFieldBlock>
 
@@ -272,13 +317,11 @@ export default function CreateResearchForm() {
           </FormFieldBlock>
 
           <FormFieldBlock>
-            <FormSelect
+            <FormTextarea
               label="หน่วยงานหลักที่รับผิดชอบโครงการวิจัย (หน่วยงานที่ขอทุน)"
               required
-              value={formData.orgName}
-              onChange={(value) => handleInputChange("orgName", value)}
-              className="max-w-lg"
-              options={[{ value: '', label: 'เลือกหน่วยงาน' }, ...orgOptions]}
+              value={"ชื่อภาค คณะ มหาลัยจาก ข้อมูลผู้ใช้"}
+              // onChange={(value) => handleInputChange("orgName", value)}
             />
           </FormFieldBlock>
 
@@ -291,10 +334,17 @@ export default function CreateResearchForm() {
               className="max-w-lg"
               options={[
                 { value: '', label: "เลือกประเภทงานวิจัย" },
-                { label: "ประชุมวิชาการ", value: "ประชุมวิชาการ" },
-                { label: "ตีพิมพ์ทางวิชาการ", value: "ตีพิมพ์ทางวิชาการ" },
-                { label: "ขอรับทุนเขียนตำรา", value: "ขอรับทุนเขียนตำรา" },
-                { label: "หนังสือและตำรา", value: "หนังสือและตำรา" },
+                { value: 'การวิจัยพื้นฐานหรือการวิจัยบริสุทธิ์', label: 'การวิจัยพื้นฐานหรือการวิจัยบริสุทธิ์' },
+                { value: 'การวิจัยประยุกต์', label: 'การวิจัยประยุกต์' },
+                { value: 'การวิจัยเชิงปฏิบัติ', label: 'การวิจัยเชิงปฏิบัติ' },
+                { value: 'การวิจัยและพัฒนา', label: 'การวิจัยและพัฒนา' },
+                { value: 'การพัฒนาทดลอง', label: 'การพัฒนาทดลอง' },
+                { value: 'พื้นฐาน (basic Research)', label: 'พื้นฐาน (basic Research)' },
+                { value: 'พัฒนาและประยุกต์ (Development)', label: 'พัฒนาและประยุกต์ (Development)' },
+                { value: 'วิจัยเชิงปฏิบัติการ (Operational Research)', label: 'วิจัยเชิงปฏิบัติการ (Operational Research)' },
+                { value: 'วิจัยทางคลินิก (Clinical Trial)', label: 'วิจัยทางคลินิก (Clinical Trial)' },
+                { value: 'วิจัยต่อยอด (Translational research)', label: 'วิจัยต่อยอด (Translational research)' },
+                { value: 'การขยายผลงานวิจัย (Implementation)', label: 'การขยายผลงานวิจัย (Implementation)' },
               ]}
             />
           </FormFieldBlock>
@@ -308,20 +358,60 @@ export default function CreateResearchForm() {
               className="max-w-lg"
               options={[
                 { value: '', label: 'เลือกข้อมูล' },
-                { value: 'ราชการ', label: 'ราชการ' },
-                { value: 'เอกชน', label: 'เอกชน' },
-                { value: 'มก', label: 'มหาวิทยาลัย (มก.)' },
-                { value: 'ทุนต่างประเทศ', label: 'ทุนต่างประเทศ' },
+                { value: '10', label: 'เงินอุดหนุนรัฐบาลและเงินอุดหนุนอื่นที่รัฐบาลจัดสรรให้' },
+                { value: '11', label: 'เงินรายได้มหาวิทยาลัยและส่วนงาน' },
+                { value: '12', label: 'แหล่งทุนภายนอกมหาวิทยาลัย' },
+                { value: '13', label: 'เงินทุนส่วนตัว' },
               ]}
+            />
+            <FormSelect
+              label=""
+              value={formData.fundSubType}
+              onChange={(value) => handleInputChange("fundSubType", value)}
+              className="max-w-lg"
+              options={subFundType}
             />
           </FormFieldBlock>
 
           <FormFieldBlock>
+            {
+              formData.fundType !== '13' && (
+                <FormSelect
+                  label="ชื่อแหล่งทุน"
+                  required
+                  value={formData.fundName}
+                  onChange={(value) => handleInputChange("fundName", value)}
+                  className="max-w-lg"
+                  options={[
+                    { value: '', label: 'เลือกชื่อแหล่งทุน' },
+                    { value: 'สำนักงานคณะกรรมการวิจัยแห่งชาติ', label: 'สำนักงานคณะกรรมการวิจัยแห่งชาติ' },
+                    { value: 'สำนักงานกองทุนสนับสนุนการวิจัย', label: 'สำนักงานกองทุนสนับสนุนการวิจัย' },
+                    { value: 'สำนักงานคณะกรรมการการอุดมศึกษา', label: 'สำนักงานคณะกรรมการการอุดมศึกษา' },
+                    { value: 'สำนักงานพัฒนาการวิจัยการเกษตร (สวก.)', label: 'สำนักงานพัฒนาการวิจัยการเกษตร (สวก.)' },
+                    { value: 'สำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติ', label: 'สำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติ' },
+                    { value: 'ศูนย์เทคโนโลยีโลหะและวัสดุแห่งชาติ สำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติ', label: 'ศูนย์เทคโนโลยีโลหะและวัสดุแห่งชาติ สำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติ' },
+                    { value: 'ศูนย์พันธุวิศวกรรมและเทคโนโลยีชีวภาพแห่งชาติ สำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติ', label: 'ศูนย์พันธุวิศวกรรมและเทคโนโลยีชีวภาพแห่งชาติ สำนักงานพัฒนาวิทยาศาสตร์และเทคโนโลยีแห่งชาติ' },
+                    { value: 'ศูนย์นาโนเทคโนโลยีแห่งชาติ', label: 'ศูนย์นาโนเทคโนโลยีแห่งชาติ' },
+                    { value: 'กระทรวงวิทยาศาสตร์และเทคโนโลยี', label: 'กระทรวงวิทยาศาสตร์และเทคโนโลยี' },
+                    { value: 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร', label: 'ธนาคารเพื่อการเกษตรและสหกรณ์การเกษตร' },
+                    { value: 'มูลนิธิชัยพัฒนา', label: 'มูลนิธิชัยพัฒนา' },
+                    { value: 'มูลนิธิโครงการหลวง', label: 'มูลนิธิโครงการหลวง' },
+                    { value: 'มูลนิธิเพื่อการส่งเสริมวิทยาศาสตร์ ประเทศไทย', label: 'มูลนิธิเพื่อการส่งเสริมวิทยาศาสตร์ ประเทศไทย' },
+                    { value: 'กองทุนสิ่งแวดล้อม สำนักงานนโยบายและแผนสิ่งแวดล้อม', label: 'กองทุนสิ่งแวดล้อม สำนักงานนโยบายและแผนสิ่งแวดล้อม' },
+                    { value: 'กองทุนสนับสนุนการวิจัย ร่วมกับสำนักงานคณะกรรมการการอุดมศึกษา', label: 'กองทุนสนับสนุนการวิจัย ร่วมกับสำนักงานคณะกรรมการการอุดมศึกษา' },
+                    { value: 'ทุนอุดหนุนวิจัยภายใต้โครงการความร่วมมือระหว่างไทย-ญี่ปุ่น (NRCT-JSPS)', label: 'ทุนอุดหนุนวิจัยภายใต้โครงการความร่วมมือระหว่างไทย-ญี่ปุ่น (NRCT-JSPS)' },
+                    { value: 'อื่นๆ', label: 'อื่นๆ' },
+                  ]}
+                />
+              )
+            }
+            
             <FormTextarea
-              label="ชื่อแหล่งทุน"
-              required
-              value={formData.fundName}
+              label={formData.fundType === '13' ? "ชื่อแหล่งทุน" : ""}
+              value={formData.fundType === '13' ? "เงินทุนส่วนตัว" : formData.fundName}
               onChange={(value) => handleInputChange("fundName", value)}
+              disabled={formData.fundName === 'อื่นๆ' ? false : true}
+              className={`border border-gray-300 rounded-md p-2 ${formData.fundName === 'อื่นๆ' ? '' : 'bg-gray-100 cursor-not-allowed'}`}
               placeholder=""
             />
           </FormFieldBlock>
