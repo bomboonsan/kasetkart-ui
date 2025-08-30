@@ -83,6 +83,7 @@ export default function CreateResearchForm() {
     { value: '15', label: 'เงินงบประมาณมหาวิทยาลัย' },
   ]
 
+  
   useEffect(() => {
     setSubFundType([])
     if (formData.fundType === '12') {
