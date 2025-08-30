@@ -145,8 +145,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     if (dlg && dlg.showModal) dlg.showModal()
   }
 
-  const hasFirstAuthor = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment).includes('First Author')), [localPartners])
-  const hasCorresponding = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment).includes('Corresponding Author')), [localPartners])
+  const hasFirstAuthor = useMemo(() => (localPartners || []).some(p => ((p.partnerComment || p.comment || '')).includes('First Author')), [localPartners])
+  const hasCorresponding = useMemo(() => (localPartners || []).some(p => ((p.partnerComment || p.comment || '')).includes('Corresponding Author')), [localPartners])
 
   // สร้างแถวผู้ใช้ปัจจุบันและคำนวณสัดส่วนรวมเพื่อใช้แสดงผล
   const mePartner = useMemo(() => {
@@ -293,16 +293,19 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
             <button onClick={handleAddPartner} type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
               {editingIndex !== null ? 'บันทึก' : 'เพิ่ม'}
             </button>
-            <form method="dialog">
-              <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300" onClick={resetForm}>
-                ยกเลิก
-              </button>
-            </form>
+            <button
+              type="button"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+              onClick={() => { resetForm(); const dlg = document.getElementById('my_modal_2'); if (dlg && dlg.close) dlg.close(); }}
+            >
+              ยกเลิก
+            </button>
           </div>
         </div>
-        <form method="dialog" className="modal-backdrop backdrop-blur-sm">
-          <button>close</button>
-        </form>
+        <div
+          className="modal-backdrop backdrop-blur-sm"
+          onClick={() => { resetForm(); const dlg = document.getElementById('my_modal_2'); if (dlg && dlg.close) dlg.close(); }}
+        />
       </dialog>
 
       <div className="space-y-4">

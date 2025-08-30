@@ -190,7 +190,7 @@ export default function PersonnelChart({
                 className="w-2 h-2 rounded-full"
                 style={{ backgroundColor: colors[index] }}
               />
-              <span className="text-sm text-gray-600">{item.category}</span>
+              <span className="text-sm text-gray-600">{item.category.replace('SA', 'Scholarly Academic (SA)').replace('PA', 'Practice Academic (PA)').replace('SP', 'Scholarly Practitioner (SP)').replace('IP', 'Instructional Practitioner (IP)')}</span>
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm font-medium text-gray-900">{item.personnel} คน</span>

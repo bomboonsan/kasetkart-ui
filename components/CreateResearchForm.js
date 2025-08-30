@@ -187,6 +187,7 @@ export default function CreateResearchForm() {
               value={formData.subProjectCount}
               onChange={(value) => handleInputChange("subProjectCount", value)}
               placeholder="0"
+              disabled={formData.projectMode === "โครงการวิจัยเดี่ยว"}
             />
           </FormFieldBlock>
 
