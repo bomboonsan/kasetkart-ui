@@ -8,6 +8,7 @@ import Button from '@/components/Button'
 import { worksAPI } from '@/lib/api'
 
 const TYPE_TABS = [
+  { key: 'PROJECT', label: 'โครงการวิจัย' },
   { key: 'CONFERENCE', label: 'ประชุมวิชาการ' },
   { key: 'PUBLICATION', label: 'ตีพิมพ์ทางวิชาการ' },
   { key: 'FUNDING', label: 'ขอรับทุนเขียนตำรา' },
@@ -16,7 +17,7 @@ const TYPE_TABS = [
 
 export default function AdminUserWorksSection({ userId }) {
   const [works, setWorks] = useState([])
-  const [activeType, setActiveType] = useState('CONFERENCE')
+  const [activeType, setActiveType] = useState('PROJECT')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(true)
 
@@ -70,9 +71,23 @@ export default function AdminUserWorksSection({ userId }) {
   return (
     <SectionCard title="ผลงานการการเขียนตามประเภท">
       <div className='flex justify-end -mt-16 mb-4'>
-        <Button >
+        {/* <Button >
           เพิ่มผลงาน
-        </Button>
+        </Button> */}
+        <div className="dropdown dropdown-bottom dropdown-end">
+          <div tabIndex={0} role="button" className="btn m-1 bg-[#006765] text-white rounded-md">เพิ่มผลงาน</div>
+          <ul tabIndex={0} className="dropdown-content menu bg-base-100 rounded-box z-1 w-52 p-2 shadow-sm text-gray-800">
+            {/* ประชุมวิชาการ
+            ตีพิมพ์ทางวิชาการ
+            ขอรับทุนเขียนตำรา
+            หนังสือและตำรา */}
+            <li><a>โครงการวิจัย</a></li>
+            <li><a>ประชุมวิชาการ</a></li>
+            <li><a>ตีพิมพ์ทางวิชาการ</a></li>
+            <li><a>ขอรับทุนเขียนตำรา</a></li>
+            <li><a>หนังสือและตำรา</a></li>
+          </ul>
+        </div>
       </div>
       <div className="space-y-6">
         {/* Summary counters */}

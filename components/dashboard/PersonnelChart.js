@@ -105,7 +105,8 @@ export default function PersonnelChart({
           {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
         </div>
         <div className="px-3 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
-          Accounting
+          {/* Dropdown */}
+          {/* Dropdown ภาควิชา (Department) */}
         </div>
       </div>
       

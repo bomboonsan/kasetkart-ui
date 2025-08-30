@@ -424,26 +424,48 @@ export default function CreateResearchForm() {
                 ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)
               </label>
             </div>
-            <div>
-              <UserPicker
-                label="ผู้ร่วมโครงการวิจัย"
-                selectedUser={formData.__userObj}
-                onSelect={(u) => {
-                  const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
-                  setFormData(prev => ({ ...prev, fullname: display, userId: u.id, __userObj: u }))
-                }}
-              />
-            </div>
-            <div>
-              <FormInput
-                mini={false}
-                label="ชื่อหน่วยงาน"
-                type="text"
-                value={formData.orgName}
-                onChange={(value) => handleInputChange("orgName", value)}
-                placeholder=""
-              />
-            </div>
+            {
+              formData.isInternal == true ? (
+                <>
+                  <div>
+                    <UserPicker
+                      label="ผู้ร่วมโครงการวิจัย"
+                      selectedUser={formData.__userObj}
+                      onSelect={(u) => {
+                        const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
+                        setFormData(prev => ({ ...prev, fullname: display, userId: u.id, __userObj: u }))
+                      }}
+                    />
+                  </div>
+                </>
+              ) : (
+                  <>
+                    <div>
+                      <FormInput
+                        mini={false}
+                        label="ชื่อผู้ร่วมโครงการวิจัย"
+                        type="text"
+                        value={formData.partnerFullName}
+                        onChange={(value) => handleInputChange("partnerFullName", value)}
+                        placeholder=""
+                      />
+                    </div>
+                    <div>
+                      <FormInput
+                        mini={false}
+                        label="ชื่อหน่วยงาน"
+                        type="text"
+                        value={formData.orgName}
+                        onChange={(value) => handleInputChange("orgName", value)}
+                        placeholder=""
+                      />
+                    </div>
+                </>
+              )
+            }
+            
+            
+            
             <div>
               <FormSelect
                 label="ประเภทผู้ร่วมโครงการวิจัย"
@@ -452,22 +474,26 @@ export default function CreateResearchForm() {
                 onChange={(value) => handleInputChange("partnerType", value)}
                 className="max-w-lg"
                   options={[
-                    { value: '', label: 'เลือกประเภทผู้ร่วมโครงการวิจัย' },
+                    { value: '', label: 'เลือกประเภท' },
                     { value: 'หัวหน้าโครงการ', label: 'หัวหน้าโครงการ' },
-                    { value: 'ผู้ร่วมวิจัย', label: 'ผู้ร่วมวิจัย' },
-                    { value: 'นิสิต', label: 'นิสิต' },
+                    { value: 'ที่ปรึกษาโครงการ', label: 'ที่ปรึกษาโครงการ' },
+                    { value: 'ผู้ประสานงาน', label: 'ผู้ประสานงาน' },
                     { value: 'นักวิจัยร่วม', label: 'นักวิจัยร่วม' },
+                    { value: 'อื่นๆ', label: 'อื่นๆ' },
                   ]}
               />
             </div>
             <div>
-              <FormInput
-                mini={false}
-                label="สัดส่วนการวิจัย"
-                type="text"
-                value={formData.proportion}
-                onChange={(value) => handleInputChange("proportion", value)}
-                placeholder="0.00%"
+              <FormSelect
+                label="หมายเหตุ"
+                value={formData.partnerType}
+                onChange={(value) => handleInputChange("partnerType", value)}
+                className="max-w-lg"
+                options={[
+                  { value: '', label: 'เลือก' },
+                  { value: 'First Author', label: 'First Author' },
+                  { value: 'Corresponding Author', label: 'Corresponding Author' },
+                ]}
               />
             </div>
           </FormFieldBlock>
