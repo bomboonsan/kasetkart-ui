@@ -356,9 +356,9 @@ export default function CreateResearchForm() {
               className="max-w-lg"
               options={[
                 { value: '', label: 'เลือกข้อมูล' },
-                { value: 'Applied', label: 'Applied' },
-                { value: 'Basic', label: 'Basic' },
-                { value: 'Translational', label: 'Translational' },
+                { value: 'Basic or Discovery Scholarship', label: 'Basic or Discovery Scholarship' },
+                { value: 'Applied or Integrative / Application Scholarship', label: 'Applied or Integrative / Application Scholarship' },
+                { value: 'Teaching and Learning Scholarship', label: 'Teaching and Learning Scholarship' },
               ]}
             />
 
@@ -370,13 +370,14 @@ export default function CreateResearchForm() {
               className="max-w-lg"
               options={[
                 { value: '', label: 'เลือกข้อมูล' },
-                { value: 'Research', label: 'Research & Scholarly Impact' },
-                { value: 'Societal', label: 'Societal Impact' },
-                { value: 'Economic', label: 'Economic Impact' },
+                { value: 'Teaching & Learning Imapct', label: 'Teaching & Learning Imapct' },
+                { value: 'Research & Scholarly Impact', label: 'Research & Scholarly Impact' },
+                { value: 'Practice & Community Impact', label: 'Practice & Community Impact' },
+                { value: 'Societal Impact', label: 'Societal Impact' },
               ]}
             />
 
-            <FormSelect
+            <FormSelect 
               label="SDG"
               required
               value={formData.sdg}
@@ -384,9 +385,23 @@ export default function CreateResearchForm() {
               className="max-w-lg"
               options={[
                 { value: '', label: 'เลือกข้อมูล' },
-                { value: 'SDG1', label: 'SDG 1 - No Poverty' },
-                { value: 'SDG8', label: 'SDG 8 - Decent Work and Economic Growth' },
-                { value: 'SDG13', label: 'SDG 13 - Climate Action' },
+                { value: 'SDG 1 - No Poverty', label: 'SDG 1 - No Poverty' },
+                { value: 'SDG 2 - Zero Hunger', label: 'SDG 2 - Zero Hunger' },
+                { value: 'SDG 3 - Good Health and Well-Being', label: 'SDG 3 - Good Health and Well-Being' },
+                { value: 'SDG 4 - Quality Education', label: 'SDG 4 - Quality Education' },
+                { value: 'SDG 5 - Gender Equality', label: 'SDG 5 - Gender Equality' },
+                { value: 'SDG 6 - Clean Water and Sanitation', label: 'SDG 6 - Clean Water and Sanitation' },
+                { value: 'SDG 7 - Affordable and Clean Energy', label: 'SDG 7 - Affordable and Clean Energy' },
+                { value: 'SDG 8 - Decent Work and Economic Growth', label: 'SDG 8 - Decent Work and Economic Growth' },
+                { value: 'SDG 9 - Industry, Innovation and Infrastructure', label: 'SDG 9 - Industry, Innovation and Infrastructure' },
+                { value: 'SDG 10 - Reduced Inequalities', label: 'SDG 10 - Reduced Inequalities' },
+                { value: 'SDG 11 - Sustainble Cities and Communities', label: 'SDG 11 - Sustainble Cities and Communities' },
+                { value: 'SDG 12 - Responsible Consumption and Production', label: 'SDG 12 - Responsible Consumption and Production' },
+                { value: 'SDG 13 - Climate Action', label: 'SDG 13 - Climate Action' },
+                { value: 'SDG 14 - Life Below Water', label: 'SDG 14 - Life Below Water' },
+                { value: 'SDG 15 - Life on Land', label: 'SDG 15 - Life on Land' },
+                { value: 'SDG 16 - Peace, Justice and Strong Institutions', label: 'SDG 16 - Peace, Justice and Strong Institutions' },
+                { value: 'SDG 17 - Partnerships for The Goals', label: 'SDG 17 - Partnerships for The Goals' },
               ]}
             />
           </FormFieldBlock>

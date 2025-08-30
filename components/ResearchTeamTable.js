@@ -6,6 +6,10 @@ import FormCheckbox from './FormCheckbox';
 import useSWR from 'swr'
 import { api } from '@/lib/api'
 import { useEffect, useMemo, useState } from 'react'
+import {
+  ChevronUp,
+  ChevronDown
+} from "lucide-react";
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const { data: project } = useSWR(projectId ? `/projects/${projectId}` : null, api.get)
@@ -82,6 +86,30 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     resetForm()
   }
 
+  // ย้ายลำดับขึ้น
+  function moveUp(idx) {
+    if (idx <= 0) return
+    setLocalPartners(prev => {
+      const arr = [...(prev || [])]
+      const tmp = arr[idx - 1]
+      arr[idx - 1] = arr[idx]
+      arr[idx] = tmp
+      return recomputeProportions(arr)
+    })
+  }
+
+  // ย้ายลำดับลง
+  function moveDown(idx) {
+    setLocalPartners(prev => {
+      const arr = [...(prev || [])]
+      if (idx >= arr.length - 1) return prev
+      const tmp = arr[idx + 1]
+      arr[idx + 1] = arr[idx]
+      arr[idx] = tmp
+      return recomputeProportions(arr)
+    })
+  }
+
   function handleRemovePartner(idx) {
     setLocalPartners(prev => recomputeProportions(prev.filter((_, i) => i !== idx)))
     // รีเซ็ตฟอร์มใน dialog
@@ -113,6 +141,30 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     }))
     const dlg = document.getElementById('my_modal_2'); if (dlg && dlg.showModal) dlg.showModal()
     resetForm()
+  }
+
+  // ย้ายลำดับขึ้น
+  function moveUp(idx) {
+    if (idx <= 0) return
+    setLocalPartners(prev => {
+      const arr = [...(prev || [])]
+      const tmp = arr[idx - 1]
+      arr[idx - 1] = arr[idx]
+      arr[idx] = tmp
+      return recomputeProportions(arr)
+    })
+  }
+
+  // ย้ายลำดับลง
+  function moveDown(idx) {
+    setLocalPartners(prev => {
+      const arr = [...(prev || [])]
+      if (idx >= arr.length - 1) return prev
+      const tmp = arr[idx + 1]
+      arr[idx + 1] = arr[idx]
+      arr[idx] = tmp
+      return recomputeProportions(arr)
+    })
   }
 
   const hasFirstAuthor = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment) === 'First Author'), [localPartners])
@@ -308,12 +360,12 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                         >
                           {index + 1}
                         </div>
-                        <div className='text-gray-700'>
-                          <button>
-                            UP
+                        <div className='text-gray-700 flex items-center gap-2 ml-3'>
+                          <button type="button" onClick={() => moveUp(index)} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-xs">
+                            <ChevronUp />
                           </button>
-                          <button>
-                            DOWN
+                          <button type="button" onClick={() => moveDown(index)} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-xs">
+                            <ChevronDown />
                           </button>
                         </div>
                       </div>
