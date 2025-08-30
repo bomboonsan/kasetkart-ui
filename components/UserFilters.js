@@ -70,11 +70,11 @@ export default function UserFilters({ onFilter }) {
           onChange={(value) => handleFilterChange('department', value)}
           options={[
             { value: 'all', label: 'ทั้งหมด' },
-            { value: 'คณะแพทยศาสตร์', label: 'คณะแพทยศาสตร์' },
-            { value: 'คณะนิเทศศาสตร์', label: 'คณะนิเทศศาสตร์' },
-            { value: 'Academic Affairs', label: 'กิจการนักศึกษา' },
-            { value: 'Finance Department', label: 'แผนกการเงิน' },
-            { value: 'HR Department', label: 'แผนกทรัพยากรมนุษย์' }
+            { value: 'บัญชี', label: 'บัญชี' },
+            { value: 'การเงิน', label: 'การเงิน' },
+            { value: 'การจัดการ', label: 'การจัดการ' },
+            { value: 'การจัดการเทคโนโลยีและการปฏิบัติการ', label: 'การจัดการเทคโนโลยีและการปฏิบัติการ' },
+            { value: 'การตลาด', label: 'การตลาด' },
           ]}
         />
       </div>

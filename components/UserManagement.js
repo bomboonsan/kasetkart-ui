@@ -57,21 +57,24 @@ const UserManagement = forwardRef((props, ref) => {
       setLoading(true);
       const res = await userAPI.getUsers({ page: 1, pageSize: 100 });
       const usersData = res.data || res.items || res || [];
-      const mapped = usersData.map((u) => ({
-        id: u.id,
-        name: u.Profile
-          ? `${u.Profile.firstName || ""} ${u.Profile.lastName || ""}`.trim() ||
-            u.email
-          : u.email,
-        email: u.email,
-        role: mapRoleToLabel(u.role),
-        department: u.Department?.name || "-",
-        organization: u.Organization?.name || "-",
-        status: mapApprovalToStatus(u.approvalStatus),
-        lastLogin: "Never",
-        avatar: toAvatar(u.email),
-        rawData: u, // เก็บข้อมูลดิบไว้ใช้
-      }));
+      const mapped = usersData.map((u) => {
+        const prof = Array.isArray(u.Profile) ? u.Profile[0] : u.Profile;
+        const displayName = prof
+          ? `${prof.firstName || ""} ${prof.lastName || ""}`.trim() || u.email
+          : u.email;
+        return {
+          id: u.id,
+          name: displayName,
+          email: u.email,
+          role: mapRoleToLabel(u.role),
+          department: u.Department?.name || "-",
+          organization: u.Organization?.name || "-",
+          status: mapApprovalToStatus(u.approvalStatus),
+          lastLogin: "Never",
+          avatar: toAvatar(displayName || u.email),
+          rawData: u,
+        };
+      });
       setUsers(mapped);
       setFilteredUsers(mapped);
     } catch (err) {

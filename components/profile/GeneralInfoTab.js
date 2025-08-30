@@ -12,6 +12,10 @@ export default function GeneralInfoTab() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
+    firstNameEn: '',
+    lastNameEn: '',
+    highDegree: '',
+    jobType: '',
     email: '',
     phone: '',
     nameEn: '',
@@ -34,6 +38,12 @@ export default function GeneralInfoTab() {
           ...prev,
           firstName: prof.firstName || '',
           lastName: prof.lastName || '',
+          firstNameEn: prof.firstNameEn || '',
+          lastNameEn: prof.lastNameEn || '',
+          highDegree: prof.highDegree || '',
+          jobType: prof.jobType || '',
+          phone: prof.phone || '',
+          academicPosition: prof.academicRank || '',
           email: me.email || '',
           department: me.Department?.name || me.department?.name || ''
         }))
@@ -51,6 +61,12 @@ export default function GeneralInfoTab() {
       await api.patch('/profiles/me', {
         firstName: formData.firstName || undefined,
         lastName: formData.lastName || undefined,
+        firstNameEn: formData.firstNameEn || undefined,
+        lastNameEn: formData.lastNameEn || undefined,
+        highDegree: formData.highDegree || undefined,
+        jobType: formData.jobType || undefined,
+        phone: formData.phone || undefined,
+        academicRank: formData.academicPosition || undefined,
       })
       alert('บันทึกโปรไฟล์สำเร็จ')
     } catch (err) {
@@ -117,6 +133,21 @@ export default function GeneralInfoTab() {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormField
+                  label="First Name (EN)"
+                  value={formData.firstNameEn}
+                  onChange={(value) => handleInputChange('firstNameEn', value)}
+                  placeholder="First name in English"
+                />
+                <FormField
+                  label="Last Name (EN)"
+                  value={formData.lastNameEn}
+                  onChange={(value) => handleInputChange('lastNameEn', value)}
+                  placeholder="Last name in English"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
                   label="ตำแหน่งทางวิชาการ"
                   value={formData.academicPosition}
                   onChange={(value) => handleInputChange('academicPosition', value)}
@@ -143,6 +174,21 @@ export default function GeneralInfoTab() {
                   value={formData.department}
                   onChange={(value) => handleInputChange('department', value)}
                   placeholder="กรุณาระบุภาควิชา"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormField
+                  label="วุฒิการศึกษาสูงสุด (High Degree)"
+                  value={formData.highDegree}
+                  onChange={(value) => handleInputChange('highDegree', value)}
+                  placeholder="เช่น Ph.D., M.Sc., B.Eng."
+                />
+                <FormField
+                  label="ประเภทอาจารย์ (Job Type)"
+                  value={formData.jobType}
+                  onChange={(value) => handleInputChange('jobType', value)}
+                  placeholder="เช่น SA, PA, SP, IP, A"
                 />
               </div>
             </div>

@@ -7,20 +7,17 @@ import PageHeader from '@/components/PageHeader'
 export default function ManageUsersPage() {
   const userManagementRef = useRef()
 
-  const handleAddUser = () => {
-    if (userManagementRef.current) {
-      userManagementRef.current.openCreateModal()
-    }
-  }
-
-  console.log(userManagementRef);
+  // const handleAddUser = () => {
+  //   if (userManagementRef.current) {
+  //     userManagementRef.current.openCreateModal()
+  //   }
+  // }
 
   return (
     <div className="space-y-6">
       <PageHeader 
         title="จัดการผู้ใช้งาน"
-        showAddButton={true}
-        onAddClick={handleAddUser}
+        showAddButton={false}
       />
       <UserManagement ref={userManagementRef} />
     </div>

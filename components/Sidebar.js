@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import {
   LayoutDashboard,
   UserPen,
@@ -109,6 +110,7 @@ const adminMenuItems = [
 ];
 
 export default function Sidebar() {
+  const router = useRouter();
   const [openGroups, setOpenGroups] = useState({})
 
   function toggleGroup(id) {
@@ -117,6 +119,7 @@ export default function Sidebar() {
 
   function handleLogout() {
     logout()
+    router.push('/login')
   }
 
   return (
@@ -237,8 +240,8 @@ export default function Sidebar() {
           </div>
         </div>
         {/* Logout */}
-        <div className='mt-3'>
-          <button onClick={handleLogout}>
+        <div className='mt-3 pb-2'>
+          <button onClick={handleLogout} className='flex justify-center items-center w-full gap-4 p-1 rounded-md bg-red-700 text-white text-sm font-bold uppercase cursor-pointer hover:bg-red-600'>
             Logout
           </button>
         </div>

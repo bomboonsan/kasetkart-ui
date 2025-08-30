@@ -34,6 +34,9 @@ export default function ProfileHeader() {
     : ''
   const email = profile?.email || ''
   const departmentName = profile?.Department?.name || profile?.department?.name || '-'
+  const facultyName = profile?.Faculty?.name || profile?.faculty?.name || ''
+  const jobType = profObj?.jobType || ''
+  const highDegree = profObj?.highDegree || ''
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -56,9 +59,11 @@ export default function ProfileHeader() {
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
               {displayName || email}
             </h1>
-            <p className="text-lg text-gray-600 mb-2">{departmentName}</p>
+            <p className="text-lg text-gray-600 mb-2">{[facultyName, departmentName].filter(Boolean).join(' • ')}</p>
             <div className="text-sm text-gray-500 space-y-1">
               <p>{email}</p>
+              {jobType ? <p>Job Type: {jobType}</p> : null}
+              {highDegree ? <p>Highest Degree: {highDegree}</p> : null}
             </div>
           </div>
 
