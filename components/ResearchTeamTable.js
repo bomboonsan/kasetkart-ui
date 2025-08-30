@@ -54,13 +54,17 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     const prof = u ? (Array.isArray(u.Profile) ? u.Profile[0] : u.Profile) : null
     const full = u ? (prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email) : ''
     const org = u ? (u.Faculty?.name || u.Department?.name || '') : ''
+    const pcArr = Array.isArray(formData.partnerComment)
+      ? formData.partnerComment
+      : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])
+    const pcJoined = pcArr.join(', ')
     const partner = {
       isInternal: internal,
       userID: internal && u ? u.id : undefined,
       fullname: internal ? (full || formData.partnerFullName || '') : (formData.partnerFullName || ''),
       orgName: internal ? (org || formData.orgName || '') : (formData.orgName || ''),
       partnerType: formData.partnerType || '',
-      partnerComment: formData.partnerComment || '',
+      partnerComment: pcJoined,
       partnerProportion: undefined,
       User: internal && u ? { email: u.email } : undefined,
     }
@@ -113,6 +117,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
 
   const hasFirstAuthor = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment) === 'First Author'), [localPartners])
   const hasCorresponding = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment) === 'Corresponding Author'), [localPartners])
+  const haveFirstAuthor_Corresponding = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment) === 'Corresponding Author, First Author' || (p.partnerComment || p.comment) === 'First Author, Corresponding Author'), [localPartners]) 
   return (
     <>
       <dialog id="my_modal_2" className="modal">
@@ -179,7 +184,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       mini={false}
                       label="ชื่อหน่วยงาน"
                       type="text"
-                      value={formData.__userObj?.Department?.name + ' ' + formData.__userObj?.Faculty?.name + ' ' + formData.__userObj?.Organization?.name || ''}
+                      value={formData.__userObj?.Department?.name ? formData.__userObj?.Department?.name + ' ' + formData.__userObj?.Faculty?.name + ' ' + formData.__userObj?.Organization?.name : ''}
                       readOnly={true}
                     />
                   </div>
@@ -230,17 +235,20 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               />
             </div>
             <div>
-              <FormCheckbox
-                label="หมายเหตุ"
-                inline={true}
-                value={formData.partnerComment || ''}
-                onChange={(value) => handleInputChange("partnerComment", value)}
-                className="max-w-lg"
-                options={[
-                  ...(!hasFirstAuthor ? [{ value: 'First Author', label: 'First Author' }] : []),
-                  ...(!hasCorresponding ? [{ value: 'Corresponding Author', label: 'Corresponding Author' }] : []),
-                ]}
-              />
+              {!haveFirstAuthor_Corresponding && (             
+                <FormCheckbox
+                  label="หมายเหตุ"
+                  inline={true}
+                  value={Array.isArray(formData.partnerComment) ? formData.partnerComment : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])}
+                  onChange={(arr) => handleInputChange("partnerComment", arr)}
+                  className="max-w-lg"
+                  options={[
+                    ...(!hasFirstAuthor || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('First Author')) ? [{ value: 'First Author', label: 'First Author' }] : []),
+                    ...(!hasCorresponding || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('Corresponding Author')) ? [{ value: 'Corresponding Author', label: 'Corresponding Author' }] : []),
+
+                  ]}
+                  />
+              )}
             </div>
           </FormFieldBlock>
           <button onClick={handleAddPartner} type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
@@ -299,6 +307,14 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                         `}
                         >
                           {index + 1}
+                        </div>
+                        <div className='text-gray-700'>
+                          <button>
+                            UP
+                          </button>
+                          <button>
+                            DOWN
+                          </button>
                         </div>
                       </div>
                     </td>

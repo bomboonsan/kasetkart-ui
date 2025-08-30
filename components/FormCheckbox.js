@@ -11,6 +11,21 @@ export default function FormCheckbox({
   options = [],
   col = null
 }) {
+  const isMulti = Array.isArray(value) && type === 'checkbox'
+
+  function handleToggle(optionValue) {
+    if (!onChange) return
+    if (isMulti) {
+      const arr = Array.isArray(value) ? [...value] : []
+      const idx = arr.indexOf(optionValue)
+      if (idx >= 0) arr.splice(idx, 1)
+      else arr.push(optionValue)
+      onChange(arr)
+    } else {
+      onChange(optionValue)
+    }
+  }
+
   return (
     <div className="space-y-1 flex items-start flex-wrap">
       <div className={inline ? "w-1/3" : "w-full"}>
@@ -28,8 +43,8 @@ export default function FormCheckbox({
                   <input
                     type={type}
                     value={option.value}
-                    checked={value === option.value}
-                    onChange={(e) => onChange && onChange(e.target.value)}
+                    checked={isMulti ? (Array.isArray(value) && value.includes(option.value)) : value === option.value}
+                    onChange={() => handleToggle(option.value)}
                     className={`
                       text-zinc-700
                       px-3 py-2 border border-gray-300 rounded-md
@@ -51,8 +66,8 @@ export default function FormCheckbox({
                     <input
                       type={type}
                       value={option.value}
-                      checked={value === option.value}
-                      onChange={(e) => onChange && onChange(e.target.value)}
+                      checked={isMulti ? (Array.isArray(value) && value.includes(option.value)) : value === option.value}
+                      onChange={() => handleToggle(option.value)}
                       className={`
                       text-zinc-700
                       px-3 py-2 border border-gray-300 rounded-md
