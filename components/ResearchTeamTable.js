@@ -2,6 +2,7 @@ import FormFieldBlock from './FormFieldBlock'
 import UserPicker from './UserPicker'
 import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
+import FormCheckbox from './FormCheckbox';
 import useSWR from 'swr'
 import { api } from '@/lib/api'
 import { useEffect, useMemo, useState } from 'react'
@@ -229,13 +230,13 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               />
             </div>
             <div>
-              <FormSelect
+              <FormCheckbox
                 label="หมายเหตุ"
+                inline={true}
                 value={formData.partnerComment || ''}
                 onChange={(value) => handleInputChange("partnerComment", value)}
                 className="max-w-lg"
                 options={[
-                  { value: '', label: 'เลือก' },
                   ...(!hasFirstAuthor ? [{ value: 'First Author', label: 'First Author' }] : []),
                   ...(!hasCorresponding ? [{ value: 'Corresponding Author', label: 'Corresponding Author' }] : []),
                 ]}
