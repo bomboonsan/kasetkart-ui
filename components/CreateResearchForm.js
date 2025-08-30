@@ -41,11 +41,12 @@ export default function CreateResearchForm() {
 
     // ProjectPartner-like fields for the team section
     isInternal: undefined, // ProjectPartner.isInternal (Boolean)
-    fullname: "", // ProjectPartner.fullname (String)
+    fullname: "", // ProjectPartner.fullname (String) - legacy
+    partnerFullName: "", // ใช้ร่วมกับ ResearchTeamTable ให้เติมจาก UserPicker อัตโนมัติ
     orgName: "", // ProjectPartner.orgName (String)
     partnerType: "", // ProjectPartner.partnerType (String)
+    partnerComment: "", // ProjectPartner.partnerComment (String)
     proportion: "", // ProjectPartner.proportion (Int)
-
     attachments: [],
   });
 
@@ -99,9 +100,10 @@ export default function CreateResearchForm() {
           {
             isInternal: formData.isInternal === true,
             userId: formData.userId ? parseInt(formData.userId) : undefined,
-            fullname: formData.fullname || undefined,
+            fullname: (formData.partnerFullName || formData.fullname) || undefined,
             orgName: formData.orgName || undefined,
             partnerType: formData.partnerType || undefined,
+            partnerComment: formData.partnerComment || undefined,
             proportion: formData.proportion ? parseInt(formData.proportion) : undefined,
           },
         ],
@@ -388,9 +390,11 @@ export default function CreateResearchForm() {
           </FormFieldBlock>
         </FormSection>
 
-        <FormSection title="* ผู้ร่วมวิจัย">
-          <ResearchTeamTable formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-        </FormSection>
+        <div className='p-4 rounded-md border shadow border-gray-200/70'>
+          <FormSection title="* ผู้ร่วมวิจัย">
+            <ResearchTeamTable formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
+          </FormSection>
+        </div>
 
         <FormSection>
           <FileUploadField

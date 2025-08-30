@@ -25,7 +25,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       fullname: internal ? (full || formData.partnerFullName || '') : (formData.partnerFullName || ''),
       orgName: internal ? (org || formData.orgName || '') : (formData.orgName || ''),
       partnerType: formData.partnerType || '',
-      comment: formData.partnerType || '',
+      partnerComment: formData.partnerComment || '',
       proportion: undefined,
       User: internal && u ? { email: u.email } : undefined,
     }
@@ -79,14 +79,12 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               formData.isInternal == true ? (
                 <>
                   <div>
-                  <UserPicker
+                    <UserPicker
                       label="ผู้ร่วมโครงการวิจัย"
                       selectedUser={formData.__userObj}
                       onSelect={(u) => {
-                        const prof = Array.isArray(u.Profile) ? u.Profile[0] : u.Profile
-                        const display = prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email
-                        const org = u.Faculty?.name || u.Department?.name || ''
-                        setFormData(prev => ({ ...prev, partnerFullName: display, orgName: org, userId: u.id, __userObj: u }))
+                        const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
+                        setFormData(prev => ({ ...prev, partnerFullName: display, orgName: (u.Faculty?.name || u.Department?.name || ''), userId: u.id, __userObj: u }))
                       }}
                     />
                   </div>
@@ -159,8 +157,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
             <div>
               <FormSelect
                 label="หมายเหตุ"
-                value={formData.partnerType}
-                onChange={(value) => handleInputChange("partnerType", value)}
+                value={formData.partnerComment}
+                onChange={(value) => handleInputChange("partnerComment", value)}
                 className="max-w-lg"
                 options={[
                   { value: '', label: 'เลือก' },
@@ -174,7 +172,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
             เพิ่ม
           </button>
         </div>
-        <form method="dialog" className="modal-backdrop">
+        <form method="dialog" className="modal-backdrop backdrop-blur-sm">
           <button>close</button>
         </form>
       </dialog>
@@ -248,7 +246,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       <div className="text-sm text-gray-900">{p.partnerType || '-'}</div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{p.comment || '-'}</div>
+                      <div className="text-sm text-gray-900">{p.partnerComment || '-'}</div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       {p.proportion && (
