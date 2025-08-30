@@ -13,8 +13,10 @@ import {
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const { data: project } = useSWR(projectId ? `/projects/${projectId}` : null, api.get)
+  const { data: me } = useSWR('/profiles/me', api.get)
   const [localPartners, setLocalPartners] = useState([])
   const [editingIndex, setEditingIndex] = useState(null)
+
   // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
   function recomputeProportions(list = []) {
     const result = list.map(p => ({ ...p }))
@@ -47,7 +49,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       orgName: '',
       userId: undefined,
       partnerType: '',
-      partnerComment: ''
+      partnerComment: '',
     }))
     setEditingIndex(null)
   }
@@ -81,8 +83,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       }
       return recomputeProportions([...(base || []), partner])
     })
-    setEditingIndex(null)
-    const dlg = document.getElementById('my_modal_2'); if (dlg && dlg.close) dlg.close()
+    const dlg = document.getElementById('my_modal_2');
+    if (dlg && dlg.close) dlg.close()
     resetForm()
   }
 
@@ -139,37 +141,27 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       userId: p.userID || undefined,
       __userObj: undefined
     }))
-    const dlg = document.getElementById('my_modal_2'); if (dlg && dlg.showModal) dlg.showModal()
-    resetForm()
+    const dlg = document.getElementById('my_modal_2');
+    if (dlg && dlg.showModal) dlg.showModal()
   }
 
-  // ย้ายลำดับขึ้น
-  function moveUp(idx) {
-    if (idx <= 0) return
-    setLocalPartners(prev => {
-      const arr = [...(prev || [])]
-      const tmp = arr[idx - 1]
-      arr[idx - 1] = arr[idx]
-      arr[idx] = tmp
-      return recomputeProportions(arr)
-    })
-  }
+  const hasFirstAuthor = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment).includes('First Author')), [localPartners])
+  const hasCorresponding = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment).includes('Corresponding Author')), [localPartners])
 
-  // ย้ายลำดับลง
-  function moveDown(idx) {
-    setLocalPartners(prev => {
-      const arr = [...(prev || [])]
-      if (idx >= arr.length - 1) return prev
-      const tmp = arr[idx + 1]
-      arr[idx + 1] = arr[idx]
-      arr[idx] = tmp
-      return recomputeProportions(arr)
-    })
-  }
+  // สร้างแถวผู้ใช้ปัจจุบันและคำนวณสัดส่วนรวมเพื่อใช้แสดงผล
+  const mePartner = useMemo(() => {
+    if (!me) return null;
+    const prof = me?.Profile?.[0] || me?.profile;
+    const display = (prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : me?.email) || me?.email || '-';
+    const org = me?.Faculty?.name || me?.Department?.name || me?.Organization?.name || '-';
+    return { isInternal: true, userID: me?.id, fullname: display, orgName: org, partnerType: '-', partnerComment: '', partnerProportion: undefined, User: { email: me?.email } };
+  }, [me]);
 
-  const hasFirstAuthor = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment) === 'First Author'), [localPartners])
-  const hasCorresponding = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment) === 'Corresponding Author'), [localPartners])
-  const haveFirstAuthor_Corresponding = useMemo(() => (localPartners || []).some(p => (p.partnerComment || p.comment) === 'Corresponding Author, First Author' || (p.partnerComment || p.comment) === 'First Author, Corresponding Author'), [localPartners]) 
+  const displayRows = useMemo(() => {
+    const list = mePartner ? [mePartner, ...(localPartners || [])] : (localPartners || []);
+    return recomputeProportions(list);
+  }, [mePartner, localPartners]);
+
   return (
     <>
       <dialog id="my_modal_2" className="modal">
@@ -210,7 +202,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               </label>
             </div>
             {
-              formData.isInternal == true ? (
+              formData.isInternal === true ? (
                 <>
                   <div>
                     <UserPicker
@@ -266,9 +258,6 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                 </>
               )
             }
-
-
-
             <div>
               <FormSelect
                 label="ประเภทผู้ร่วมโครงการวิจัย"
@@ -287,35 +276,42 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               />
             </div>
             <div>
-              {!haveFirstAuthor_Corresponding && (             
-                <FormCheckbox
-                  label="หมายเหตุ"
-                  inline={true}
-                  value={Array.isArray(formData.partnerComment) ? formData.partnerComment : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])}
-                  onChange={(arr) => handleInputChange("partnerComment", arr)}
-                  className="max-w-lg"
-                  options={[
-                    ...(!hasFirstAuthor || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('First Author')) ? [{ value: 'First Author', label: 'First Author' }] : []),
-                    ...(!hasCorresponding || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('Corresponding Author')) ? [{ value: 'Corresponding Author', label: 'Corresponding Author' }] : []),
-
-                  ]}
-                  />
-              )}
+              <FormCheckbox
+                label="หมายเหตุ"
+                inline={true}
+                value={Array.isArray(formData.partnerComment) ? formData.partnerComment : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])}
+                onChange={(arr) => handleInputChange("partnerComment", arr)}
+                className="max-w-lg"
+                options={[
+                  ...(!hasFirstAuthor || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('First Author')) ? [{ value: 'First Author', label: 'First Author' }] : []),
+                  ...(!hasCorresponding || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('Corresponding Author')) ? [{ value: 'Corresponding Author', label: 'Corresponding Author' }] : []),
+                ]}
+              />
             </div>
           </FormFieldBlock>
-          <button onClick={handleAddPartner} type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-            เพิ่ม
-          </button>
+          <div className="modal-action">
+            <button onClick={handleAddPartner} type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+              {editingIndex !== null ? 'บันทึก' : 'เพิ่ม'}
+            </button>
+            <form method="dialog">
+              <button className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300" onClick={resetForm}>
+                ยกเลิก
+              </button>
+            </form>
+          </div>
         </div>
         <form method="dialog" className="modal-backdrop backdrop-blur-sm">
           <button>close</button>
         </form>
       </dialog>
-      
+
       <div className="space-y-4">
         {/* Header */}
         <div className="flex justify-end gap-4 mb-5">
-          <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" onClick={() => document.getElementById('my_modal_2').showModal()}>
+          <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" onClick={() => {
+            resetForm();
+            document.getElementById('my_modal_2').showModal();
+          }}>
             เพิ่มสมาชิก
           </button>
         </div>
@@ -344,13 +340,13 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     สัดส่วนการวิจัย (%)
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-
+                    การจัดการ
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {(localPartners || []).map((p, index) => (
-                  <tr key={p.id || index} className="hover:bg-gray-50">
+                {displayRows.map((p, i) => (
+                  <tr key={p.id || p.userID || i} className="hover:bg-gray-50">
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center">
                         <div
@@ -358,16 +354,18 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                           bg-[#D1FAE5]
                         `}
                         >
-                          {index + 1}
+                          {i + 1}
                         </div>
-                        <div className='text-gray-700 flex items-center gap-2 ml-3'>
-                          <button type="button" onClick={() => moveUp(index)} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-xs">
-                            <ChevronUp />
-                          </button>
-                          <button type="button" onClick={() => moveDown(index)} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-xs">
-                            <ChevronDown />
-                          </button>
-                        </div>
+                        {i > 0 && (
+                          <div className='text-gray-700 flex items-center gap-2 ml-3'>
+                            <button type="button" onClick={() => moveUp(i)} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-xs">
+                              <ChevronUp />
+                            </button>
+                            <button type="button" onClick={() => moveDown(i)} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-xs">
+                              <ChevronDown />
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
@@ -399,14 +397,16 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       )}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex items-center gap-3 justify-end">
-                        <button type="button" onClick={() => handleEditPartner(index)} className="text-blue-600 hover:text-blue-900">
-                          แก้ไข
-                        </button>
-                        <button type="button" onClick={() => handleRemovePartner(index)} className="text-red-600 hover:text-red-900">
-                          ลบ
-                        </button>
-                      </div>
+                      {i > 0 && (
+                        <div className="flex items-center gap-3 justify-end">
+                          <button type="button" onClick={() => handleEditPartner(i - 1)} className="text-blue-600 hover:text-blue-900">
+                            แก้ไข
+                          </button>
+                          <button type="button" onClick={() => handleRemovePartner(i - 1)} className="text-red-600 hover:text-red-900">
+                            ลบ
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 ))}
