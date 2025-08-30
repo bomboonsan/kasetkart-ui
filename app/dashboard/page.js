@@ -4,6 +4,7 @@ import StatsCard from '@/components/dashboard/StatsCard'
 import DonutChart from '@/components/dashboard/DonutChart'
 import PersonnelChart from '@/components/dashboard/PersonnelChart'
 import ScholarshipTable from '@/components/dashboard/ScholarshipTable'
+import ScholarshipTableAll from '@/components/dashboard/ScholarshipTableAll'
 import { useDashboardData } from '@/lib/hooks/useDashboardData'
 
 export default function DashboardHome() {
@@ -69,6 +70,13 @@ export default function DashboardHome() {
         <div className='col-span-6 md:col-span-3'>
           <ScholarshipTable
             title="ภาพรวมตามสาขาวิชา"
+            subtitle="จำนวนบุคคลากรแบ่งตาม 225"
+            data={scholarshipData}
+          />
+        </div>
+        <div className='col-span-6 md:col-span-3'>
+          <ScholarshipTableAll
+            title="ภาพรวมของคณะ"
             subtitle="จำนวนบุคคลากรแบ่งตาม 225"
             data={scholarshipData}
           />

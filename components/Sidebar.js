@@ -102,11 +102,27 @@ const adminMenuItems = [
     active: false,
   },  
   {
-    id: "dashboard/admin/manage-users",
-    url: "/dashboard/admin/manage-users",
+    id: "dashboard/form/add",
+    url: "#",
     icon: <UsersRound />,
     label: "จัดการผู้ใช้",
     active: false,
+    children: [
+      {
+        id: "dashboard/admin/manage-users",
+        url: "/dashboard/admin/manage-users",
+        icon: <UsersRound />,
+        label: "รายชื่อผู้ใช้",
+        active: false,
+      },
+      {
+        id: "dashboard/admin/add-user",
+        url: "/dashboard/admin/add-user",
+        icon: <UsersRound />,
+        label: "เพิ่มผู้ใช้",
+        active: false,
+      },
+    ],
   },
 ];
 
@@ -228,19 +244,60 @@ export default function Sidebar() {
         <ul className="space-y-1 px-2">
           {adminMenuItems.map((item) => (
             <li key={item.id}>
-              <Link
-                href={item.url ? item.url : '#'}
-                className={`
-                  flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
-                  ${item.active 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'text-gray-700 hover:bg-gray-100'
-                  }
-                `}
-              >
-                {item.icon}
-                {item.label}
-              </Link>
+              {item.children ? (
+                <div>
+                  <button
+                    onClick={() => toggleGroup(item.id)}
+                    aria-expanded={!!openGroups[item.id]}
+                    className={
+                      `w-full flex items-center justify-between gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                      ${item.active ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`
+                    }
+                  >
+                    <span className="flex items-center gap-3">
+                      {item.icon}
+                      {item.label}
+                    </span>
+                    <svg
+                      className={`w-4 h-4 transform transition-transform ${openGroups[item.id] ? 'rotate-90' : ''}`}
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+
+                  {/* children links */}
+                  {openGroups[item.id] && (
+                    <ul className="mt-2 space-y-1 pl-8">
+                      {item.children.map((child) => (
+                        <li key={child.id}>
+                          <Link
+                            href={child.url ? child.url : '#'}
+                            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:bg-gray-100`}
+                          >
+                            {child.icon}
+                            {child.label}
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href={item.url ? item.url : '#'}
+                  className={`
+                    flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                    ${item.active
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-700 hover:bg-gray-100'
+                    }
+                  `}
+                >
+                  {item.icon}
+                  {item.label}
+                </Link>
+              )}
             </li>
           ))}
         </ul>

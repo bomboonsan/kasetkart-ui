@@ -3,6 +3,7 @@
 import { useRef } from 'react'
 import UserManagement from '@/components/UserManagement'
 import PageHeader from '@/components/PageHeader'
+import Button from '@/components/Button'
 
 export default function ManageUsersPage() {
   const userManagementRef = useRef()
@@ -15,10 +16,17 @@ export default function ManageUsersPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader 
-        title="จัดการผู้ใช้งาน"
-        showAddButton={false}
-      />
+      <div className="flex items-center justify-between">
+        <PageHeader
+          title="จัดการผู้ใช้งาน"
+          showAddButton={false}
+        />
+        <div>
+          <a href='/dashboard/admin/add-user'>
+          <Button>เพิ่มผู้ใช้งาน</Button>
+          </a>
+        </div>
+      </div>
       <UserManagement ref={userManagementRef} />
     </div>
   )
