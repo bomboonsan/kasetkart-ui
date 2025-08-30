@@ -1,9 +1,11 @@
 "use client"
+// ใช้ SWR ดึงข้อมูลโปรไฟล์ของตนเองแทน useEffect ตรง ๆ
 import Button from './Button'
 import ProfileStats from "@/components/ProfileStats";
 import Link from 'next/link';
-import { useEffect, useState } from 'react'
-import { profileAPI } from '@/lib/api'
+import { useState } from 'react'
+import useSWR from 'swr'
+import { api } from '@/lib/api'
 
 function initials(name, fallback) {
   const s = (name || '').trim()
@@ -13,20 +15,9 @@ function initials(name, fallback) {
 }
 
 export default function ProfileHeader() {
-  const [profile, setProfile] = useState(null)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const me = await profileAPI.getMyProfile()
-        setProfile(me)
-      } catch (err) {
-        setError(err.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
-      }
-    }
-    loadProfile()
-  }, [])
+  const { data: profile, error: swrError } = useSWR('/profiles/me', api.get)
+  if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
 
   const profObj = profile?.profile || profile?.Profile?.[0]
   const displayName = profObj

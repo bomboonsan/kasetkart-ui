@@ -1,10 +1,12 @@
 "use client";
 
+// ใช้ SWR โหลดรายชื่อผู้ใช้ และใช้ mutate หลัง action เพื่อรีเฟรช
 import { useState, useEffect, forwardRef, useImperativeHandle } from "react";
+import useSWR, { mutate } from 'swr'
 import UserTable from "./UserTable";
 import UserFilters from "./UserFilters";
 import UserModal from "./UserModal";
-import { userAPI } from "@/lib/api";
+import { userAPI, api } from "@/lib/api";
 
 const mapRoleToLabel = (role) => {
   switch (role) {
@@ -48,15 +50,13 @@ const UserManagement = forwardRef((props, ref) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
+  // โหลดรายชื่อผู้ใช้ด้วย SWR
+  const { data: usersRes, error: usersErr, isLoading } = useSWR('/users?page=1&pageSize=100', api.get)
 
-  const loadUsers = async () => {
+  // เมื่อข้อมูลผู้ใช้เปลี่ยน แปลงเป็นโครงสร้างที่ตารางใช้งาน แล้วเซ็ต filteredUsers เริ่มต้น
+  useEffect(() => {
     try {
-      setLoading(true);
-      const res = await userAPI.getUsers({ page: 1, pageSize: 100 });
-      const usersData = res.data || res.items || res || [];
+      const usersData = usersRes?.data || usersRes?.items || usersRes || [];
       const mapped = usersData.map((u) => {
         const prof = Array.isArray(u.Profile) ? u.Profile[0] : u.Profile;
         const displayName = prof
@@ -77,15 +77,12 @@ const UserManagement = forwardRef((props, ref) => {
           rawData: u,
         };
       });
-      console.log("Mapped users:", mapped);
       setUsers(mapped);
       setFilteredUsers(mapped);
     } catch (err) {
       setError(err.message || "ไม่สามารถโหลดข้อมูลผู้ใช้");
-    } finally {
-      setLoading(false);
     }
-  };
+  }, [usersRes]);
 
   useImperativeHandle(ref, () => ({
     openCreateModal: () => {
@@ -158,7 +155,7 @@ const UserManagement = forwardRef((props, ref) => {
         if (user) {
           try {
             await userAPI.updateUserApproval(user.id, "APPROVED");
-            await loadUsers(); // Reload data
+            mutate('/users?page=1&pageSize=100'); // รีเฟรชรายการ
           } catch (err) {
             setError(err.message || "ไม่สามารถอนุมัติผู้ใช้");
           }
@@ -169,7 +166,7 @@ const UserManagement = forwardRef((props, ref) => {
         if (user) {
           try {
             await userAPI.updateUserApproval(user.id, "DISABLED");
-            await loadUsers(); // Reload data
+            mutate('/users?page=1&pageSize=100'); // รีเฟรชรายการ
           } catch (err) {
             setError(err.message || "ไม่สามารถปิดใช้งานผู้ใช้");
           }
@@ -222,7 +219,7 @@ const UserManagement = forwardRef((props, ref) => {
 
       <UserFilters onFilter={handleFilter} />
 
-      {loading ? (
+      {isLoading ? (
         <div className="flex justify-center items-center py-8">
           <div className="text-gray-500">Loading...</div>
         </div>

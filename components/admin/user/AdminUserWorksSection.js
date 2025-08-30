@@ -1,11 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import useSWR from 'swr'
 import SectionCard from '@/components/SectionCard'
 import PublicationFilters from '@/components/PublicationFilters'
 import PublicationItem from '@/components/PublicationItem'
 import Button from '@/components/Button'
-import { worksAPI } from '@/lib/api'
+import { api } from '@/lib/api'
 
 const TYPE_TABS = [
   { key: 'PROJECT', label: 'โครงการวิจัย' },
@@ -16,28 +17,9 @@ const TYPE_TABS = [
 ]
 
 export default function AdminUserWorksSection({ userId }) {
-  const [works, setWorks] = useState([])
   const [activeType, setActiveType] = useState('PROJECT')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    if (!userId) return
-    setError('')
-    setWorks([])
-    ;(async () => {
-      try {
-        setLoading(true)
-        const res = await worksAPI.getWorks({ pageSize: 100, userId })
-        const data = res?.data || res?.items || res || []
-        setWorks(data)
-      } catch (e) {
-        setError(e.message || 'ไม่สามารถโหลดผลงาน')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [userId])
+  const { data: worksRes, error: worksErr } = useSWR(userId ? `/works?pageSize=100&userId=${userId}` : null, api.get)
+  const works = worksRes?.data || worksRes?.items || worksRes || []
 
   const counts = useMemo(() => {
     const c = { CONFERENCE: 0, PUBLICATION: 0, FUNDING: 0, BOOK: 0 }
@@ -115,9 +97,9 @@ export default function AdminUserWorksSection({ userId }) {
 
         {/* <PublicationFilters /> */}
 
-        {error ? (
-          <div className="text-sm text-red-600">{error}</div>
-        ) : loading ? (
+        {worksErr ? (
+          <div className="text-sm text-red-600">{worksErr.message}</div>
+        ) : !worksRes ? (
           <div className="text-sm text-gray-500">กำลังโหลด...</div>
         ) : (
           <div className="space-y-4">

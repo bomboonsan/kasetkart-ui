@@ -1,6 +1,8 @@
 "use client"
 
+// ใช้ SWR แทน useEffect สำหรับโหลดโปรไฟล์
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import SectionCard from './SectionCard'
 import EducationItem from './EducationItem'
 import { api } from '@/lib/api'
@@ -9,23 +11,22 @@ export default function EducationSection() {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
 
+  const { data: me, error: swrError } = useSWR('/profiles/me', api.get)
   useEffect(() => {
-    (async () => {
-      try {
-        const me = await api.get('/profiles/me')
-        const prof = me?.Profile?.[0] || me?.profile || {}
-        const highDegree = prof?.highDegree || ''
-        const academicRank = prof?.academicRank || ''
-        // ปัจจุบันระบบยังไม่มีตารางการศึกษา แสดงจาก highDegree/academicRank เป็นประวัติแบบย่อ
-        const list = []
-        if (highDegree) list.push({ degree: highDegree, school: me?.Faculty?.name || me?.Department?.name || '', period: '' })
-        if (academicRank) list.push({ degree: academicRank, school: me?.Faculty?.name || me?.Department?.name || '', period: '' })
-        setItems(list)
-      } catch (e) {
-        setError(e.message || 'ไม่สามารถโหลดประวัติการศึกษา')
-      }
-    })()
-  }, [])
+    if (!me) return
+    try {
+      const prof = me?.Profile?.[0] || me?.profile || {}
+      const highDegree = prof?.highDegree || ''
+      const academicRank = prof?.academicRank || ''
+      const list = []
+      if (highDegree) list.push({ degree: highDegree, school: me?.Faculty?.name || me?.Department?.name || '', period: '' })
+      if (academicRank) list.push({ degree: academicRank, school: me?.Faculty?.name || me?.Department?.name || '', period: '' })
+      setItems(list)
+    } catch (e) {
+      setError(e.message || 'ไม่สามารถโหลดประวัติการศึกษา')
+    }
+  }, [me])
+  useEffect(() => { if (swrError) setError(swrError.message || 'ไม่สามารถโหลดประวัติการศึกษา') }, [swrError])
 
   return (
     <SectionCard title="ประวัติการศึกษา">

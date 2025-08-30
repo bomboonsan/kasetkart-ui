@@ -1,31 +1,21 @@
 'use client'
 
+// ใช้ SWR โหลดรายชื่อผู้ใช้เมื่อ modal เปิด
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import Button from './Button'
-import { userAPI } from '@/lib/api'
+import { api } from '@/lib/api'
 
 export default function UserPicker({ label = 'ผู้ร่วมงาน', onSelect, selectedUser }) {
   const [open, setOpen] = useState(false)
-  const [users, setUsers] = useState([])
+  const { data: usersRes, error: usersErr } = useSWR(open ? '/users?role=USER&pageSize=1000' : null, api.get)
+  const users = usersRes?.data || usersRes?.items || []
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
   useEffect(() => {
-    if (!open) return
-    ;(async () => {
-      try {
-        setLoading(true)
-        setError('')
-        const res = await userAPI.getUsers({ role: 'USER', pageSize: 1000 })
-        const data = res.data || res.items || []
-        setUsers(data)
-      } catch (err) {
-        setError(err.message || 'ต้องเป็นผู้ดูแลระบบจึงจะสามารถค้นหารายชื่อผู้ใช้ได้')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [open])
+    setLoading(!usersRes && open)
+    if (usersErr) setError(usersErr.message || 'ต้องเป็นผู้ดูแลระบบจึงจะสามารถค้นหารายชื่อผู้ใช้ได้')
+  }, [usersRes, usersErr, open])
 
   return (
     <div className="space-y-1 flex items-center">
@@ -80,4 +70,3 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
     </div>
   )
 }
-

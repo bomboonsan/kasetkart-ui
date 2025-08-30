@@ -1,10 +1,11 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
+import useSWR from 'swr'
 import SectionCard from './SectionCard'
 import PublicationFilters from './PublicationFilters'
 import PublicationItem from './PublicationItem'
-import { worksAPI } from '@/lib/api'
+import { api } from '@/lib/api'
 
 const TYPE_TABS = [
   { key: 'CONFERENCE', label: 'ประชุมวิชาการ' },
@@ -14,25 +15,9 @@ const TYPE_TABS = [
 ]
 
 export default function ResearchPublicationsSection() {
-  const [works, setWorks] = useState([])
   const [activeType, setActiveType] = useState('CONFERENCE')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true)
-        const res = await worksAPI.getWorks({ pageSize: 100, mine: 1 })
-        const data = res?.data || res?.items || res || []
-        setWorks(data)
-      } catch (e) {
-        setError(e.message || 'ไม่สามารถโหลดผลงาน')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [])
+  const { data: worksRes, error: worksErr } = useSWR('/works?pageSize=100&mine=1', api.get)
+  const works = worksRes?.data || worksRes?.items || worksRes || []
 
   const counts = useMemo(() => {
     const c = { CONFERENCE: 0, PUBLICATION: 0, FUNDING: 0, BOOK: 0 }
@@ -93,9 +78,9 @@ export default function ResearchPublicationsSection() {
         {/* <PublicationFilters /> */}
 
         {/* List */}
-        {error ? (
-          <div className="text-sm text-red-600">{error}</div>
-        ) : loading ? (
+        {worksErr ? (
+          <div className="text-sm text-red-600">{worksErr.message}</div>
+        ) : !worksRes ? (
           <div className="text-sm text-gray-500">กำลังโหลด...</div>
         ) : (
           <div className="space-y-4">

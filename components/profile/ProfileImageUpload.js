@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import Button from '@/components/Button'
 import { uploadAPI, API_BASE, api } from '@/lib/api'
 
@@ -9,15 +10,11 @@ export default function ProfileImageUpload() {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
+  const { data: me } = useSWR('/profiles/me', api.get)
   useEffect(() => {
-    ;(async () => {
-      try {
-        const me = await api.get('/profiles/me')
-        const url = me?.Profile?.[0]?.avatarUrl
-        if (url) setImagePreview(url)
-      } catch {}
-    })()
-  }, [])
+    const url = me?.Profile?.[0]?.avatarUrl
+    if (url) setImagePreview(url)
+  }, [me])
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0]

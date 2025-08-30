@@ -2,7 +2,8 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
-import { orgAPI, reportsAPI } from '@/lib/api'
+import useSWR from 'swr'
+import { api } from '@/lib/api'
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
 
@@ -20,41 +21,34 @@ export default function PersonnelChart({
   const [computedData, setComputedData] = useState(null)
   const [error, setError] = useState('')
 
-  // Load departments and select the first one by default
+  // ใช้ SWR โหลดรายชื่อภาควิชา และตั้งค่าค่าเริ่มต้นเป็นตัวแรก
+  const { data: deptRes, error: deptErr } = useSWR('/departments', api.get)
   useEffect(() => {
-    (async () => {
-      try {
-        const res = await orgAPI.getAllDepartments()
-        const deps = res?.data || []
-        setDepartments(deps)
-        if (deps.length > 0) setSelectedDeptId(String(deps[0].id))
-      } catch (e) {
-        setError(e.message || 'ไม่สามารถโหลดรายชื่อภาควิชา')
-      }
-    })()
-  }, [])
+    const deps = deptRes?.data || []
+    setDepartments(deps)
+    if (!selectedDeptId && deps.length > 0) setSelectedDeptId(String(deps[0].id))
+    if (deptErr) setError(deptErr.message || 'ไม่สามารถโหลดรายชื่อภาควิชา')
+  }, [deptRes, deptErr])
 
-  // Load jobType counts for selected department
+  // ใช้ SWR โหลดข้อมูล jobType ของภาควิชาที่เลือก
+  const { data: statRes, error: statErr } = useSWR(selectedDeptId ? `/reports/users-job-types/by-department?departmentId=${selectedDeptId}` : null, api.get)
   useEffect(() => {
-    (async () => {
-      if (!selectedDeptId) return
-      try {
-        setError('')
-        const res = await reportsAPI.getUsersByJobTypeByDepartment(selectedDeptId)
-        const counts = res?.counts || {}
-        const total = JOB_TYPES.reduce((s, jt) => s + (counts[jt] || 0), 0) || 1
-        const list = JOB_TYPES.map((jt) => ({
-          category: jt,
-          personnel: counts[jt] || 0,
-          percentage: ((counts[jt] || 0) / total * 100).toFixed(1)
-        }))
-        setComputedData(list)
-      } catch (e) {
-        setError(e.message || 'ไม่สามารถโหลดสถิติบุคลากรตามภาควิชา')
-        setComputedData(null)
-      }
-    })()
-  }, [selectedDeptId])
+    if (!statRes) return
+    try {
+      const counts = statRes?.counts || {}
+      const total = JOB_TYPES.reduce((s, jt) => s + (counts[jt] || 0), 0) || 1
+      const list = JOB_TYPES.map((jt) => ({
+        category: jt,
+        personnel: counts[jt] || 0,
+        percentage: ((counts[jt] || 0) / total * 100).toFixed(1)
+      }))
+      setComputedData(list)
+      if (statErr) setError(statErr.message || 'ไม่สามารถโหลดสถิติบุคลากรตามภาควิชา')
+    } catch (e) {
+      setError(e.message || 'ไม่สามารถโหลดสถิติบุคลากรตามภาควิชา')
+      setComputedData(null)
+    }
+  }, [statRes, statErr])
 
   const displayData = computedData || data
 

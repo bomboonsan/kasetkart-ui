@@ -1,10 +1,12 @@
 'use client'
 
+// ใช้ SWR โหลด organizations / faculties / departments
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
-import { orgAPI, userAPI, uploadAPI, API_BASE } from '@/lib/api'
+import { orgAPI, userAPI, uploadAPI, API_BASE, api } from '@/lib/api'
 
 export default function AddUserForm() {
   const [form, setForm] = useState({
@@ -32,34 +34,20 @@ export default function AddUserForm() {
 
   const onChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
+  const { data: orgRes, error: orgErr } = useSWR('/organizations', api.get)
+  const { data: facRes, error: facErr } = useSWR('/faculties', api.get)
+  const { data: deptRes, error: deptErr } = useSWR('/departments', api.get)
   useEffect(() => {
-    ;(async () => {
-      try {
-        setLoading(true)
-        const [orgRes, facultiesRes, deptRes] = await Promise.all([
-          orgAPI.getOrganizations(),
-          orgAPI.getFaculties(),
-          orgAPI.getAllDepartments(),
-        ])
-        const orgOptions = [{ value: '', label: 'เลือกหน่วยงาน' }].concat(
-          (orgRes?.data || []).map(o => ({ value: String(o.id), label: o.name }))
-        )
-        const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat(
-          (facultiesRes?.data || []).map(f => ({ value: String(f.id), label: f.name }))
-        )
-        const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat(
-          (deptRes?.data || []).map(d => ({ value: String(d.id), label: d.name }))
-        )
-        setOrgs(orgOptions)
-        setFaculties(facultyOptions)
-        setDepts(deptOptions)
-      } catch (err) {
-        setError(err.message || 'โหลดข้อมูลหน่วยงาน/ภาควิชาไม่สำเร็จ')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [])
+    try {
+      setLoading(!orgRes || !facRes || !deptRes)
+      const orgOptions = [{ value: '', label: 'เลือกหน่วยงาน' }].concat((orgRes?.data || []).map(o => ({ value: String(o.id), label: o.name })))
+      const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat((facRes?.data || []).map(f => ({ value: String(f.id), label: f.name })))
+      const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat((deptRes?.data || []).map(d => ({ value: String(d.id), label: d.name })))
+      setOrgs(orgOptions); setFaculties(facultyOptions); setDepts(deptOptions)
+    } catch (err) {
+      setError(err.message || 'โหลดข้อมูลหน่วยงาน/ภาควิชาไม่สำเร็จ')
+    }
+  }, [orgRes, facRes, deptRes])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

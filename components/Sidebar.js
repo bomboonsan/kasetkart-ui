@@ -1,6 +1,8 @@
 "use client"
 
+// ใช้ useSWR เพื่อดึงข้อมูลผู้ใช้ปัจจุบันจาก API
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -15,7 +17,7 @@ import {
 } from "lucide-react";
 
 import { logout } from '@/lib/auth'
-import { profileAPI } from '@/lib/api'
+import { api } from '@/lib/api'
 
 const menuItems = [
   {
@@ -132,20 +134,17 @@ export default function Sidebar() {
   const [userDisplayName, setUserDisplayName] = useState('')
   const [userEmail, setUserEmail] = useState('')
 
+  // ดึงข้อมูลโปรไฟล์ของตนเองด้วย SWR
+  const { data: me } = useSWR('/profiles/me', api.get)
+
+  // อัปเดตชื่อแสดงผลเมื่อได้ข้อมูล
   useEffect(() => {
-    const loadMe = async () => {
-      try {
-        const me = await profileAPI.getMyProfile()
-        const prof = me?.Profile?.[0] || me?.profile || {}
-        const name = `${prof?.firstName || ''} ${prof?.lastName || ''}`.trim()
-        setUserDisplayName(name || me?.email || '')
-        setUserEmail(me?.email || '')
-      } catch (e) {
-        // ignore
-      }
-    }
-    loadMe()
-  }, [])
+    if (!me) return
+    const prof = me?.Profile?.[0] || me?.profile || {}
+    const name = `${prof?.firstName || ''} ${prof?.lastName || ''}`.trim()
+    setUserDisplayName(name || me?.email || '')
+    setUserEmail(me?.email || '')
+  }, [me])
 
   function toggleGroup(id) {
     setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))

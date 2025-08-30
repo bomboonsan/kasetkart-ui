@@ -1,10 +1,12 @@
 "use client"
 
+// ใช้ SWR ดึงข้อมูล user/organizations/faculties/departments
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
-import { orgAPI, userAPI, uploadAPI, API_BASE } from '@/lib/api'
+import { orgAPI, userAPI, uploadAPI, API_BASE, api } from '@/lib/api'
 
 const JOB_TYPES = [
   { value: '', label: 'เลือกประเภทอาจารย์' },
@@ -40,46 +42,48 @@ export default function AdminUserEditForm({ userId }) {
 
   const onChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
-  useEffect(() => {
-    if (!userId) return
-    ;(async () => {
-      try {
-        setLoading(true)
-        const [u, orgRes, facRes, deptRes] = await Promise.all([
-          userAPI.getUser(userId),
-          orgAPI.getOrganizations(),
-          orgAPI.getFaculties(),
-          orgAPI.getAllDepartments(),
-        ])
-        const orgOptions = [{ value: '', label: 'เลือกมหาวิทยาลัย' }].concat((orgRes?.data || []).map(o => ({ value: String(o.id), label: o.name })))
-        const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat((facRes?.data || []).map(f => ({ value: String(f.id), label: f.name })))
-        const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat((deptRes?.data || []).map(d => ({ value: String(d.id), label: d.name })))
-        setOrgs(orgOptions); setFaculties(facultyOptions); setDepts(deptOptions)
+  // ดึงข้อมูลด้วย SWR
+  const { data: u, error: uErr } = useSWR(userId ? `/users/${userId}` : null, api.get)
+  const { data: orgRes } = useSWR('/organizations', api.get)
+  const { data: facRes } = useSWR('/faculties', api.get)
+  const { data: deptRes } = useSWR('/departments', api.get)
 
-        const p = u?.Profile?.[0] || {}
-        setForm({
-          email: u.email || '',
-          role: u.role || 'USER',
-          organizationID: u.organizationID ? String(u.organizationID) : '',
-          facultyId: u.facultyId ? String(u.facultyId) : '',
-          departmentId: u.departmentId ? String(u.departmentId) : '',
-          firstName: p.firstName || '',
-          lastName: p.lastName || '',
-          firstNameEn: p.firstNameEn || '',
-          lastNameEn: p.lastNameEn || '',
-          highDegree: p.highDegree || '',
-          academicRank: p.academicRank || '',
-          jobType: p.jobType || '',
-          phone: p.phone || '',
-          avatarUrl: p.avatarUrl || '',
-        })
-      } catch (e) {
-        setError(e.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [userId])
+  useEffect(() => {
+    try {
+      const orgOptions = [{ value: '', label: 'เลือกมหาวิทยาลัย' }].concat((orgRes?.data || []).map(o => ({ value: String(o.id), label: o.name })))
+      const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat((facRes?.data || []).map(f => ({ value: String(f.id), label: f.name })))
+      const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat((deptRes?.data || []).map(d => ({ value: String(d.id), label: d.name })))
+      setOrgs(orgOptions); setFaculties(facultyOptions); setDepts(deptOptions)
+    } catch {}
+  }, [orgRes, facRes, deptRes])
+
+  useEffect(() => {
+    if (!u) return
+    setLoading(true)
+    try {
+      const p = u?.Profile?.[0] || {}
+      setForm({
+        email: u.email || '',
+        role: u.role || 'USER',
+        organizationID: u.organizationID ? String(u.organizationID) : '',
+        facultyId: u.facultyId ? String(u.facultyId) : '',
+        departmentId: u.departmentId ? String(u.departmentId) : '',
+        firstName: p.firstName || '',
+        lastName: p.lastName || '',
+        firstNameEn: p.firstNameEn || '',
+        lastNameEn: p.lastNameEn || '',
+        highDegree: p.highDegree || '',
+        academicRank: p.academicRank || '',
+        jobType: p.jobType || '',
+        phone: p.phone || '',
+        avatarUrl: p.avatarUrl || '',
+      })
+    } catch (e) {
+      setError(e.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
+    } finally {
+      setLoading(false)
+    }
+  }, [u])
 
   async function handleSave(e) {
     e.preventDefault()

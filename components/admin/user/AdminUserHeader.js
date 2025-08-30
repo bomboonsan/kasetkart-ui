@@ -1,9 +1,11 @@
 "use client"
 
+// ใช้ SWR ดึงข้อมูลผู้ใช้ตาม id
 import Button from '@/components/Button'
 import Link from 'next/link'
-import { useEffect, useState } from 'react'
-import { userAPI } from '@/lib/api'
+import { useState } from 'react'
+import useSWR from 'swr'
+import { api } from '@/lib/api'
 
 function initialsFrom(name, fallback) {
   const s = (name || '').trim()
@@ -13,22 +15,9 @@ function initialsFrom(name, fallback) {
 }
 
 export default function AdminUserHeader({ userId }) {
-  const [user, setUser] = useState(null)
   const [error, setError] = useState('')
-
-  useEffect(() => {
-    if (!userId) return
-    setError('')
-    setUser(null)
-    ;(async () => {
-      try {
-        const u = await userAPI.getUser(userId)
-        setUser(u)
-      } catch (e) {
-        setError(e.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
-      }
-    })()
-  }, [userId])
+  const { data: user, error: swrError } = useSWR(userId ? `/users/${userId}` : null, api.get)
+  if (swrError && !error) setError(swrError.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
 
   const prof = user?.Profile?.[0]
   const displayName = prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : ''

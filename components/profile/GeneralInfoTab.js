@@ -1,6 +1,8 @@
 "use client"
 
+// ใช้ SWR ดึงข้อมูลโปรไฟล์ของตนเอง แทน useEffect
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
 import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
@@ -29,31 +31,32 @@ export default function GeneralInfoTab() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
+  // ใช้ SWR เพื่อโหลดข้อมูลโปรไฟล์ครั้งเดียว
+  const { data: me, error: swrError } = useSWR('/profiles/me', api.get)
   useEffect(() => {
-    ;(async () => {
-      try {
-        const me = await api.get('/profiles/me')
-        const prof = me?.Profile?.[0] || me?.profile || {}
-        setFormData(prev => ({
-          ...prev,
-          firstName: prof.firstName || '',
-          lastName: prof.lastName || '',
-          firstNameEn: prof.firstNameEn || '',
-          lastNameEn: prof.lastNameEn || '',
-          highDegree: prof.highDegree || '',
-          jobType: prof.jobType || '',
-          phone: prof.phone || '',
-          academicPosition: prof.academicRank || '',
-          email: me.email || '',
-          department: me.Department?.name || me.department?.name || ''
-        }))
-      } catch (err) {
-        setError(err.message || 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [])
+    if (!me) return
+    try {
+      const prof = me?.Profile?.[0] || me?.profile || {}
+      setFormData(prev => ({
+        ...prev,
+        firstName: prof.firstName || '',
+        lastName: prof.lastName || '',
+        firstNameEn: prof.firstNameEn || '',
+        lastNameEn: prof.lastNameEn || '',
+        highDegree: prof.highDegree || '',
+        jobType: prof.jobType || '',
+        phone: prof.phone || '',
+        academicPosition: prof.academicRank || '',
+        email: me.email || '',
+        department: me.Department?.name || me.department?.name || ''
+      }))
+    } catch (err) {
+      setError(err.message || 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ')
+    } finally {
+      setLoading(false)
+    }
+  }, [me])
+  useEffect(() => { if (swrError) setError(swrError.message || 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ') }, [swrError])
 
   const handleSave = async () => {
     try {
