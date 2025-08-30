@@ -1,8 +1,12 @@
 'use client'
 
+import { useEffect, useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
+import { orgAPI, reportsAPI } from '@/lib/api'
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
+
+const JOB_TYPES = ['SA','PA','SP','IP','A']
 
 export default function PersonnelChart({ 
   title,
@@ -11,8 +15,51 @@ export default function PersonnelChart({
   colors = ['#6366f1', '#22c55e', '#06b6d4', '#f59e0b', '#ef4444'],
   height = 200 
 }) {
+  const [departments, setDepartments] = useState([])
+  const [selectedDeptId, setSelectedDeptId] = useState('')
+  const [computedData, setComputedData] = useState(null)
+  const [error, setError] = useState('')
+
+  // Load departments and select the first one by default
+  useEffect(() => {
+    (async () => {
+      try {
+        const res = await orgAPI.getAllDepartments()
+        const deps = res?.data || []
+        setDepartments(deps)
+        if (deps.length > 0) setSelectedDeptId(String(deps[0].id))
+      } catch (e) {
+        setError(e.message || 'ไม่สามารถโหลดรายชื่อภาควิชา')
+      }
+    })()
+  }, [])
+
+  // Load jobType counts for selected department
+  useEffect(() => {
+    (async () => {
+      if (!selectedDeptId) return
+      try {
+        setError('')
+        const res = await reportsAPI.getUsersByJobTypeByDepartment(selectedDeptId)
+        const counts = res?.counts || {}
+        const total = JOB_TYPES.reduce((s, jt) => s + (counts[jt] || 0), 0) || 1
+        const list = JOB_TYPES.map((jt) => ({
+          category: jt,
+          personnel: counts[jt] || 0,
+          percentage: ((counts[jt] || 0) / total * 100).toFixed(1)
+        }))
+        setComputedData(list)
+      } catch (e) {
+        setError(e.message || 'ไม่สามารถโหลดสถิติบุคลากรตามภาควิชา')
+        setComputedData(null)
+      }
+    })()
+  }, [selectedDeptId])
+
+  const displayData = computedData || data
+
   // Create series data for stacked bar
-  const seriesData = data.map((item, index) => ({
+  const seriesData = displayData.map((item) => ({
     name: item.category,
     data: [item.percentage]
   }))
@@ -89,8 +136,8 @@ export default function PersonnelChart({
       y: {
         formatter: function (val, opts) {
           const seriesIndex = opts.seriesIndex
-          const category = data[seriesIndex]?.category || ''
-          const personnel = data[seriesIndex]?.personnel || 0
+          const category = displayData[seriesIndex]?.category || ''
+          const personnel = displayData[seriesIndex]?.personnel || 0
           return `${personnel} คน (${val.toFixed(1)}%)`
         }
       }
@@ -104,11 +151,20 @@ export default function PersonnelChart({
           <h2 className='text-lg text-gray-900 font-medium'>{title}</h2>
           {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
         </div>
-        <div className="px-3 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
-          {/* Dropdown */}
-          {/* Dropdown ภาควิชา (Department) */}
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-500">Dropdown ภาควิชา (Department)</label>
+          <select
+            value={selectedDeptId}
+            onChange={(e) => setSelectedDeptId(e.target.value)}
+            className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md"
+          >
+            {departments.map((d) => (
+              <option key={d.id} value={String(d.id)}>{d.name}</option>
+            ))}
+          </select>
         </div>
       </div>
+      {error && <div className="text-xs text-red-600 mb-2">{error}</div>}
       
       {/* Custom legend with percentages */}
       <div className="flex flex-wrap gap-4 mb-0 hidden">
@@ -133,7 +189,7 @@ export default function PersonnelChart({
       
       {/* Personnel details table */}
       <div className="mt-6 space-y-2">
-        {data.map((item, index) => (
+        {displayData.map((item, index) => (
           <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
             <div className="flex items-center space-x-3">
               <div 

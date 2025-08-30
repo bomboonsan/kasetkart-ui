@@ -11,8 +11,17 @@ export default function DonutChart({
   colors = ['#6366f1', '#22c55e', '#06b6d4', '#f59e0b', '#ef4444'],
   height = 300 
 }) {
-  const series = data.map(item => item.value)
-  const labels = data.map(item => item.label)
+  // Normalize input so it can accept either
+  // - [{ label, value }]
+  // - [{ category, percentage }]
+  const normalized = (Array.isArray(data) ? data : []).map((item) => {
+    const label = item.label ?? item.category ?? ''
+    const rawVal = item.value ?? item.percentage ?? 0
+    const value = typeof rawVal === 'string' ? parseFloat(rawVal) : (rawVal || 0)
+    return { label, value: isNaN(value) ? 0 : value }
+  })
+  const series = normalized.map(item => item.value)
+  const labels = normalized.map(item => item.label)
 
   const options = {
     chart: {

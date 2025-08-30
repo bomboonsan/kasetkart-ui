@@ -17,6 +17,8 @@ export default function DashboardHome() {
     error 
   } = useDashboardData()
 
+  console.log('facultyPersonnelData', facultyPersonnelData)
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
