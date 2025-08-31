@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import ResearchTopicRow from '@/components/ResearchTopicRow'
+import ResearchTopicRow from './ResearchTopicRow'
 import { api } from '@/lib/api'
 
 export default function ResearchTopicsTable({ tab = 1 }) {
@@ -24,6 +24,12 @@ export default function ResearchTopicsTable({ tab = 1 }) {
             color: 'green',
             href: `/research/view/${p.id}`,
             editHref: `/research/edit/${p.id}`,
+            owner: (() => {
+              const partners = p.ProjectPartner || []
+              const head = partners.find(pp => (pp.partnerType || '').includes('หัวหน้า'))
+              const any = head || partners[0]
+              return any ? (any.fullname || any.User?.email || '-') : '-'
+            })()
           }))
           setItems(mapped)
         } else {
@@ -40,6 +46,12 @@ export default function ResearchTopicsTable({ tab = 1 }) {
             color: 'green',
             href: `/works/view/${w.id}`,
             editHref: `/works/edit/${w.id}`,
+            owner: (() => {
+              const authors = w.WorkAuthor || []
+              const corr = authors.find(a => a.isCorresponding)
+              const a = corr || authors[0]
+              return a ? (a.externalName || a.User?.email || '-') : '-'
+            })()
           }))
           setItems(mapped)
         }
@@ -59,7 +71,8 @@ export default function ResearchTopicsTable({ tab = 1 }) {
           <div className="col-span-3">ชื่อโครงการวิจัย หรือ ผลงาน</div>
           <div className="col-span-2">วันที่ครบกำหนด</div>
           <div className="col-span-2">งบประมาณ</div>
-          <div className="col-span-2">สถานะ</div>
+          <div className="col-span-1">ผู้รับผิดชอบ</div>
+          <div className="col-span-1">สถานะ</div>
           <div className="col-span-1"></div>
         </div>
       </div>
