@@ -71,6 +71,8 @@ export default function DashboardHome() {
     ) },
   ]
 
+  console.log('academicWorkStats', academicWorkStats)
+
   // ข้อมูลสำหรับ DonutChart: สัดส่วนผู้ใช้ตาม jobType ทั้งระบบ
   const allowedJobTypes = ['SA','PA','SP','IP','A']
   const jtCounts = jobTypesRes?.counts || {}
