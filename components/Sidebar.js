@@ -33,7 +33,7 @@ const menuItems = [
     icon: <FileUser />,
     label: "โครงการของฉัน",
     active: false,
-  },  
+  },
   // Forms will be rendered as a nav-group (collapsible). children are defined below
   {
     id: "dashboard/form/add",
@@ -78,7 +78,7 @@ const menuItems = [
         active: false,
       }
     ]
-  },    
+  },
 ];
 
 const adminMenuItems = [
@@ -102,7 +102,7 @@ const adminMenuItems = [
     icon: <FileUser />,
     label: "โครงการทั้งหมด",
     active: false,
-  },  
+  },
   {
     id: "dashboard/form/add",
     url: "#",
@@ -158,149 +158,149 @@ export default function Sidebar() {
   return (
     <div className="sticky top-0 w-64 bg-white border-r border-gray-200 h-screen flex flex-col justify-between">
       <div>
-      {/* Logo */}
-      <div className="p-4 border-b border-gray-200">
-        <div className="flex items-center space-x-2">
-          <Image
-            src="/Logo.png"
-            alt="KU Logo"
-            width={32}
-            height={32}
-            className="rounded"
-          />
-          <span className="font-bold text-2xl text-gray-800">Kasetsart</span>
+        {/* Logo */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2">
+            <Image
+              src="/Logo.png"
+              alt="KU Logo"
+              width={32}
+              height={32}
+              className="rounded"
+            />
+            <span className="font-bold text-2xl text-gray-800">Kasetsart</span>
+          </div>
         </div>
-      </div>
 
-      {/* Navigation */}
-      <nav className="mt-4 desktop-nav">
-        <ul className="space-y-1 px-2">
-          {menuItems.map((item) => (
-            <li key={item.id}>
-              {item.children ? (
-                <div>
-                  <button
-                    onClick={() => toggleGroup(item.id)}
-                    aria-expanded={!!openGroups[item.id]}
-                    className={
-                      `w-full flex items-center justify-between gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+        {/* Navigation */}
+        <nav className="mt-4 desktop-nav">
+          <ul className="space-y-1 px-2">
+            {menuItems.map((item) => (
+              <li key={item.id}>
+                {item.children ? (
+                  <div>
+                    <button
+                      onClick={() => toggleGroup(item.id)}
+                      aria-expanded={!!openGroups[item.id]}
+                      className={
+                        `w-full flex items-center justify-between gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
                       ${item.active ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`
-                    }
-                  >
-                    <span className="flex items-center gap-3">
-                      {item.icon}
-                      {item.label}
-                    </span>
-                    <svg
-                      className={`w-4 h-4 transform transition-transform ${openGroups[item.id] ? 'rotate-90' : ''}`}
-                      fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                      }
                     >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
+                      <span className="flex items-center gap-3">
+                        {item.icon}
+                        {item.label}
+                      </span>
+                      <svg
+                        className={`w-4 h-4 transform transition-transform ${openGroups[item.id] ? 'rotate-90' : ''}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
 
-                  {/* children links */}
-                  {openGroups[item.id] && (
-                    <ul className="mt-2 space-y-1 pl-8">
-                      {item.children.map((child) => (
-                        <li key={child.id}>
-                          <Link
-                            href={child.url ? child.url : '#'}
-                            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:bg-gray-100`}
-                          >
-                            {child.icon}
-                            {child.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  href={item.url ? item.url : '#'}
-                  className={`
-                    flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
-                    ${item.active 
-                      ? 'bg-blue-100 text-blue-700' 
-                      : 'text-gray-700 hover:bg-gray-100'
-                    }
-                  `}
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-      </nav>
-      <div className='px-6'>
-        <hr className="my-4 border-gray-200" />
-      </div>
-      {/* Admin Section */}
-      <nav className="mt-4 desktop-nav">
-        <ul className="space-y-1 px-2">
-          {adminMenuItems.map((item) => (
-            <li key={item.id}>
-              {item.children ? (
-                <div>
-                  <button
-                    onClick={() => toggleGroup(item.id)}
-                    aria-expanded={!!openGroups[item.id]}
-                    className={
-                      `w-full flex items-center justify-between gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
-                      ${item.active ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`
-                    }
-                  >
-                    <span className="flex items-center gap-3">
-                      {item.icon}
-                      {item.label}
-                    </span>
-                    <svg
-                      className={`w-4 h-4 transform transition-transform ${openGroups[item.id] ? 'rotate-90' : ''}`}
-                      fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-
-                  {/* children links */}
-                  {openGroups[item.id] && (
-                    <ul className="mt-2 space-y-1 pl-8">
-                      {item.children.map((child) => (
-                        <li key={child.id}>
-                          <Link
-                            href={child.url ? child.url : '#'}
-                            className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:bg-gray-100`}
-                          >
-                            {child.icon}
-                            {child.label}
-                          </Link>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </div>
-              ) : (
-                <Link
-                  href={item.url ? item.url : '#'}
-                  className={`
+                    {/* children links */}
+                    {openGroups[item.id] && (
+                      <ul className="mt-2 space-y-1 pl-8">
+                        {item.children.map((child) => (
+                          <li key={child.id}>
+                            <Link
+                              href={child.url ? child.url : '#'}
+                              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:bg-gray-100`}
+                            >
+                              {child.icon}
+                              {child.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    href={item.url ? item.url : '#'}
+                    className={`
                     flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
                     ${item.active
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-700 hover:bg-gray-100'
-                    }
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                      }
                   `}
-                >
-                  {item.icon}
-                  {item.label}
-                </Link>
-              )}
-            </li>
-          ))}
-        </ul>
-      </nav>
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <div className='px-6'>
+          <hr className="my-4 border-gray-200" />
+        </div>
+        {/* Admin Section */}
+        <nav className="mt-4 desktop-nav">
+          <ul className="space-y-1 px-2">
+            {adminMenuItems.map((item) => (
+              <li key={item.id}>
+                {item.children ? (
+                  <div>
+                    <button
+                      onClick={() => toggleGroup(item.id)}
+                      aria-expanded={!!openGroups[item.id]}
+                      className={
+                        `w-full flex items-center justify-between gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                      ${item.active ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'}`
+                      }
+                    >
+                      <span className="flex items-center gap-3">
+                        {item.icon}
+                        {item.label}
+                      </span>
+                      <svg
+                        className={`w-4 h-4 transform transition-transform ${openGroups[item.id] ? 'rotate-90' : ''}`}
+                        fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+
+                    {/* children links */}
+                    {openGroups[item.id] && (
+                      <ul className="mt-2 space-y-1 pl-8">
+                        {item.children.map((child) => (
+                          <li key={child.id}>
+                            <Link
+                              href={child.url ? child.url : '#'}
+                              className={`flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors text-gray-700 hover:bg-gray-100`}
+                            >
+                              {child.icon}
+                              {child.label}
+                            </Link>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ) : (
+                  <Link
+                    href={item.url ? item.url : '#'}
+                    className={`
+                    flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
+                    ${item.active
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-700 hover:bg-gray-100'
+                      }
+                  `}
+                  >
+                    {item.icon}
+                    {item.label}
+                  </Link>
+                )}
+              </li>
+            ))}
+          </ul>
+        </nav>
       </div>
 
       {/* User Detail */}
@@ -308,7 +308,7 @@ export default function Sidebar() {
         <hr className="my-4 border-gray-200" />
         <div className="flex items-center py-2">
           <div className="w-10 h-10 rounded-full bg-gray-300 mr-3 flex items-center justify-center text-xs font-semibold text-white bg-blue-500">
-            {(userDisplayName || userEmail || 'U').split(' ').map(s => s[0]).join('').slice(0,2).toUpperCase()}
+            {(userDisplayName || userEmail || 'U').split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}
           </div>
           <div>
             <p className="text-sm text-gray-900">{userDisplayName || userEmail || '-'}</p>
@@ -322,7 +322,7 @@ export default function Sidebar() {
           </button>
         </div>
       </div>
-      
+
     </div>
   )
 }

@@ -6,6 +6,8 @@ export default function FormTextarea({
   rows = 3,
   required = false,
   className = "",
+  readOnly = false,
+  disabled = false,
 }) {
   return (
     <div className="space-y-1 flex items-start">
@@ -18,11 +20,13 @@ export default function FormTextarea({
       </div>
       <div className="flex-1">        
         <textarea
-            value={value}
-            onChange={(e) => onChange(e.target.value)}
+            value={value ?? ''}
+            onChange={(e) => onChange && onChange(e.target.value)}
             placeholder={placeholder}
             rows={rows}
             required={required}
+            readOnly={readOnly}
+            disabled={disabled}
             className={`
                 text-zinc-700
               block w-full px-3 py-2 border border-gray-300 rounded-md

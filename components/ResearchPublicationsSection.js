@@ -8,6 +8,7 @@ import PublicationItem from './PublicationItem'
 import { api } from '@/lib/api'
 
 const TYPE_TABS = [
+  { key: 'PROJECT', label: 'โครงการวิจัย' },
   { key: 'CONFERENCE', label: 'ประชุมวิชาการ' },
   { key: 'PUBLICATION', label: 'ตีพิมพ์ทางวิชาการ' },
   { key: 'FUNDING', label: 'ขอรับทุนเขียนตำรา' },
@@ -15,17 +16,26 @@ const TYPE_TABS = [
 ]
 
 export default function ResearchPublicationsSection() {
-  const [activeType, setActiveType] = useState('CONFERENCE')
+  const [activeType, setActiveType] = useState('PROJECT')
+  const { data: me } = useSWR('/profiles/me', api.get)
+  const meId = me?.id
   const { data: worksRes, error: worksErr } = useSWR('/works?pageSize=100&mine=1', api.get)
   const works = worksRes?.data || worksRes?.items || worksRes || []
+  const { data: projectsRes, error: projectsErr } = useSWR('/projects?pageSize=1000', api.get)
+  const allProjects = projectsRes?.data || projectsRes?.items || projectsRes || []
+  const myProjects = useMemo(() => {
+    if (!meId) return []
+    return (allProjects || []).filter(p => (p.ProjectPartner || []).some(pp => pp.userID === meId))
+  }, [allProjects, meId])
 
   const counts = useMemo(() => {
-    const c = { CONFERENCE: 0, PUBLICATION: 0, FUNDING: 0, BOOK: 0 }
+    const c = { PROJECT: 0, CONFERENCE: 0, PUBLICATION: 0, FUNDING: 0, BOOK: 0 }
+    c.PROJECT = myProjects.length
     for (const w of works) c[w.type] = (c[w.type] || 0) + 1
     return c
-  }, [works])
+  }, [works, myProjects])
 
-  const filtered = works.filter(w => w.type === activeType)
+  const filteredWorks = works.filter(w => w.type === activeType)
 
   function toItem(w) {
     const projectYear = w?.Project?.fiscalYear
@@ -46,6 +56,16 @@ export default function ResearchPublicationsSection() {
       return { title: d.titleTh || d.titleEn || 'Book', description: d.detail || '', year: String(projectYear || (d.occurredAt ? new Date(d.occurredAt).getFullYear() : '')), type: 'หนังสือและตำรา', status: w.status }
     }
     return { title: 'Work', description: '', year: String(projectYear || ''), type: w.type, status: w.status }
+  }
+
+  function projectItem(p) {
+    return {
+      title: p.nameTh || p.nameEn || `Project #${p.id}`,
+      description: p.keywords || p.researchKind || '',
+      year: String(p.fiscalYear || ''),
+      type: 'โครงการวิจัย',
+      status: p.status
+    }
   }
 
   return (
@@ -69,7 +89,7 @@ export default function ResearchPublicationsSection() {
               onClick={() => setActiveType(t.key)}
               className={`px-3 py-2 text-sm -mb-px border-b-2 ${activeType === t.key ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-600'}`}
             >
-              {t.label}
+              {t.label} {counts[t.key] ? `(${counts[t.key]})` : ''}
             </button>
           ))}
         </div>
@@ -78,28 +98,48 @@ export default function ResearchPublicationsSection() {
         {/* <PublicationFilters /> */}
 
         {/* List */}
-        {worksErr ? (
-          <div className="text-sm text-red-600">{worksErr.message}</div>
-        ) : !worksRes ? (
+        {(projectsErr || worksErr) ? (
+          <div className="text-sm text-red-600">{projectsErr?.message || worksErr?.message}</div>
+        ) : (!projectsRes && activeType === 'PROJECT') || (!worksRes && activeType !== 'PROJECT') ? (
           <div className="text-sm text-gray-500">กำลังโหลด...</div>
         ) : (
           <div className="space-y-4">
-            {filtered.length === 0 ? (
-              <div className="text-sm text-gray-500">ยังไม่มีผลงานในหมวดนี้</div>
+            {activeType === 'PROJECT' ? (
+              (myProjects.length === 0 ? (
+                <div className="text-sm text-gray-500">ยังไม่มีโครงการ</div>
+              ) : (
+                myProjects.map(p => {
+                  const item = projectItem(p)
+                  return (
+                    <PublicationItem
+                      key={p.id}
+                      title={item.title}
+                      description={item.description}
+                      year={item.year}
+                      type={item.type}
+                      status={item.status}
+                    />
+                  )
+                })
+              ))
             ) : (
-              filtered.map((w) => {
-                const item = toItem(w)
-                return (
-                  <PublicationItem
-                    key={w.id}
-                    title={item.title}
-                    description={item.description}
-                    year={item.year}
-                    type={item.type}
-                    status={item.status}
-                  />
-                )
-              })
+              (filteredWorks.length === 0 ? (
+                <div className="text-sm text-gray-500">ยังไม่มีผลงานในหมวดนี้</div>
+              ) : (
+                filteredWorks.map((w) => {
+                  const item = toItem(w)
+                  return (
+                    <PublicationItem
+                      key={w.id}
+                      title={item.title}
+                      description={item.description}
+                      year={item.year}
+                      type={item.type}
+                      status={item.status}
+                    />
+                  )
+                })
+              ))
             )}
           </div>
         )}
