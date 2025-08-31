@@ -9,6 +9,7 @@ import FormFieldBlock from '@/components/FormFieldBlock'
 import FormInput from '@/components/FormInput'
 import FormTextarea from '@/components/FormTextarea'
 import { api } from '@/lib/api'
+import ResearchTeamReadonly from '@/components/ResearchTeamReadonly'
 
 function toDash(v) {
   if (v === null || v === undefined) return '-'
@@ -94,10 +95,12 @@ export default function ViewProjectPage() {
                 <FormInput label="SDG" type="text" value={toDash(project.sdg)} readOnly />
               </FormFieldBlock>
             </FormSection>
+            <FormSection title="ผู้ร่วมวิจัย">
+              <ResearchTeamReadonly projectId={project.id} />
+            </FormSection>
           </form>
         </div>
       )}
     </div>
   )
 }
-

@@ -146,6 +146,39 @@ export default function CreateResearchForm() {
         setSubmitting(false)
         return
       }
+      // เตรียมผู้ใช้ปัจจุบันให้เป็นหัวหน้าโครงการอัตโนมัติ
+      let me = null
+      try { me = await api.get('/profiles/me') } catch {}
+
+      const mePartner = me ? {
+        isInternal: true,
+        userId: me.id,
+        fullname: (me.Profile ? `${me.Profile.firstName || ''} ${me.Profile.lastName || ''}`.trim() : me.email) || me.email,
+        orgName: me.Faculty?.name || me.Department?.name || me.Organization?.name || '',
+        partnerType: 'หัวหน้าโครงการ',
+        partnerComment: '',
+      } : null
+
+      // ผู้ร่วมจากแบบฟอร์ม (ถ้าผู้ใช้กรอกเพิ่ม)
+      const hasExtraInternal = formData.isInternal === true && formData.userId
+      const hasExtraExternal = formData.isInternal === false && (formData.partnerFullName || formData.fullname)
+      const extraPartner = (hasExtraInternal || hasExtraExternal) ? {
+        isInternal: formData.isInternal === true,
+        userId: formData.userId ? parseInt(formData.userId) : undefined,
+        fullname: (formData.partnerFullName || formData.fullname) || undefined,
+        orgName: formData.orgName || undefined,
+        partnerType: formData.partnerType || undefined,
+        partnerComment: formData.partnerComment || undefined,
+      } : null
+
+      const partnersArray = []
+      if (mePartner) partnersArray.push(mePartner)
+      if (extraPartner) {
+        const sameUser = mePartner && extraPartner.userId && mePartner.userId === extraPartner.userId
+        const emptyExternal = !extraPartner.userId && !extraPartner.fullname
+        if (!sameUser && !emptyExternal) partnersArray.push(extraPartner)
+      }
+
       // Map to API payload
       const payload = {
         fiscalYear: parseInt(formData.fiscalYear) || undefined,
@@ -165,17 +198,7 @@ export default function CreateResearchForm() {
         icTypes: formData.icTypes || undefined,
         impact: formData.impact || undefined,
         sdg: formData.sdg || undefined,
-        partners: [
-          {
-            isInternal: formData.isInternal === true,
-            userId: formData.userId ? parseInt(formData.userId) : undefined,
-            fullname: (formData.partnerFullName || formData.fullname) || undefined,
-            orgName: formData.orgName || undefined,
-            partnerType: formData.partnerType || undefined,
-            partnerComment: formData.partnerComment || undefined,
-            partnerProportion: formData.partnerProportion ? parseInt(formData.partnerProportion) : undefined,
-          },
-        ],
+        partners: partnersArray,
       }
       const project = await api.post('/projects', payload)
       // attach files if any
