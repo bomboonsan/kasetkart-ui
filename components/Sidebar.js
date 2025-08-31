@@ -98,7 +98,7 @@ const adminMenuItems = [
   },
   {
     id: "form/overview",
-    url: "/form/overview",
+    url: "/dashboard/admin/form/overview",
     icon: <FileUser />,
     label: "โครงการทั้งหมด",
     active: false,
