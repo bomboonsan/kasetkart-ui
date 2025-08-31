@@ -19,8 +19,9 @@ const fetcher = (path) => api.get(path)
 
 export default function DashboardHome() {
   // ดึงข้อมูลจาก API ด้วย SWR
-  const { data: projectsRes, error: projectsErr } = useSWR('/projects?pageSize=1000', fetcher)
+  const { data: projectsRes, error: projectsErr } = useSWR('/projects/count', fetcher)
   const { data: worksRes, error: worksErr } = useSWR('/works?pageSize=1000', fetcher)
+  const { data: worksCountRes, error: worksCountErr } = useSWR('/works/state', fetcher)
   const { data: usersRes, error: usersErr } = useSWR('/users?pageSize=1000', fetcher)
   const { data: jobTypesRes, error: jobTypesErr } = useSWR('/reports/users-job-types', fetcher)
 
@@ -29,9 +30,15 @@ export default function DashboardHome() {
   const error = projectsErr || worksErr || usersErr || jobTypesErr
 
   // แปลงข้อมูลให้อยู่ในรูปแบบอาร์เรย์ที่ใช้งานสะดวก
-  const projects = projectsRes?.data || projectsRes?.items || projectsRes || []
-  const works = worksRes?.data || worksRes?.items || worksRes || []
-  const users = usersRes?.data || usersRes?.items || usersRes || []
+  // projects API ส่งกลับข้อมูลใน projectsRes.data
+  // works API ส่งกลับข้อมูลใน worksRes.data  
+  // users API ส่งกลับข้อมูลใน usersRes.data
+  const projects = projectsRes || []
+  const works = worksRes?.data || []
+  const worksCount = worksCountRes || []
+  const users = usersRes?.data || []
+
+  console.log('worksCount', worksCountRes)
 
   // คำนวณจำนวน Project และผลงานตามประเภทหลัก ๆ (CONFERENCE / PUBLICATION / FUNDING / BOOK)
   const worksByType = works.reduce((acc, w) => {
@@ -40,11 +47,11 @@ export default function DashboardHome() {
     return acc
   }, {})
 
-  const projectCount = projects.length || 0
-  const workConference = worksByType.CONFERENCE || 0
-  const workPublication = worksByType.PUBLICATION || 0
-  const workFunding = worksByType.FUNDING || 0
-  const workBook = worksByType.BOOK || 0
+  const projectCount = projects.count || 0
+  const workConference = worksCount.countConferenceDetail || 0
+  const workPublication = worksCount.countPublicationDetail || 0
+  const workFunding = worksCount.countFundingDetail || 0
+  const workBook = worksCount.countBookDetail || 0
 
   // จัดเตรียมข้อมูลสำหรับการ์ดสถิติด้านบนสุด
   const academicWorkStats = [

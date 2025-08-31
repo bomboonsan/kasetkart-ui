@@ -1,10 +1,11 @@
 
 export default function ProfileStats() {
   const stats = [
-    { label: 'บทความที่ตีพิมพ์', value: '12'},
-    { label: 'ผลงานวิจัย', value: '8'},
-    { label: 'โครงการที่เข้าร่วม', value: '6'},
-    { label: 'รางวัลที่ได้รับ', value: '3'}
+    { label: 'โครงการวิจัย', value: '0'},
+    { label: 'ประชุมวิชาการ', value: '0'},
+    { label: 'ตีพิมพ์ทางวิชาการ', value: '0'},
+    { label: 'ขอทุนเขียนตำรา', value: '0' },
+    { label: 'หนังสือและตำรา', value: '0'}
   ]
 
   return (
