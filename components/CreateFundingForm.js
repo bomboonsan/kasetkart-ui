@@ -14,10 +14,12 @@ import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import { api } from '@/lib/api'
+import SweetAlert2 from 'react-sweetalert2'
 import ProjectPicker from './ProjectPicker'
 import UserPicker from './UserPicker'
 
 export default function CreateFundingForm({ mode = 'create', workId, initialData }) {
+  const [swalProps, setSwalProps] = useState({})
   // Align to FundingDetail fields
   const [formData, setFormData] = useState({
     fullName: "", // FundingDetail.fullName
@@ -34,6 +36,15 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
     bibliography: "", // FundingDetail.bibliography
     projectId: "",
     attachments: [],
+    // team-like (for ResearchTeamTable)
+    isInternal: undefined,
+    fullname: "",
+    orgName: "",
+    partnerType: "",
+    partnerComment: "",
+    partnerFullName: "",
+    userId: undefined,
+    __userObj: undefined,
   });
 
   const [submitting, setSubmitting] = useState(false)
@@ -45,6 +56,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
     setFormData(prev => ({
       ...prev,
       ...initialData,
+      projectId: initialData?.Project?.id ? String(initialData.Project.id) : (prev.projectId || ''),
     }))
   }, [initialData])
 
@@ -72,7 +84,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
       const payload = { type: 'FUNDING', status: 'DRAFT', detail, authors, attachments }
       if (mode === 'edit' && workId) {
         await api.put(`/works/${workId}`, payload)
-        alert('อัปเดตคำขอรับทุนเขียนตำราสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตคำขอรับทุนเขียนตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       } else if (formData.projectId) {
         // create under project context when projectId selected
         const base = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
@@ -87,13 +99,14 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
           const data = await res.json().catch(() => ({}))
           throw new Error(data?.error?.message || 'บันทึกไม่สำเร็จ')
         }
-        alert('บันทึกคำขอรับทุนเขียนตำราสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'บันทึกคำขอรับทุนเขียนตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
         await api.post('/works', payload)
-        alert('บันทึกคำขอรับทุนเขียนตำราสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'บันทึกคำขอรับทุนเขียนตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       }
     } catch (err) {
       setError(err.message || 'บันทึกไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกไม่สำเร็จ', text: err.message || '', timer: 2200 })
     } finally {
       setSubmitting(false)
     }
@@ -105,6 +118,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
@@ -244,6 +258,11 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
               multiple
             />
           </FormFieldBlock>
+        </FormSection>
+
+        {/* Research Team Table */}
+        <FormSection>
+          <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
         </FormSection>
 
         <FormSection title="* ผู้ร่วมวิจัย">

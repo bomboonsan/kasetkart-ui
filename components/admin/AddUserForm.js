@@ -7,8 +7,10 @@ import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
 import { orgAPI, userAPI, uploadAPI, API_BASE, api } from '@/lib/api'
+import SweetAlert2 from 'react-sweetalert2'
 
 export default function AddUserForm() {
+  const [swalProps, setSwalProps] = useState({})
   const [form, setForm] = useState({
     email: '',
     password: '',
@@ -77,10 +79,11 @@ export default function AddUserForm() {
       if (Object.keys(profile).length > 0) {
         await userAPI.upsertUserProfile(user.id, profile)
       }
-      alert('สร้างผู้ใช้สำเร็จ')
+      setSwalProps({ show: true, icon: 'success', title: 'สร้างผู้ใช้สำเร็จ', timer: 1600, showConfirmButton: false })
       setForm({ email: '', password: '', role: 'USER', organizationID: '', facultyId: '', departmentId: '', firstName: '', lastName: '', firstNameEn: '', lastNameEn: '', highDegree: '', jobType: '', phone: '', academicPosition: '', avatarUrl: '' })
     } catch (err) {
       setError(err.message || 'สร้างผู้ใช้ไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'สร้างผู้ใช้ไม่สำเร็จ', text: err.message || '', timer: 2200 })
     }
   }
 
@@ -88,6 +91,7 @@ export default function AddUserForm() {
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       {error && (
         <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
       )}

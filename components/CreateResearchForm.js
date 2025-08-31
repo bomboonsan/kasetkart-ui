@@ -15,9 +15,11 @@ import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import Link from 'next/link'
 import { api } from '@/lib/api'
+import SweetAlert2 from 'react-sweetalert2'
 import { use } from 'react'
 
 export default function CreateResearchForm() {
+  const [swalProps, setSwalProps] = useState({})
   // Align form keys to Project model in schema.prisma
   const [formData, setFormData] = useState({
     fiscalYear: "2568", // Project.fiscalYear (Int)
@@ -122,6 +124,28 @@ export default function CreateResearchForm() {
     setError('')
     setSubmitting(true)
     try {
+      // Basic client-side validation to avoid native form freeze
+      const required = [
+        ['projectType', 'ประเภทโครงการ'],
+        ['projectMode', 'ลักษณะโครงการวิจัย'],
+        ['nameTh', 'ชื่อโครงการ (ไทย)'],
+        ['nameEn', 'ชื่อโครงการ (อังกฤษ)'],
+        ['durationStart', 'วันที่เริ่มต้น'],
+        ['durationEnd', 'วันที่สิ้นสุด'],
+        ['budget', 'งบวิจัย'],
+        ['keywords', 'คำสำคัญ'],
+        ['icTypes', 'IC Types'],
+        ['impact', 'Impact'],
+        ['sdg', 'SDG']
+      ]
+      const missing = required.filter(([k]) => !formData[k] || String(formData[k]).trim() === '')
+      if (missing.length > 0) {
+        const msg = `กรุณากรอก: ${missing.map(([, label]) => label).join(', ')}`
+        setError(msg)
+        setSwalProps({ show: true, icon: 'warning', title: 'ข้อมูลไม่ครบถ้วน', text: msg, timer: 2400 })
+        setSubmitting(false)
+        return
+      }
       // Map to API payload
       const payload = {
         fiscalYear: parseInt(formData.fiscalYear) || undefined,
@@ -159,9 +183,10 @@ export default function CreateResearchForm() {
         const ids = formData.attachments.map(a => a.id)
         await api.patch(`/projects/${project.id}/attachments`, { attachmentIds: ids })
       }
-      alert('สร้างโครงการสำเร็จ')
+      setSwalProps({ show: true, icon: 'success', title: 'สร้างโครงการสำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (err) {
       setError(err.message || 'บันทึกโครงการไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกโครงการไม่สำเร็จ', text: err.message || '', timer: 2200 })
     } finally {
       setSubmitting(false)
     }
@@ -173,7 +198,8 @@ export default function CreateResearchForm() {
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
-      <form onSubmit={handleSubmit} className="p-6 space-y-8">
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
+      <form noValidate onSubmit={handleSubmit} className="p-6 space-y-8">
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
         )}

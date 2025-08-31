@@ -21,9 +21,15 @@ export default function ProjectPicker({ label = 'โครงการวิจ�
         setError('')
         const res = await projectAPI.getProjects({ page: 1, pageSize: 100 })
         const all = res.data || res.items || []
-        // filter projects related to current user by ProjectPartner membership (fallback to all if cannot detect)
-        const mine = current ? all.filter(p => (p.ProjectPartner || []).some(pp => pp.User?.email === current.email)) : all
-        setProjects(mine)
+        // Role-based filter: ADMIN/SUPERADMIN see all; USER see only own projects
+        const role = current?.role
+        if (role === 'ADMIN' || role === 'SUPERADMIN') {
+          setProjects(all)
+        } else {
+          // filter projects related to current user by ProjectPartner membership (fallback to all if cannot detect)
+          const mine = current ? all.filter(p => (p.ProjectPartner || []).some(pp => pp.User?.email === current.email)) : all
+          setProjects(mine)
+        }
       } catch (err) {
         setError(err.message || 'โหลดรายการโครงการไม่สำเร็จ')
       } finally {
@@ -85,4 +91,3 @@ export default function ProjectPicker({ label = 'โครงการวิจ�
     </div>
   )
 }
-

@@ -1,5 +1,6 @@
 import { IBM_Plex_Sans_Thai } from "next/font/google";
 import "./globals.css";
+import AuthGuard from '@/components/AuthGuard'
 
 const ibmPlexSansThai = IBM_Plex_Sans_Thai({
   variable: "--font-ibm-plex-sans-thai",
@@ -18,7 +19,9 @@ export default function RootLayout({ children }) {
       <body
         className={`${ibmPlexSansThai.variable} antialiased font-sans`}
       >
-        {children}
+        <AuthGuard>
+          {children}
+        </AuthGuard>
       </body>
     </html>
   );

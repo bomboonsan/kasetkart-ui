@@ -6,16 +6,20 @@ import FormCheckbox from './FormCheckbox';
 import useSWR from 'swr'
 import { api } from '@/lib/api'
 import { useEffect, useMemo, useState } from 'react'
+import SweetAlert2 from 'react-sweetalert2'
 import {
   ChevronUp,
   ChevronDown
 } from "lucide-react";
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
-  const { data: project } = useSWR(projectId ? `/projects/${projectId}` : null, api.get)
+  const [swalProps, setSwalProps] = useState({})
+  const { data: project, mutate } = useSWR(projectId ? `/projects/${projectId}` : null, api.get)
   const { data: me } = useSWR('/profiles/me', api.get)
   const [localPartners, setLocalPartners] = useState([])
   const [editingIndex, setEditingIndex] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
 
   // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
   function recomputeProportions(list = []) {
@@ -40,6 +44,34 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   useEffect(() => {
     if (project?.ProjectPartner) setLocalPartners(recomputeProportions(project.ProjectPartner))
   }, [project])
+
+  async function syncToServer(partnersList) {
+    if (!projectId) return; // ไม่มี project ให้ซิงค์
+    setSaveError('')
+    setSaving(true)
+    try {
+      // เตรียม payload สำหรับ API (รองรับคีย์ฝั่ง FE ตามที่ backend รองรับ)
+      const payloadPartners = (partnersList || []).map(p => ({
+        isInternal: !!p.isInternal,
+        userID: p.userID,
+        fullname: p.fullname,
+        orgName: p.orgName,
+        partnerType: p.partnerType,
+        partnerComment: p.partnerComment || p.comment,
+        partnerProportion: p.partnerProportion !== undefined ? parseFloat(p.partnerProportion) : undefined,
+      }))
+      // อัปเดตเฉพาะ partners ในโปรเจกต์นี้
+      await api.put(`/projects/${projectId}`, { partners: payloadPartners })
+      // รีเฟรชข้อมูลโปรเจกต์เพื่อให้ข้อมูลตรงกับเซิร์ฟเวอร์
+      await mutate()
+      setSwalProps({ show: true, icon: 'success', title: 'บันทึกทีมสำเร็จ', timer: 1000, showConfirmButton: false })
+    } catch (err) {
+      setSaveError(err.message || 'บันทึกผู้ร่วมโครงการไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกทีมไม่สำเร็จ', text: err.message || '', timer: 2000 })
+    } finally {
+      setSaving(false)
+    }
+  }
 
   function resetForm() {
     setFormData(prev => ({
@@ -76,12 +108,17 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     }
     setLocalPartners(prev => {
       const base = prev || []
+      let next
       if (editingIndex !== null && editingIndex >= 0 && editingIndex < base.length) {
         const updated = base.slice()
         updated[editingIndex] = { ...updated[editingIndex], ...partner }
-        return recomputeProportions(updated)
+        next = recomputeProportions(updated)
+      } else {
+        next = recomputeProportions([...(base || []), partner])
       }
-      return recomputeProportions([...(base || []), partner])
+      // ซิงค์ขึ้นเซิร์ฟเวอร์ (ไม่รวม mePartner ซึ่งไม่ได้อยู่ใน localPartners อยู่แล้ว)
+      syncToServer(next)
+      return next
     })
     const dlg = document.getElementById('my_modal_2');
     if (dlg && dlg.close) dlg.close()
@@ -96,7 +133,9 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       const tmp = arr[idx - 1]
       arr[idx - 1] = arr[idx]
       arr[idx] = tmp
-      return recomputeProportions(arr)
+      const next = recomputeProportions(arr)
+      syncToServer(next)
+      return next
     })
   }
 
@@ -108,12 +147,18 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       const tmp = arr[idx + 1]
       arr[idx + 1] = arr[idx]
       arr[idx] = tmp
-      return recomputeProportions(arr)
+      const next = recomputeProportions(arr)
+      syncToServer(next)
+      return next
     })
   }
 
   function handleRemovePartner(idx) {
-    setLocalPartners(prev => recomputeProportions(prev.filter((_, i) => i !== idx)))
+    setLocalPartners(prev => {
+      const next = recomputeProportions(prev.filter((_, i) => i !== idx))
+      syncToServer(next)
+      return next
+    })
     // รีเซ็ตฟอร์มใน dialog
     setFormData(prev => ({
       ...prev,
@@ -308,7 +353,16 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         />
       </dialog>
 
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <div className="space-y-4">
+        {!projectId && (
+          <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+            เมื่อเลือกโครงการแล้ว ระบบจะบันทึกรายชื่อผู้ร่วมโดยอัตโนมัติ
+          </div>
+        )}
+        {saveError && (
+          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">{saveError}</div>
+        )}
         {/* Header */}
         <div className="flex justify-end gap-4 mb-5">
           <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" onClick={() => {

@@ -16,8 +16,10 @@ import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import { api } from '@/lib/api'
+import SweetAlert2 from 'react-sweetalert2'
 
 export default function CreateBookForm({ mode = 'create', workId, initialData }) {
+  const [swalProps, setSwalProps] = useState({})
   // Align to BookDetail fields
   const [formData, setFormData] = useState({
     kind: "", // BookDetail.kind (หนังสือ/ตำรา)
@@ -27,11 +29,15 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
     level: "", // BookDetail.level (NATIONAL/INTERNATIONAL)
     occurredAt: "", // BookDetail.occurredAt (Date)
 
-    // team-like
+    // team-like (for ResearchTeamTable)
     isInternal: undefined,
     fullname: "",
     orgName: "",
     partnerType: "",
+    partnerComment: "",
+    partnerFullName: "",
+    userId: undefined,
+    __userObj: undefined,
     projectId: "",
     attachments: [],
   });
@@ -46,6 +52,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
       ...prev,
       ...initialData,
       occurredAt: initialData.occurredAt ? String(initialData.occurredAt).slice(0,10) : '',
+      projectId: initialData?.Project?.id ? String(initialData.Project.id) : (prev.projectId || ''),
     }))
   }, [initialData])
 
@@ -64,14 +71,14 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
       }
       if (mode === 'edit' && workId) {
         await api.put(`/works/${workId}`, { type: 'BOOK', status: 'DRAFT', detail, authors: [], attachments: [] })
-        alert('อัปเดตหนังสือ/ตำราสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
       const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
       const authors = formData.userId ? [{ userId: parseInt(formData.userId), isCorresponding: true }] : []
       const payload = { type: 'BOOK', status: 'DRAFT', detail, authors, attachments }
       if (mode === 'edit' && workId) {
         await api.put(`/works/${workId}`, payload)
-        alert('อัปเดตหนังสือ/ตำราสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       } else if (formData.projectId) {
         const base = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
@@ -79,14 +86,15 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
           method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(payload), credentials: 'include'
         })
         if (!res.ok) { const data = await res.json().catch(()=>({})); throw new Error(data?.error?.message || 'บันทึกไม่สำเร็จ') }
-        alert('บันทึกหนังสือ/ตำราสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'บันทึกหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
         await api.post('/works', payload)
-        alert('บันทึกหนังสือ/ตำราสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'บันทึกหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       }
       }
     } catch (err) {
       setError(err.message || 'บันทึกไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกไม่สำเร็จ', text: err.message || '', timer: 2200 })
     } finally {
       setSubmitting(false)
     }
@@ -98,6 +106,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
@@ -267,7 +276,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
 
         {/* Research Team Table */}
         <FormSection>
-          <ResearchTeamTable />
+          <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
         </FormSection>
 
         {/* Form Actions */}

@@ -34,12 +34,12 @@ export default function EditWorkPage() {
     if (!work) return null
     const d = work.detail || {}
     if (work.type === 'CONFERENCE') {
-      return { ...d, durationStart: d.durationStart?.slice(0,10), durationEnd: d.durationEnd?.slice(0,10) }
+      return { ...d, durationStart: d.durationStart?.slice(0,10), durationEnd: d.durationEnd?.slice(0,10), Project: work.Project }
     }
     if (work.type === 'BOOK') {
-      return { ...d, occurredAt: d.occurredAt?.slice(0,10) }
+      return { ...d, occurredAt: d.occurredAt?.slice(0,10), Project: work.Project }
     }
-    return d
+    return { ...d, Project: work.Project }
   }, [work])
 
   if (loading) return <div className="p-6 text-gray-500">กำลังโหลดข้อมูล...</div>
@@ -64,4 +64,3 @@ export default function EditWorkPage() {
     </div>
   )
 }
-

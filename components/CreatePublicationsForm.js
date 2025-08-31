@@ -16,8 +16,10 @@ import FileUploadField from "./FileUploadField";
 import ResearchTeamTable from "./ResearchTeamTable";
 import Button from "./Button";
 import { api } from '@/lib/api'
+import SweetAlert2 from 'react-sweetalert2'
 
 export default function CreateAcademicForm({ mode = 'create', workId, initialData }) {
+  const [swalProps, setSwalProps] = useState({})
   // Align form keys to PublicationDetail model in schema.prisma
   const [formData, setFormData] = useState({
     titleTh: "", // PublicationDetail.titleTh
@@ -49,6 +51,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
     abstractEn: "", // PublicationDetail.abstractEn
 
     attachments: [],
+    // team-like (for ResearchTeamTable)
+    isInternal: undefined,
+    fullname: "",
+    orgName: "",
+    partnerType: "",
+    partnerComment: "",
+    partnerFullName: "",
+    userId: undefined,
+    __userObj: undefined,
   });
 
   const [submitting, setSubmitting] = useState(false)
@@ -60,6 +71,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
     setFormData(prev => ({
       ...prev,
       ...initialData,
+      projectId: initialData?.Project?.id ? String(initialData.Project.id) : (prev.projectId || ''),
     }))
   }, [initialData])
 
@@ -93,14 +105,14 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
       }
       if (mode === 'edit' && workId) {
         await api.put(`/works/${workId}`, { type: 'PUBLICATION', status: 'DRAFT', detail, authors: [], attachments: [] })
-        alert('อัปเดตผลงานตีพิมพ์สำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
       const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
       const authors = formData.userId ? [{ userId: parseInt(formData.userId), isCorresponding: true }] : []
       const payload = { type: 'PUBLICATION', status: 'DRAFT', detail, authors, attachments }
       if (mode === 'edit' && workId) {
         await api.put(`/works/${workId}`, payload)
-        alert('อัปเดตผลงานตีพิมพ์สำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
       } else if (formData.projectId) {
         const base = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
@@ -108,10 +120,10 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
           method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(payload), credentials: 'include'
         })
         if (!res.ok) { const data = await res.json().catch(()=>({})); throw new Error(data?.error?.message || 'บันทึกไม่สำเร็จ') }
-        alert('บันทึกผลงานตีพิมพ์สำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
         await api.post('/works', payload)
-        alert('บันทึกผลงานตีพิมพ์สำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
       }
       }
     } catch (err) {
@@ -130,6 +142,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
@@ -201,7 +214,14 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               label="โครงการวิจัย"
               selectedProject={formData.__projectObj}
               onSelect={(p) => {
-                setFormData(prev => ({ ...prev, projectId: String(p.id), __projectObj: p }))
+                setFormData(prev => ({
+                  ...prev,
+                  projectId: String(p.id),
+                  __projectObj: p,
+                  isEnvironmentallySustainable: p.isEnvironmentallySustainable ?? prev.isEnvironmentallySustainable,
+                  fundName: p.fundName || prev.fundName,
+                  keywords: p.keywords || prev.keywords,
+                }))
               }}
             />
             <FormInput
@@ -525,7 +545,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
 
         {/* Research Team Table */}
         <FormSection>
-          <ResearchTeamTable />
+          <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
         </FormSection>
 
         {/* Form Actions */}

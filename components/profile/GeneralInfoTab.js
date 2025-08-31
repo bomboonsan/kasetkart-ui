@@ -9,8 +9,10 @@ import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
 import { Trash2 } from "lucide-react"
 import { api } from '@/lib/api'
+import SweetAlert2 from 'react-sweetalert2'
 
 export default function GeneralInfoTab() {
+  const [swalProps, setSwalProps] = useState({})
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -71,9 +73,10 @@ export default function GeneralInfoTab() {
         phone: formData.phone || undefined,
         academicRank: formData.academicPosition || undefined,
       })
-      alert('บันทึกโปรไฟล์สำเร็จ')
+      setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (err) {
       setError(err.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกโปรไฟล์ไม่สำเร็จ', text: err.message || '', timer: 2200 })
     }
   }
 
@@ -102,6 +105,7 @@ export default function GeneralInfoTab() {
 
   return (
     <>
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <div className='bg-white rounded-lg shadow-sm'>
 
         <div className="space-y-8 p-6">

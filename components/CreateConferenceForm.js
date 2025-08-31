@@ -16,8 +16,10 @@ import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import { api } from '@/lib/api'
+import SweetAlert2 from 'react-sweetalert2'
 
 export default function CreateAcademicForm({ mode = 'create', workId, initialData }) {
+  const [swalProps, setSwalProps] = useState({})
   // Align to ConferenceDetail fields
   const [formData, setFormData] = useState({
     titleTh: "",
@@ -42,11 +44,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
     state: "",
     city: "",
     fundName: "",
-    // team-like
+    // team-like (for ResearchTeamTable)
     isInternal: undefined,
     fullname: "",
     orgName: "",
     partnerType: "",
+    partnerComment: "",
+    partnerFullName: "",
+    userId: undefined,
+    __userObj: undefined,
     attachments: [],
   });
 
@@ -61,6 +67,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
       ...initialData,
       durationStart: initialData.durationStart ? String(initialData.durationStart).slice(0,10) : '',
       durationEnd: initialData.durationEnd ? String(initialData.durationEnd).slice(0,10) : '',
+      projectId: initialData?.Project?.id ? String(initialData.Project.id) : (prev.projectId || ''),
     }))
   }, [initialData])
 
@@ -97,7 +104,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
       const payload = { type: 'CONFERENCE', status: 'DRAFT', detail, authors, attachments }
       if (mode === 'edit' && workId) {
         await api.put(`/works/${workId}`, payload)
-        alert('อัปเดตผลงานประชุมวิชาการสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตผลงานประชุมวิชาการสำเร็จ', timer: 1600, showConfirmButton: false })
       } else if (formData.projectId) {
         const base = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
         const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
@@ -105,13 +112,14 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
           method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(payload), credentials: 'include'
         })
         if (!res.ok) { const data = await res.json().catch(()=>({})); throw new Error(data?.error?.message || 'บันทึกไม่สำเร็จ') }
-        alert('บันทึกผลงานประชุมวิชาการสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานประชุมวิชาการสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
         await api.post('/works', payload)
-        alert('บันทึกผลงานประชุมวิชาการสำเร็จ')
+        setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานประชุมวิชาการสำเร็จ', timer: 1600, showConfirmButton: false })
       }
     } catch (err) {
       setError(err.message || 'บันทึกไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกไม่สำเร็จ', text: err.message || '', timer: 2200 })
     } finally {
       setSubmitting(false)
     }
@@ -123,6 +131,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
@@ -194,7 +203,19 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               label="โครงการวิจัย"
               selectedProject={formData.__projectObj}
               onSelect={(p) => {
-                setFormData(prev => ({ ...prev, projectId: String(p.id), __projectObj: p }))
+                const ds = p.durationStart ? String(p.durationStart).slice(0,10) : ''
+                const de = p.durationEnd ? String(p.durationEnd).slice(0,10) : ''
+                setFormData(prev => ({
+                  ...prev,
+                  projectId: String(p.id),
+                  __projectObj: p,
+                  // Prefill from Project
+                  isEnvironmentallySustainable: p.isEnvironmentallySustainable ?? prev.isEnvironmentallySustainable,
+                  fundName: p.fundName || prev.fundName,
+                  keywords: p.keywords || prev.keywords,
+                  durationStart: ds || prev.durationStart,
+                  durationEnd: de || prev.durationEnd,
+                }))
               }}
             />
             <FormInput
@@ -489,7 +510,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
 
         {/* Research Team Table */}
         <FormSection>
-          <ResearchTeamTable />
+          <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
         </FormSection>
 
         {/* Form Actions */}

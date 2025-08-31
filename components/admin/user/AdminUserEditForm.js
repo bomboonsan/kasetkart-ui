@@ -7,6 +7,7 @@ import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
 import { orgAPI, userAPI, uploadAPI, API_BASE, api } from '@/lib/api'
+import SweetAlert2 from 'react-sweetalert2'
 
 const JOB_TYPES = [
   { value: '', label: 'เลือกประเภทอาจารย์' },
@@ -18,6 +19,7 @@ const JOB_TYPES = [
 ]
 
 export default function AdminUserEditForm({ userId }) {
+  const [swalProps, setSwalProps] = useState({})
   const [form, setForm] = useState({
     email: '',
     role: 'USER',
@@ -108,9 +110,10 @@ export default function AdminUserEditForm({ userId }) {
         phone: form.phone || undefined,
         avatarUrl: form.avatarUrl || undefined,
       })
-      alert('บันทึกข้อมูลผู้ใช้สำเร็จ')
+      setSwalProps({ show: true, icon: 'success', title: 'บันทึกข้อมูลผู้ใช้สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (e) {
       setError(e.message || 'บันทึกไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกไม่สำเร็จ', text: e.message || '', timer: 2200 })
     }
   }
 
@@ -118,6 +121,7 @@ export default function AdminUserEditForm({ userId }) {
 
   return (
     <form onSubmit={handleSave} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       {error && <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>}
 
       <div className="flex items-start gap-6">
