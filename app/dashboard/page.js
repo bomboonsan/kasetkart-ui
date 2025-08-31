@@ -87,14 +87,6 @@ export default function DashboardHome() {
     percentage: ((jtCounts[jt] || 0) / jtTotal * 100).toFixed(1)
   }))
 
-  // ตัวอย่างข้อมูลตาราง (ยังคง mock ไว้ตามเดิม)
-  const totalProjects = projects.length || 1
-  const scholarshipData = [
-    { type: 'Basic or Discovery Scholarship', percentage: '90.5%', impact: '', sdg: String(Math.floor(totalProjects * 0.7)), color: '#22c55e' },
-    { type: 'Applied or Integrative / Application Scholarship', percentage: '12.6%', impact: '', sdg: String(Math.floor(totalProjects * 0.2)), color: '#6366f1' },
-    { type: 'Teaching and Learning Scholarship', percentage: '0%', impact: '', sdg: String(Math.floor(totalProjects * 0.1)), color: '#ef4444' },
-  ]
-
   // แสดงสถานะ Loading
   if (isLoading) {
     return (
@@ -144,12 +136,12 @@ export default function DashboardHome() {
           />
         </div>
 
-        {/* ตารางตัวอย่าง (ข้อมูลจำลอง) */}
-        <div className='col-span-6 md:col-span-3'>
-          <ScholarshipTable title="ภาพรวมตามสาขาวิชา" subtitle="จำนวนบุคคลากรแบ่งตาม 225" data={scholarshipData} />
-        </div>
-        <div className='col-span-6 md:col-span-3'>
-          <ScholarshipTableAll title="ภาพรวมของคณะ" subtitle="จำนวนบุคคลากรแบ่งตาม 225" data={scholarshipData} />
+        {/* Scholarship Statistics Table */}
+        <div className='col-span-6 md:col-span-6'>
+          <ScholarshipTable 
+            title="สถิติงานวิจัยตาม IC Types, Impact และ SDG" 
+            subtitle="จำนวนโครงการวิจัยแยกตามหมวดหมู่" 
+          />
         </div>
       </div>
     </div>
