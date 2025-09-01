@@ -16,9 +16,9 @@ export default function OverviewPage() {
     <div className="space-y-6">
       <div className='flex justify-between items-center'>
       <PageHeader title="รายการหัวข้อโครงการวิจัย" showAddButton={false} />
-      <Link href="/form/create/project">
+      {/* <Link href="/form/create/project">
         <Button variant="primary">เพิ่มโครงการใหม่</Button>
-      </Link>
+      </Link> */}
 
       </div>
       <div className="mb-10" />
