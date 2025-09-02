@@ -6,6 +6,7 @@ import FormFieldBlock from "./FormFieldBlock";
 import FormField from "./FormField";
 import ProjectPicker from './ProjectPicker'
 import UserPicker from './UserPicker'
+import FormDoubleInput from './FormDoubleInput'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from "./FormCheckbox";
@@ -39,11 +40,401 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
     isJournalDatabase: undefined, // PublicationDetail.isJournalDatabase (Boolean)
 
     // Database flags
-    scopus: undefined,
-    WebOfScience: undefined,
-    ABDC: undefined,
-    AJG: undefined,
-    SocialScienceResearchNetwork: undefined,
+    scopus: false,
+    aci: false,
+    tci1: false,
+    tci2: false,
+    abdc: false,
+    ajg: false,
+    social_science_research_network: false,
+    web_of_science: false,
+
+    standardScopus: "",
+
+
+    // #listsStandard
+
+    listsStandard: [
+      {
+        "label": "Scopus",
+      },
+      {
+        "label": "ACI",
+      },
+      {
+        "label": "TCI1",
+
+      },
+      {
+        "label": "ABDC",
+
+      },
+      {
+        "label": "TCI2",
+
+      },
+      {
+        "label": "AJG",
+
+      },
+      {
+        "label": "Social Science Research Network",
+
+      },
+      {
+        "label": "Web of Science",
+
+      },
+    ],
+
+    listsStandardScopus: [
+      {
+        "label": "Q1",
+
+      },
+      {
+        "label": "Q2",
+
+      },
+      {
+        "label": "Q3",
+
+      },
+      {
+        "label": "Q4",
+
+      },
+      {
+        "label": "Delisted from Scopus",
+
+      }
+    ],
+
+    listsStandardScopusSubset: [
+      {
+        "label": "Accounting",
+
+      },
+      {
+        "label": "Analysis",
+
+      },
+      {
+        "label": "Applied Mathematics",
+
+      },
+      {
+        "label": "Artificial Intelligence",
+
+      },
+      {
+        "label": "Business and International Management",
+
+      },
+      {
+        "label": "Business, Management and Accounting (miscellaneous)",
+
+      },
+      {
+        "label": "Computational Mathematics",
+
+      },
+      {
+        "label": "Computational Theory and Mathematics",
+
+      },
+      {
+        "label": "Computer Graphics and Computer-Aided Design",
+
+      },
+      {
+        "label": "Computer Networks and Communications",
+
+      },
+      {
+        "label": "Computer Science (miscellaneous)",
+
+      },
+      {
+        "label": "Computer Science Application",
+
+      },
+      {
+        "label": "Computer Vision and Pattern Recognition",
+
+      },
+      {
+        "label": "Control and Optimisation",
+
+      },
+      {
+        "label": "Control and Systems Engineering",
+
+      },
+      {
+        "label": "Decision Science (miscellaneous)",
+
+      },
+      {
+        "label": "Discrete Mathematics and Combinatorics",
+
+      },
+      {
+        "label": "Economics and Econometrics",
+
+      },
+      {
+        "label": "Economics, Econometrics and Finance (miscellaneous)",
+
+      },
+      {
+        "label": "Education",
+
+      },
+      {
+        "label": "Finance",
+
+      },
+      {
+        "label": "General Business, Management and Accounting",
+
+      },
+      {
+        "label": "General Computer Sciences",
+
+      },
+      {
+        "label": "General Decision Sciences",
+
+      },
+      {
+        "label": "General Economics, Econometrics and Finance",
+
+      },
+      {
+        "label": "General Engineering",
+
+      },
+      {
+        "label": "General Mathematics",
+
+      },
+      {
+        "label": "General Social Sciences",
+
+      },
+      {
+        "label": "Hardware and Architecture",
+
+      },
+      {
+        "label": "Human-Computer Interaction",
+
+      },
+      {
+        "label": "Industrial and Manufacturing Engineering",
+
+      },
+      {
+        "label": "Industrial Relations",
+
+      },
+      {
+        "label": "Information Systems",
+
+      },
+      {
+        "label": "Information Systems and Management",
+
+      },
+      {
+        "label": "Issues, Ethics and Legal Aspects",
+
+      },
+      {
+        "label": "Leadership and Management",
+
+      },
+      {
+        "label": "Library and Information Sciences",
+
+      },
+      {
+        "label": "Logic",
+
+      },
+      {
+        "label": "Management Information Systems",
+
+      },
+      {
+        "label": "Management of Technology and Innovation",
+
+      },
+      {
+        "label": "Management Science and Operations Research",
+
+      },
+      {
+        "label": "Management, Monitoring, Policy and Law",
+
+      },
+      {
+        "label": "Marketing",
+
+      },
+      {
+        "label": "Mathematics (miscellaneous)",
+
+      },
+      {
+        "label": "Media Technology",
+
+      },
+      {
+        "label": "Modelling and Simulation",
+
+      },
+      {
+        "label": "Multidisciplinary",
+
+      },
+      {
+        "label": "Numerical Analysis",
+
+      },
+      {
+        "label": "Organisational Behaviour and Human Resource Management",
+
+      },
+      {
+        "label": "Public Administration",
+
+      },
+      {
+        "label": "Renewable Energy, Sustainability and the Environment",
+
+      },
+      {
+        "label": "Research and Theory",
+
+      },
+      {
+        "label": "Review and Exam Preparation",
+
+      },
+      {
+        "label": "Safety, Risk, Reliability and Quality",
+
+      },
+      {
+        "label": "Sensory Systems",
+
+      },
+      {
+        "label": "Signal Processing",
+
+      },
+      {
+        "label": "Social Psychology",
+
+      },
+      {
+        "label": "Social Sciences (miscellaneous)",
+
+      },
+      {
+        "label": "Sociology and Political Sciences",
+
+      },
+      {
+        "label": "Software",
+
+      },
+      {
+        "label": "Statistics and Probability",
+
+      },
+      {
+        "label": "Statistics, Probability and Uncertainty",
+
+      },
+      {
+        "label": "Strategy and Management",
+
+      },
+      {
+        "label": "Stratigraphy",
+
+      },
+      {
+        "label": "Theoretical Computer Science",
+
+      },
+      {
+        "label": "Tourism, Leisure and Hospitality Management",
+
+      },
+      {
+        "label": "Transportation",
+
+      },
+      {
+        "label": "Urban Studies",
+
+      }
+    ],
+
+    listsStandardWebOfScience: [
+      {
+        "label": "SCIE",
+      },
+      {
+        "label": "SSCI",
+      },
+      {
+        "label": "AHCI",
+      },
+      {
+        "label": "ESCI",
+      },
+    ],
+
+    listsStandardABDC: [
+      {
+        "label": "A*",
+      },
+      {
+        "label": "A",
+      },
+      {
+        "label": "B",
+      },
+      {
+        "label": "C",
+      },
+      {
+        "label": "Other",
+      },
+    ],
+
+    listsStandardAJG: [
+      {
+        "label": "ระดับ 4*",
+      },
+      {
+        "label": "ระดับ 4",
+      },
+      {
+        "label": "ระดับ 3",
+      },
+      {
+        "label": "ระดับ 2",
+      },
+      {
+        "label": "ระดับอื่น",
+      },
+    ],
 
     fundName: "", // PublicationDetail.fundName
     keywords: "", // PublicationDetail.keywords
@@ -61,6 +452,8 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
     userId: undefined,
     __userObj: undefined,
   });
+
+  console.log('formData.listsStandardScopus', formData.listsStandardScopus)
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -238,6 +631,32 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               onChange={(value) => handleInputChange("issn", value)}
               placeholder=""
             />
+            <div className="space-y-1 flex items-center">
+              <div className="w-1/3">
+                <label className="block text-sm font-medium text-gray-700">
+                </label>
+              </div>
+              <div className="flex-1 flex items-center space-x-3 md:max-w-60">
+                <span className="text-gray-700 inline-block w-[200px]">* ปีที่ (Volume)</span>
+                <input
+                  type="number"
+                  className="text-zinc-700
+                            px-3 py-2 border border-gray-300 rounded-md
+                            placeholder-gray-400 focus:outline-none focus:ring-2 
+                            focus:ring-blue-500 focus:border-blue-500
+                            transition-colors duration-200"
+                />
+                <span className="text-gray-700 inline-block w-[200px]">* ฉบับที่ (Issue)</span>
+                <input
+                  type="number"
+                  className="text-zinc-700
+                            px-3 py-2 border border-gray-300 rounded-md
+                            placeholder-gray-400 focus:outline-none focus:ring-2 
+                            focus:ring-blue-500 focus:border-blue-500
+                            transition-colors duration-200"
+                />
+              </div>
+            </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <p className="text-zinc-700">
@@ -262,6 +681,16 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               </div>
             </div>
             {/* No cost field in PublicationDetail; omitted for schema alignment */}
+            <FormDoubleInput
+              label="จากหน้า"
+              after="ถึง"
+              type="number"
+              value={formData.articleTitleTh}
+              value2={formData.articleTitleEn}
+              onChange={(value, field) => handleInputChange(field, value)}
+              placeholder=""
+              required
+            />
             <FormRadio
               inline={true}
               required
@@ -278,7 +707,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               ]}
               value={formData.presentationWork}
               onChange={(v) => handleInputChange('presentationWork', v)}
-            />
+            />            
             <FormRadio
               inline={true}
               required
@@ -336,7 +765,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             />
           </FormFieldBlock>
 
-          <FormFieldBlock>
+          {/* <FormFieldBlock>
             <FormTextarea
               label="กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)"
               required
@@ -344,7 +773,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               onChange={(value) => handleInputChange("fundName", value)}
               placeholder=""
             />
-          </FormFieldBlock>
+          </FormFieldBlock> */}
 
           <FormFieldBlock>
             <FileUploadField
@@ -374,7 +803,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               onChange={(value) => handleInputChange("level", value)}
             />
             <FormRadio
-              disabled={formData.level === "NATIONAL"}
+              // disabled={formData.level === "NATIONAL"}
               inline={true}
               label=""
               options={[
@@ -390,46 +819,175 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               value={String(formData.isJournalDatabase)}
               onChange={(value) => handleInputChange("isJournalDatabase", value === "true")}
             />
-            {formData.isJournalDatabase === true && (
-              <div>
-                {/* Flags for journal database presence */}
-                <FormRadio
-                  inline={true}
-                  label="Scopus"
-                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
-                  value={String(formData.scopus)}
-                  onChange={(value) => handleInputChange("scopus", value === "true")}
-                />
-                <FormRadio
-                  inline={true}
-                  label="Web of Science"
-                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
-                  value={String(formData.WebOfScience)}
-                  onChange={(value) => handleInputChange("WebOfScience", value === "true")}
-                />
-                <FormRadio
-                  inline={true}
-                  label="ABDC"
-                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
-                  value={String(formData.ABDC)}
-                  onChange={(value) => handleInputChange("ABDC", value === "true")}
-                />
-                <FormRadio
-                  inline={true}
-                  label="AJG"
-                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
-                  value={String(formData.AJG)}
-                  onChange={(value) => handleInputChange("AJG", value === "true")}
-                />
-                <FormRadio
-                  inline={true}
-                  label="Social Science Research Network"
-                  options={[{ label: "ใช่", value: "true" }, { label: "ไม่ใช่", value: "false" }]}
-                  value={String(formData.SocialScienceResearchNetwork)}
-                  onChange={(value) => handleInputChange("SocialScienceResearchNetwork", value === "true")}
-                />
-              </div>
-            )}
+            <div>
+              {/* Flags for journal database presence */}
+              <section className="space-y-1 flex items-center flex-wrap">
+                <div className="w-full md:w-1/3">
+                  
+                </div>
+                <div className="flex-1">
+                  <div className="flex gap-3 items-center">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* #listsStandard */}
+                      {
+                        formData.listsStandard.map((item, idx) => (
+                          <div key={idx}>
+
+                            <label className="flex items-center gap-3 text-zinc-700">
+                              <input
+                                type="checkbox"
+                                className={`
+                                  text-zinc-700
+                                  px-3 py-2 border border-gray-300 rounded-md
+                                  placeholder-gray-400 focus:outline-none focus:ring-2
+                                  focus:ring-blue-500 focus:border-blue-500
+                                  transition-colors duration-200
+                              `}
+                                checked={item.value}
+                                onChange={(e) =>
+                                  setFormData(prev => ({
+                                    ...prev,
+                                    // สร้างอาเรย์ใหม่ + อ็อบเจ็กต์ใหม่ เฉพาะตัวที่เปลี่ยน
+                                    listsStandard: prev.listsStandard.map((it, i) =>
+                                      i === idx ? { ...it, value: e.target.checked } : it
+                                    ),
+                                  }))
+                                } />
+                              {item.label}
+                            </label>
+                            {
+                            // SCOPUS = true
+                            formData.listsStandard[idx].label === 'Scopus' && item.value &&
+                            <div>
+                              <select
+                                    onChange={
+                                      (e) => {
+                                        const selectedValue = e.target.value;
+                                        setFormData(prev => ({
+                                          ...prev,
+                                          standardScopus: selectedValue
+                                        }));
+                                      }
+                                    }
+                                className="text-zinc-700
+                                block w-full px-3 py-2 border border-gray-300 rounded-md
+                                bg-white focus:outline-none focus:ring-2 
+                                focus:ring-blue-500 focus:border-blue-500
+                                transition-colors duration-200">
+                                <option value={''}>-- กรุณาเลือก --</option>
+                                {formData.listsStandardScopus.map((item, idx) => (
+                                  
+                                  <option key={idx} value={item.label}>{item.label}</option>
+                                ))}
+                              </select>
+                            </div>
+                            }
+                            { 
+                              // SUBSET SCOPUS
+                              (formData.listsStandard[idx].label === 'Scopus' && item.value && (formData.standardScopus == "Q1" || formData.standardScopus == "Q2" || formData.standardScopus == "Q3" || formData.standardScopus == "Q4")) &&
+                              <div>
+                                <select className="text-zinc-700
+                                  block w-full px-3 py-2 border border-gray-300 rounded-md
+                                  bg-white focus:outline-none focus:ring-2 
+                                  focus:ring-blue-500 focus:border-blue-500
+                                  transition-colors duration-200">
+                                  <option value={''}>-- กรุณาเลือก --</option>
+                                    {formData.listsStandardScopusSubset.map((item, idx) => (
+                                    <option key={idx} value={item.label}>{item.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            }
+                            {
+                              // Web of Science = true
+                              formData.listsStandard[idx].label === 'Web of Science' && item.value &&
+                              <div>
+                                <select
+                                  onChange={
+                                    (e) => {
+                                      const selectedValue = e.target.value;
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        standardWebOfScience: selectedValue
+                                      }));
+                                    }
+                                  }
+                                  className="text-zinc-700
+                                block w-full px-3 py-2 border border-gray-300 rounded-md
+                                bg-white focus:outline-none focus:ring-2 
+                                focus:ring-blue-500 focus:border-blue-500
+                                transition-colors duration-200">
+                                  <option value={''}>-- กรุณาเลือก --</option>
+                                    {formData.listsStandardWebOfScience.map((item, idx) => (
+
+                                    <option key={idx} value={item.label}>{item.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            }
+                            {
+                              // ABDC = true
+                              formData.listsStandard[idx].label === 'ABDC' && item.value &&
+                              <div>
+                                <select
+                                  onChange={
+                                    (e) => {
+                                      const selectedValue = e.target.value;
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        standardABDC: selectedValue
+                                      }));
+                                    }
+                                  }
+                                  className="text-zinc-700
+                                block w-full px-3 py-2 border border-gray-300 rounded-md
+                                bg-white focus:outline-none focus:ring-2 
+                                focus:ring-blue-500 focus:border-blue-500
+                                transition-colors duration-200">
+                                  <option value={''}>-- กรุณาเลือก --</option>
+                                  {formData.listsStandardABDC.map((item, idx) => (
+
+                                    <option key={idx} value={item.label}>{item.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            }
+                            {
+                              // Social Science Research Network = true
+                              formData.listsStandard[idx].label === 'AJG' && item.value &&
+                              <div>
+                                <select
+                                  onChange={
+                                    (e) => {
+                                      const selectedValue = e.target.value;
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        standardAJG: selectedValue
+                                      }));
+                                    }
+                                  }
+                                  className="text-zinc-700
+                                block w-full px-3 py-2 border border-gray-300 rounded-md
+                                bg-white focus:outline-none focus:ring-2 
+                                focus:ring-blue-500 focus:border-blue-500
+                                transition-colors duration-200">
+                                  <option value={''}>-- กรุณาเลือก --</option>
+                                    {formData.listsStandardAJG.map((item, idx) => (
+
+                                    <option key={idx} value={item.label}>{item.label}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            }
+                          </div>
+                        )
+                        )
+                      }
+                    </div>                    
+                  </div>
+                </div>
+              </section>
+            </div>
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
@@ -466,6 +1024,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             />
           </FormFieldBlock>
         </FormSection>
+
+        <FormSection>
+                  <FileUploadField
+                    label="* ส่งไฟล์บทความทางวิชาการ (ขอให้ Scan หน้าปกวารสาร สารบัญ พร้อมบทความ เพื่อการตรวจสอบหลักฐาน)"
+                    onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
+                    accept=".pdf,.doc,.docx"
+                    multiple
+                  />
+                </FormSection>
 
         <FormSection title="* ผู้ร่วมวิจัย">
           <FormFieldBlock>
