@@ -235,6 +235,72 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
             </div>
           </FormFieldBlock>
           <FormFieldBlock>
+            <div className="space-y-1 flex items-center">
+              <div className="w-1/3">
+                <label className="block text-sm font-medium text-gray-700">
+                  ลักษณะของผลงานวิชาการที่จะขอรับทุน
+                </label>
+              </div>
+              <div className="flex-1 space-y-3">
+
+                <div className='flex gap-4 items-center'>
+                  <input
+                    type="radio"
+                    placeholder="0"
+                    required
+                    className={`
+                  w-auto inline-block
+          text-zinc-700
+            px-3 py-2 border border-gray-300 rounded-md
+            placeholder-gray-400 focus:outline-none focus:ring-2 
+            focus:ring-blue-500 focus:border-blue-500
+            transition-colors duration-200
+          `}
+                  />
+                  <span className='text-gray-700 inline-block w-96'>ตำรา ใช้สอนในรายวิชา</span>
+                  <input
+                    type="text"
+                    required
+                    className={`
+                  w-full inline-block
+          text-zinc-700
+            px-3 py-2 border border-gray-300 rounded-md
+            placeholder-gray-400 focus:outline-none focus:ring-2 
+            focus:ring-blue-500 focus:border-blue-500
+            transition-colors duration-200
+          `}
+                  />
+                </div>
+                <div className='flex gap-4 items-center'>
+                  <input
+                    type="radio"
+                    placeholder="0"
+                    required
+                    className={`
+                  w-auto inline-block
+          text-zinc-700
+            px-3 py-2 border border-gray-300 rounded-md
+            placeholder-gray-400 focus:outline-none focus:ring-2 
+            focus:ring-blue-500 focus:border-blue-500
+            transition-colors duration-200
+          `}
+                  />
+                  <span className='text-gray-700 inline-block w-96'>หนังสือ(ชื่อไทย และชื่อภาษาอังกฤษ)</span>
+                  <input
+                    type="text"
+                    required
+                    className={`
+                  w-full inline-block
+          text-zinc-700
+            px-3 py-2 border border-gray-300 rounded-md
+            placeholder-gray-400 focus:outline-none focus:ring-2 
+            focus:ring-blue-500 focus:border-blue-500
+            transition-colors duration-200
+          `}
+                  />
+                </div>
+              </div>
+            </div>
             <FormTextarea
               label="คำอธิบายเนื้อหาของตำราหรือหนังสือ"
               value={formData.contentDesc}
@@ -299,7 +365,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
               value={formData.approxTimeline}
               onChange={(value) => handleInputChange("approxTimeline", value)}
               placeholder=""
-              after="(ระบุเป้นช่วงเวลาได้)"
+              after="(ระบุเป็นช่วงเวลาได้)"
             />
           </FormFieldBlock>
           <FormFieldBlock>
@@ -325,23 +391,11 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
           </FormFieldBlock>
         </FormSection>
 
-        {/* Research Team Table */}
-        <FormSection>
-          <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-        </FormSection>
-
-        <FormSection title="* ผู้ร่วมวิจัย">
-          <FormFieldBlock>
-            <UserPicker
-              label="ชื่อผู้ร่วมงาน"
-              selectedUser={formData.__userObj}
-              onSelect={(u) => {
-                const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
-                setFormData(prev => ({ ...prev, fullName: display, userId: u.id, __userObj: u }))
-              }}
-            />
-          </FormFieldBlock>
-        </FormSection>
+        <div className='p-4 rounded-md border shadow border-gray-200/70'>
+                  <FormSection title="* ผู้ร่วมวิจัย">
+                    <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
+                  </FormSection>
+                </div>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">

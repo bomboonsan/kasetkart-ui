@@ -67,7 +67,7 @@ const menuItems = [
         id: "funding",
         url: "/form/create/funding",
         icon: <File />,
-        label: "ขอรับทุนเขียนตำรา",
+        label: "ทุนตำราหรือหนังสือ",
         active: false,
       },
       {

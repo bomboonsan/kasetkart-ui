@@ -5,7 +5,7 @@ export default function CreatePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="แบบฟอร์มเสนอรายละเอียดเพื่อขอรับทุนพัฒนาอาจารย์ข้อที่ 3.1 ทุนเขียนตำราหรือหนังสือ"
+        title="ทุนตำราหรือหนังสือ"
         showAddButton={false}
       />
       <CreateFundingForm />
