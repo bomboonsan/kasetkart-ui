@@ -123,8 +123,9 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
         )}
-        <FormSection title=" รายละเอียดของผู้แต่งร่วม (ถ้ามี)">
+        <FormSection >
           <FormFieldBlock>
+
             <ProjectPicker
               label="โครงการวิจัย"
               selectedProject={formData.__projectObj}
@@ -138,12 +139,76 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
               onChange={(value) => handleInputChange("fullName", value)}
               placeholder=""
             />
+            {/* <FormInput
+                mini={false}
+                label="ตำแหน่ง"
+                type="text"
+                value={formData.position}
+                onChange={(value) => handleInputChange("position", value)}
+                placeholder=""
+              /> */}
             <FormInput
+              mini={false}
+              label="ภาควิชา"
+              type="text"
+              placeholder=""
+            />
+            <FormInput
+              mini={false}
+              label="โทรศัพท์"
+              type="text"
+              placeholder=""
+            />
+            <FormInput
+              mini={false}
+              label="อีเมล"
+              type="text"
+              placeholder=""
+            />
+            <FormInput
+              mini={false}
+              label="สังกัดคณะ/สถาบัน"
+              type="text"
+              value={formData.faculty}
+              onChange={(value) => handleInputChange("faculty", value)}
+              placeholder=""
+            />
+          </FormFieldBlock>
+        </FormSection>
+        <FormSection title=" รายละเอียดของผู้แต่งร่วม (ถ้ามี)">
+          <FormFieldBlock>
+            <FormInput
+              mini={false}
+              label="ชื่อ-นามสกุล"
+              type="text"
+              value={formData.fullName}
+              onChange={(value) => handleInputChange("fullName", value)}
+              placeholder=""
+            />
+            {/* <FormInput
               mini={false}
               label="ตำแหน่ง"
               type="text"
               value={formData.position}
               onChange={(value) => handleInputChange("position", value)}
+              placeholder=""
+            /> */}
+            <FormInput
+              mini={false}
+              label="ภาควิชา"
+              type="text"
+              placeholder=""
+            />
+            <FormInput
+              mini={false}
+              label="โทรศัพท์"
+              type="text"
+              placeholder=""
+            />
+            <FormInput
+              mini={false}
+              label="อีเมล"
+              type="text"
               placeholder=""
             />
             <FormInput

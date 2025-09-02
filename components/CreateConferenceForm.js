@@ -235,8 +235,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <p className="text-zinc-700">
-                  ระยะเวลาการทำวิจัย{" "}
-                  <span className="text-blue-700">(ปี พ.ศ. 4 หลัก)</span>
+                  วัน/เดือน/ปี ที่นำเสนอ
                   <span className="text-red-500 ml-1">*</span>
                 </p>
               </div>
@@ -255,15 +254,53 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                 />
               </div>
             </div>
-            <FormInput
-              mini={true}
-              required
-              label="ค่าใช้จ่าย"
-              type="number"
-              value={formData.cost}
-              onChange={(value) => handleInputChange("cost", value)}
-              placeholder="0"
-            />
+            <div className="space-y-1 flex items-center">
+              <div className="w-1/3">
+                <label className="block text-sm font-medium text-gray-700">
+                  ค่าใช้จ่าย <span className="text-red-500 ml-1">*</span>
+                </label>
+              </div>
+              <div className="flex-1 space-x-3">
+                
+                <div className='flex gap-4 items-center'>
+                  <input
+                    type="number"
+                    value={formData.cost}
+                    onChange={(e) => handleInputChange("cost", e.target.value)}
+                    placeholder="0"
+                    required
+                    className={`
+                  w-auto inline-block
+          text-zinc-700
+            px-3 py-2 border border-gray-300 rounded-md
+            placeholder-gray-400 focus:outline-none focus:ring-2 
+            focus:ring-blue-500 focus:border-blue-500
+            transition-colors duration-200
+          `}
+                  />
+                  <span className='text-gray-700'>จาก</span>
+                  <select
+                    className="text-zinc-700
+                                block w-auto px-3 py-2 border border-gray-300 rounded-md
+                                bg-white focus:outline-none focus:ring-2 
+                                focus:ring-blue-500 focus:border-blue-500
+                                transition-colors duration-200">
+                    <option value={''}>-- กรุณาเลือก --</option>
+                    <option value="1">เงินทุนส่วนตัว</option>
+                    <option value="10">เงินอุดหนุนรัฐบาลและเงินอุดหนุนอื่นที่รัฐบาลจัดสรรให้</option>
+                    <option value="11">เงินงบประมาณมหาวิทยาลัย</option>
+                    <option value="12">เงินรายได้ส่วนกลาง มก.</option>
+                    <option value="13">ทุนอุดหนุนวิจัย มก.</option>
+                    <option value="14">เงินรายได้มหาวิทยาลัย</option>
+                    <option value="15">เงินรายได้ส่วนงาน</option>
+                    <option value="16">องค์กรรัฐ</option>
+                    <option value="17">องค์กรอิสระและเอกชน</option>
+                    <option value="18">แหล่งทุนต่างประเทศ</option>
+                    <option value="20">รัฐวิสาหกิจ</option>
+                  </select>
+                </div>
+              </div>
+            </div>
             <FormRadio
               inline={true}
               required
@@ -350,7 +387,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
 
           <FormFieldBlock>
             <FileUploadField
-              label="อัปโหลดไฟล์"
+              label="* ส่งไฟล์หลักฐาน (ขอให้ Scan หน้าปก สารบัญ และไฟล์เรื่องเต็ม ของการประชุม เพื่อการตรวจสอบหลักฐาน)"
               onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
               accept=".pdf,.doc,.docx"
               multiple
@@ -435,83 +472,11 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
           </FormFieldBlock>
         </FormSection>
 
-        <FormSection title="* ผู้ร่วมวิจัย">
-          <FormFieldBlock>
-            <div className="flex items-center gap-10">
-              <label className="flex items-center gap-3 text-zinc-700">
-                <input
-                  type="radio"
-                  value="true"
-                  checked={formData.isInternal === true}
-                  onChange={() => handleInputChange("isInternal", true)}
-                  className={`
-                      text-zinc-700
-                      px-3 py-2 border border-gray-300 rounded-md
-                      placeholder-gray-400 focus:outline-none focus:ring-2
-                      focus:ring-blue-500 focus:border-blue-500
-                      transition-colors duration-200
-                  `}
-                />
-                ภายใน มก.
-              </label>
-              <label className="flex items-center gap-3 text-zinc-700">
-                <input
-                  type="radio"
-                  value="false"
-                  checked={formData.isInternal === false}
-                  onChange={() => handleInputChange("isInternal", false)}
-                  className={`
-                      text-zinc-700
-                      px-3 py-2 border border-gray-300 rounded-md
-                      placeholder-gray-400 focus:outline-none focus:ring-2
-                      focus:ring-blue-500 focus:border-blue-500
-                      transition-colors duration-200
-                  `}
-                />
-                ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)
-              </label>
-            </div>
-            <div>
-              <UserPicker
-                label="ชื่อผู้ร่วมงาน"
-                selectedUser={formData.__userObj}
-                onSelect={(u) => {
-                  const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
-                  setFormData(prev => ({ ...prev, fullname: display, userId: u.id, __userObj: u }))
-                }}
-              />
-            </div>
-            <div>
-              <FormInput
-                mini={false}
-                label="ชื่อหน่วยงาน"
-                type="text"
-                value={formData.orgName}
-                onChange={(value) => handleInputChange("orgName", value)}
-                placeholder=""
-              />
-            </div>
-            <div>
-              <FormCheckbox
-                inline={true}
-                label="ผู้รับผิดชอบบทความ"
-                options={[
-                  {
-                    label: "",
-                    value: "ผู้รับผิดชอบบทความ",
-                  },
-                ]}
-                value={formData.partnerType}
-                onChange={(value) => handleInputChange("partnerType", value)}
-              />
-            </div>
-          </FormFieldBlock>
-        </FormSection>
-
-        {/* Research Team Table */}
-        <FormSection>
-          <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-        </FormSection>
+        <div className='p-4 rounded-md border shadow border-gray-200/70'>
+                  <FormSection title="* ผู้ร่วมวิจัย">
+                    <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
+                  </FormSection>
+                </div>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">

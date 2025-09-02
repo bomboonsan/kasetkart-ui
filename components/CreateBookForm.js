@@ -201,83 +201,11 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
           </FormFieldBlock>
         </FormSection>
 
-        <FormSection title="* ผู้ร่วมวิจัย">
-          <FormFieldBlock>
-            <div className="flex items-center gap-10">
-              <label className="flex items-center gap-3 text-zinc-700">
-                <input
-                  type="radio"
-                  value="true"
-                  checked={formData.isInternal === true}
-                  onChange={() => handleInputChange("isInternal", true)}
-                  className={`
-                      text-zinc-700
-                      px-3 py-2 border border-gray-300 rounded-md
-                      placeholder-gray-400 focus:outline-none focus:ring-2
-                      focus:ring-blue-500 focus:border-blue-500
-                      transition-colors duration-200
-                  `}
-                />
-                ภายใน มก.
-              </label>
-              <label className="flex items-center gap-3 text-zinc-700">
-                <input
-                  type="radio"
-                  value="false"
-                  checked={formData.isInternal === false}
-                  onChange={() => handleInputChange("isInternal", false)}
-                  className={`
-                      text-zinc-700
-                      px-3 py-2 border border-gray-300 rounded-md
-                      placeholder-gray-400 focus:outline-none focus:ring-2
-                      focus:ring-blue-500 focus:border-blue-500
-                      transition-colors duration-200
-                  `}
-                />
-                ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)
-              </label>
-            </div>
-            <div>
-              <UserPicker
-                label="ชื่อผู้ร่วมงาน"
-                selectedUser={formData.__userObj}
-                onSelect={(u) => {
-                  const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
-                  setFormData(prev => ({ ...prev, fullname: display, userId: u.id, __userObj: u }))
-                }}
-              />
-            </div>
-            <div>
-              <FormInput
-                mini={false}
-                label="ชื่อหน่วยงาน"
-                type="text"
-                value={formData.orgName}
-                onChange={(value) => handleInputChange("orgName", value)}
-                placeholder=""
-              />
-            </div>
-            <div>
-              <FormCheckbox
-                inline={true}
-                label="ผู้รับผิดชอบบทความ"
-                options={[
-                  {
-                    label: "",
-                    value: "ผู้รับผิดชอบบทความ",
-                  },
-                ]}
-                value={formData.partnerType}
-                onChange={(value) => handleInputChange("partnerType", value)}
-              />
-            </div>
-          </FormFieldBlock>
-        </FormSection>
-
-        {/* Research Team Table */}
-        <FormSection>
-          <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-        </FormSection>
+        <div className='p-4 rounded-md border shadow border-gray-200/70'>
+                          <FormSection title="* ผู้แต่งร่วม">
+                            <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
+                          </FormSection>
+                        </div>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">
