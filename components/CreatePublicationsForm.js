@@ -605,6 +605,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             />
             <ProjectPicker
               label="โครงการวิจัย"
+              required
               selectedProject={formData.__projectObj}
               onSelect={(p) => {
                 setFormData(prev => ({
@@ -619,6 +620,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             />
             <FormInput
               label="DOI (ถ้าไม่มีให้ใส่ “-”)"
+              required
               type="text"
               value={formData.doi}
               onChange={(value) => handleInputChange("doi", value)}
@@ -626,6 +628,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             />
             <FormInput
               label="ISSN (ถ้ามี)"
+              required
               type="text"
               value={formData.issn}
               onChange={(value) => handleInputChange("issn", value)}
@@ -637,37 +640,42 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                 </label>
               </div>
               <div className="flex-1 flex items-center space-x-3 md:max-w-60">
-                <span className="text-gray-700 inline-block w-[200px]">* ปีที่ (Volume)</span>
+                <div className="flex gap-3 items-center">
+                  <span className="text-gray-700 inline-block w-[120px]">ปีที่ (Volume) <span className="text-red-500 ml-1">*</span></span>
+                  <input
+                    type="number"
+                    className="text-zinc-700
+                            px-3 py-2 border border-gray-300 rounded-md
+                            placeholder-gray-400 focus:outline-none focus:ring-2 
+                            focus:ring-blue-500 focus:border-blue-500
+                            transition-colors duration-200
+                            w-[100px]"
+                  />
+                </div>
+                <div className="flex gap-3 items-center">
+                  <span className="text-gray-700 inline-block w-[120px]">ฉบับที่ (Issue) <span className="text-red-500 ml-1">*</span></span>
                 <input
                   type="number"
                   className="text-zinc-700
                             px-3 py-2 border border-gray-300 rounded-md
                             placeholder-gray-400 focus:outline-none focus:ring-2 
                             focus:ring-blue-500 focus:border-blue-500
-                            transition-colors duration-200"
+                            transition-colors duration-200
+                            w-[100px]"
                 />
-                <span className="text-gray-700 inline-block w-[200px]">* ฉบับที่ (Issue)</span>
-                <input
-                  type="number"
-                  className="text-zinc-700
-                            px-3 py-2 border border-gray-300 rounded-md
-                            placeholder-gray-400 focus:outline-none focus:ring-2 
-                            focus:ring-blue-500 focus:border-blue-500
-                            transition-colors duration-200"
-                />
+                </div>
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div>
                 <p className="text-zinc-700">
-                  ระยะเวลาการทำวิจัย{" "}
-                  <span className="text-blue-700">(ปี พ.ศ. 4 หลัก)</span>
-                  <span className="text-red-500 ml-1">*</span>
+                  วัน/เดือน/ปี ที่ตีพิมพ์ <span className="text-red-500 ml-1">*</span>
                 </p>
               </div>
               <div>
                 <FormDateSelect
                   title="เริ่มต้น"
+                  noDay={true}
                   value={formData.durationYearStart}
                   onChange={(value) => handleInputChange("durationYearStart", value)}
                 />
@@ -675,6 +683,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               <div>
                 <FormDateSelect
                   title="สิ้นสุด"
+                  noDay={true}
                   value={formData.durationYearEnd}
                   onChange={(value) => handleInputChange("durationYearEnd", value)}
                 />
@@ -691,7 +700,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               placeholder=""
               required
             />
-            <FormRadio
+            {/* <FormRadio
               inline={true}
               required
               label="การนำเสนอผลงาน"
@@ -745,24 +754,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               ]}
               value={formData.articleType}
               onChange={(v) => handleInputChange('articleType', v)}
-            />
-          </FormFieldBlock>
-
-          <FormFieldBlock>
-            <FormTextarea
-              label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
-              required
-              value={formData.abstractTh}
-              onChange={(value) => handleInputChange("abstractTh", value)}
-              placeholder=""
-            />
-            <FormTextarea
-              label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
-              required
-              value={formData.abstractEn}
-              onChange={(value) => handleInputChange("abstractEn", value)}
-              placeholder=""
-            />
+            /> */}
           </FormFieldBlock>
 
           {/* <FormFieldBlock>
@@ -775,20 +767,12 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             />
           </FormFieldBlock> */}
 
-          <FormFieldBlock>
-            <FileUploadField
-              label="อัปโหลดไฟล์"
-              onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
-              accept=".pdf,.doc,.docx"
-              multiple
-            />
-          </FormFieldBlock>
 
           <FormFieldBlock>
             <FormRadio
               inline={true}
               required
-              label="ระดับการนำเสนอ"
+              label="ระดับการตีพิมพ์"
               options={[
                 {
                   label: "ระดับชาติ",
@@ -1032,88 +1016,13 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                     accept=".pdf,.doc,.docx"
                     multiple
                   />
-                </FormSection>
-
-        <FormSection title="* ผู้ร่วมวิจัย">
-          <FormFieldBlock>
-            <div className="flex items-center gap-10">
-              <label className="flex items-center gap-3 text-zinc-700">
-                <input
-                  type="radio"
-                  value="ภายใน มก."
-                  checked={formData.type3 === "ภายใน มก."}
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
-                  className={`
-                      text-zinc-700
-                      px-3 py-2 border border-gray-300 rounded-md
-                      placeholder-gray-400 focus:outline-none focus:ring-2
-                      focus:ring-blue-500 focus:border-blue-500
-                      transition-colors duration-200
-                  `}
-                />
-                ภายใน มก.
-              </label>
-              <label className="flex items-center gap-3 text-zinc-700">
-                <input
-                  type="radio"
-                  value="ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)"
-                  checked={
-                    formData.type3 ===
-                    "ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)"
-                  }
-                  onChange={(e) => handleInputChange("type3", e.target.value)}
-                  className={`
-                      text-zinc-700
-                      px-3 py-2 border border-gray-300 rounded-md
-                      placeholder-gray-400 focus:outline-none focus:ring-2
-                      focus:ring-blue-500 focus:border-blue-500
-                      transition-colors duration-200
-                  `}
-                />
-                ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)
-              </label>
-            </div>
-            <div>
-              <UserPicker
-                label="ชื่อผู้ร่วมงาน"
-                selectedUser={formData.__userObj}
-                onSelect={(u) => {
-                  const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
-                  setFormData(prev => ({ ...prev, subProjectName: display, userId: u.id, __userObj: u }))
-                }}
-              />
-            </div>
-            <div>
-              <FormInput
-                mini={false}
-                label="ชื่อหน่วยงาน"
-                type="text"
-                value={formData.subProjectName}
-                onChange={(value) => handleInputChange("subProjectName", value)}
-                placeholder=""
-              />
-            </div>
-            <div>
-              <FormCheckbox
-                inline={true}
-                label="ผู้รับผิดชอบบทความ"
-                options={[
-                  {
-                    label: "",
-                    value: "ผู้รับผิดชอบบทความ",
-                  },
-                ]}
-                value={formData.type}
-                onChange={(value) => handleInputChange("type", value)}
-              />
-            </div>
-          </FormFieldBlock>
         </FormSection>
-
-        {/* Research Team Table */}
-        <FormSection>
-          <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-        </FormSection>
+        
+        <div className='p-4 rounded-md border shadow border-gray-200/70'>
+          <FormSection title="* ผู้ร่วมวิจัย">
+            <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
+          </FormSection>
+        </div>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">

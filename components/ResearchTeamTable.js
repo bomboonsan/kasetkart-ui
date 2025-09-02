@@ -299,7 +299,17 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       onChange={(value) => handleInputChange("orgName", value)}
                       placeholder=""
                     />
-                  </div>
+                    </div>
+                    <div>
+                      <FormInput
+                        mini={true}
+                        label="สัดส่วนการมีส่วนร่วม"
+                        type="number"
+                        value={formData.partnerProportionPercent}
+                        onChange={(value) => handleInputChange("partnerProportionPercent", value)}
+                        placeholder="0%"
+                      />
+                    </div>
                 </>
               )
             }

@@ -19,7 +19,7 @@ const monthThai = [
 
 const monthMap = Object.fromEntries(monthThai.map((m, i) => [m, i + 1]))
 
-export default function FormDateSelect({ title, value, onChange }) {
+export default function FormDateSelect({ title, value, onChange, noDay = false }) {
   const dayOptions = useMemo(() => Array.from({ length: 31 }, (_, i) => i + 1), [])
   const yearOptions = useMemo(() => Array.from({ length: 30 }, (_, i) => 2560 + i), [])
 
@@ -50,18 +50,23 @@ export default function FormDateSelect({ title, value, onChange }) {
   return (
     <div className="flex items-center gap-x-4">
       <p className="text-zinc-700 font-medium">{title}</p>
-      <div className="space-x-2">
-        <label className="text-zinc-700">วันที่</label>
-        <select
-          className="text-zinc-800 border border-gray-300 rounded-md px-3 py-2"
-          value={day}
-          onChange={e => setDay(parseInt(e.target.value))}
-        >
-          {dayOptions.map((d) => (
-            <option key={d} value={d}>{d}</option>
-          ))}
-        </select>
-      </div>
+      {
+        !noDay && (<>
+        <div className="space-x-2">
+          <label className="text-zinc-700">วันที่</label>
+          <select
+            className="text-zinc-800 border border-gray-300 rounded-md px-3 py-2"
+            value={day}
+            onChange={e => setDay(parseInt(e.target.value))}
+          >
+            {dayOptions.map((d) => (
+              <option key={d} value={d}>{d}</option>
+            ))}
+          </select>
+        </div>
+        </>)
+      
+      }
       <div className="space-x-2">
         <label className="text-zinc-700">เดือน</label>
         <select

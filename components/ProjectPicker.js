@@ -5,7 +5,7 @@ import Button from './Button'
 import { projectAPI } from '@/lib/api'
 import { getCurrentUser } from '@/lib/auth'
 
-export default function ProjectPicker({ label = 'โครงการวิจัย', onSelect, selectedProject }) {
+export default function ProjectPicker({ label = 'โครงการวิจัย', onSelect, selectedProject, required = false }) {
   const [open, setOpen] = useState(false)
   const [projects, setProjects] = useState([])
   const [error, setError] = useState('')
@@ -41,7 +41,7 @@ export default function ProjectPicker({ label = 'โครงการวิจ�
   return (
     <div className="space-y-1 flex items-center">
       <div className="w-1/3">
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        <label className="block text-sm font-medium text-gray-700">{label} {required && <span className="text-red-500 ml-1">*</span>}</label>
       </div>
       <div className="flex-1 space-x-3">
         <button
