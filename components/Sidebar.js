@@ -13,6 +13,7 @@ import {
   File,
   FileUser,
 } from "lucide-react";
+import { profileAPI, API_BASE } from '@/lib/api'
 
 const menuItems = [
   {
@@ -128,11 +129,71 @@ export default function Sidebar() {
   const [openGroups, setOpenGroups] = useState({})
   const [userDisplayName, setUserDisplayName] = useState('')
   const [userEmail, setUserEmail] = useState('')
+  const [avatarUrl, setAvatarUrl] = useState('')
 
   // Mock user data แทน API call
   useEffect(() => {
-    setUserDisplayName('ผู้ใช้งาน')
-    setUserEmail('user@example.com')
+    let mounted = true
+
+    async function loadProfile() {
+      try {
+        const res = await profileAPI.getMyProfile()
+
+        // res may be the user object directly or { data: ... }
+        const user = res?.data || res || {}
+
+        console.log('Loaded user profile:', user)
+        const backendURL = "http://localhost:1337"
+        console.log('Avatar URL:', backendURL + user?.profile?.avatarUrl?.url)
+
+        // Try multiple possible fields for display name
+        const firstName = user.profile.firstNameTH || user.email
+        const lastName = user.profile.lastNameTH || ''
+        const display = [firstName, lastName].filter(Boolean).join(' ').trim()
+
+        // Attempt to find avatar URL in common Strapi shapes
+        let url = null
+        // common shapes: user.avatar.data.attributes.url OR user.avatar.url OR user.profileImage.data.attributes.url
+        const tryPaths = [
+          user?.avatar?.data?.attributes?.url,
+          user?.avatar?.url,
+          user?.profileImage?.data?.attributes?.url,
+          user?.profile_image?.data?.attributes?.url,
+          user?.picture?.data?.attributes?.url,
+          user?.image?.data?.attributes?.url,
+          user?.avatarUrl,
+
+          user?.profile?.avatarUrl?.url || user?.profile?.avatarUrl,
+        ]
+
+        for (const p of tryPaths) {
+          if (p) { url = p; break }
+        }
+
+        // If url is relative (starts with /), prefix API base without /api
+        if (url && !/^https?:\/\//i.test(url)) {
+          const mediaBase = API_BASE.replace(/\/api\/?$/, '')
+          url = `${mediaBase}${url}`
+        }
+
+        if (mounted) {
+          setUserDisplayName(display || 'ผู้ใช้งาน')
+          setUserEmail(user.email || '')
+          setAvatarUrl(url || '')
+        }
+      } catch (err) {
+        // fallback to mock values
+        if (mounted) {
+          setUserDisplayName('ผู้ใช้งาน')
+          setUserEmail('user@example.com')
+          setAvatarUrl('')
+        }
+      }
+    }
+
+    loadProfile()
+
+    return () => { mounted = false }
   }, [])
 
   function toggleGroup(id) {
@@ -311,8 +372,20 @@ export default function Sidebar() {
       <div className="px-6">
         <hr className="my-4 border-gray-200" />
         <div className="flex items-center py-2">
-          <div className="w-10 h-10 rounded-full bg-gray-300 mr-3 flex items-center justify-center text-xs font-semibold text-white bg-blue-500">
-            {(userDisplayName || userEmail || 'U').split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}
+          <div className="mr-3">
+            {avatarUrl ? (
+              <Image
+                src={avatarUrl}
+                alt={userDisplayName || 'avatar'}
+                width={40}
+                height={40}
+                className="w-10 h-10 rounded-full object-cover"
+              />
+            ) : (
+              <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-xs font-semibold text-white">
+                {(userDisplayName || userEmail || 'U').split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}
+              </div>
+            )}
           </div>
           <div>
             <p className="text-sm text-gray-900">{userDisplayName || userEmail || '-'}</p>
