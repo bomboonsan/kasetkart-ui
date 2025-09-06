@@ -1,8 +1,6 @@
 "use client"
 
-// ใช้ useSWR เพื่อดึงข้อมูลผู้ใช้ปัจจุบันจาก API
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -15,9 +13,6 @@ import {
   File,
   FileUser,
 } from "lucide-react";
-
-import { logout } from '@/lib/auth'
-import { api } from '@/lib/api'
 
 const menuItems = [
   {
@@ -134,24 +129,19 @@ export default function Sidebar() {
   const [userDisplayName, setUserDisplayName] = useState('')
   const [userEmail, setUserEmail] = useState('')
 
-  // ดึงข้อมูลโปรไฟล์ของตนเองด้วย SWR
-  const { data: me } = useSWR('/profiles/me', api.get)
-
-  // อัปเดตชื่อแสดงผลเมื่อได้ข้อมูล
+  // Mock user data แทน API call
   useEffect(() => {
-    if (!me) return
-    const prof = me?.Profile?.[0] || me?.profile || {}
-    const name = `${prof?.firstName || ''} ${prof?.lastName || ''}`.trim()
-    setUserDisplayName(name || me?.email || '')
-    setUserEmail(me?.email || '')
-  }, [me])
+    setUserDisplayName('ผู้ใช้งาน')
+    setUserEmail('user@example.com')
+  }, [])
 
   function toggleGroup(id) {
     setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
   function handleLogout() {
-    logout()
+    // Simple logout without API call
+    console.log('Logout clicked')
     router.push('/login')
   }
 

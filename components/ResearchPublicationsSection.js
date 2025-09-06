@@ -1,11 +1,9 @@
 "use client"
 
 import { useMemo, useState } from 'react'
-import useSWR from 'swr'
 import SectionCard from './SectionCard'
 import PublicationFilters from './PublicationFilters'
 import PublicationItem from './PublicationItem'
-import { api } from '@/lib/api'
 
 const TYPE_TABS = [
   { key: 'PROJECT', label: 'โครงการวิจัย' },
@@ -17,16 +15,44 @@ const TYPE_TABS = [
 
 export default function ResearchPublicationsSection() {
   const [activeType, setActiveType] = useState('PROJECT')
-  const { data: me } = useSWR('/profiles/me', api.get)
-  const meId = me?.id
-  const { data: worksRes, error: worksErr } = useSWR('/works?pageSize=100&mine=1', api.get)
-  const works = worksRes?.data || worksRes?.items || worksRes || []
-  const { data: projectsRes, error: projectsErr } = useSWR('/projects?pageSize=1000', api.get)
-  const allProjects = projectsRes?.data || projectsRes?.items || projectsRes || []
-  const myProjects = useMemo(() => {
-    if (!meId) return []
-    return (allProjects || []).filter(p => (p.ProjectPartner || []).some(pp => pp.userID === meId))
-  }, [allProjects, meId])
+
+  const projectsErr = null
+  const worksErr = null
+  const projectsRes = true
+  const worksRes = true
+  
+  // Mock data แทน API calls
+  const mockWorks = [
+    {
+      id: 1,
+      type: 'PUBLICATION',
+      detail: {
+        titleTh: 'ตัวอย่างงานตีพิมพ์',
+        titleEn: 'Example Publication',
+        journal: 'วารสารตัวอย่าง'
+      }
+    },
+    {
+      id: 2,
+      type: 'CONFERENCE',
+      detail: {
+        titleTh: 'ตัวอย่างการประชุม',
+        titleEn: 'Example Conference'
+      }
+    }
+  ]
+  
+  const mockProjects = [
+    {
+      id: 1,
+      nameTh: 'โครงการวิจัยตัวอย่าง',
+      nameEn: 'Example Research Project',
+      fiscalYear: '2567'
+    }
+  ]
+  
+  const works = mockWorks
+  const myProjects = mockProjects
 
   const counts = useMemo(() => {
     const c = { PROJECT: 0, CONFERENCE: 0, PUBLICATION: 0, FUNDING: 0, BOOK: 0 }

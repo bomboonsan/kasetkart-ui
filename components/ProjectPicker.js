@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import Button from './Button'
-import { projectAPI } from '@/lib/api'
-import { getCurrentUser } from '@/lib/auth'
 
 export default function ProjectPicker({ label = 'โครงการวิจัย', onSelect, selectedProject, required = false }) {
   const [open, setOpen] = useState(false)
@@ -11,31 +9,21 @@ export default function ProjectPicker({ label = 'โครงการวิจ�
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
-  const current = getCurrentUser()
+  // const current = getCurrentUser()
 
   useEffect(() => {
     if (!open) return
-    ;(async () => {
-      try {
-        setLoading(true)
-        setError('')
-        const res = await projectAPI.getProjects({ page: 1, pageSize: 100 })
-        const all = res.data || res.items || []
-        // Role-based filter: ADMIN/SUPERADMIN see all; USER see only own projects
-        const role = current?.role
-        if (role === 'ADMIN' || role === 'SUPERADMIN') {
-          setProjects(all)
-        } else {
-          // filter projects related to current user by ProjectPartner membership (fallback to all if cannot detect)
-          const mine = current ? all.filter(p => (p.ProjectPartner || []).some(pp => pp.User?.email === current.email)) : all
-          setProjects(mine)
-        }
-      } catch (err) {
-        setError(err.message || 'โหลดรายการโครงการไม่สำเร็จ')
-      } finally {
-        setLoading(false)
-      }
-    })()
+    // Mock data แทน API call
+    setLoading(true)
+    setError('')
+    setTimeout(() => {
+      const mockProjects = [
+        { id: 1, nameTh: 'โครงการตัวอย่าง 1', fiscalYear: '2567' },
+        { id: 2, nameTh: 'โครงการตัวอย่าง 2', fiscalYear: '2567' }
+      ]
+      setProjects(mockProjects)
+      setLoading(false)
+    }, 500)
   }, [open])
 
   return (

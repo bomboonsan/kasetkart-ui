@@ -3,27 +3,58 @@ import Image from 'next/image'
 import InputField from './InputField'
 import Button from './Button'
 import Checkbox from './Checkbox'
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { login } from '@/lib/auth'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import { authAPI } from '@/lib/api'
+import { isAuthenticated } from '@/lib/auth'
 
 export default function LoginForm() {
   const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
+  const searchParams = useSearchParams()
+  const [formData, setFormData] = useState({
+    identifier: '',
+    password: ''
+  })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  useEffect(() => {
+    // ถ้าล็อกอินแล้วให้ redirect ไป dashboard
+    if (isAuthenticated()) {
+      const next = searchParams.get('next')
+      router.push(next || '/dashboard')
+    }
+  }, [router, searchParams])
+
+  const handleChange = (e) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
+
     try {
-      console.log(`email : ${email}`)
-      await login(email, password)
-      router.push('/dashboard')
+      const response = await authAPI.login(formData.identifier, formData.password)
+      
+      if (response.jwt) {
+        // Set cookie for middleware
+        document.cookie = `jwt=${response.jwt}; path=/; max-age=${7 * 24 * 60 * 60}` // 7 days
+        
+        // Redirect to intended page or dashboard
+        const next = searchParams.get('next')
+        router.push(next || '/dashboard')
+      } else {
+        setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ')
+      }
     } catch (err) {
-      setError(err.message || 'เข้าสู่ระบบล้มเหลว')
+      console.error('Login error:', err)
+      setError(err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง')
     } finally {
       setLoading(false)
     }
@@ -43,7 +74,7 @@ export default function LoginForm() {
           />
         </div>
         <h1 className="text-2xl font-semibold text-gray-800">
-          Sign in to your account
+          เข้าสู่ระบบ
         </h1>
       </div>
 
@@ -56,42 +87,27 @@ export default function LoginForm() {
         )}
 
         <InputField
-          label="Email address"
-          type="email"
-          id="email"
-          name="email"
-          value={email}
-          onChange={setEmail}
+          label="อีเมลหรือชื่อผู้ใช้"
+          type="text"
+          id="identifier"
+          name="identifier"
+          value={formData.identifier}
+          onChange={(value) => setFormData(prev => ({ ...prev, identifier: value }))}
           required
         />
 
         <InputField
-          label="Password"
+          label="รหัสผ่าน"
           type="password"
           id="password"
           name="password"
-          value={password}
-          onChange={setPassword}
+          value={formData.password}
+          onChange={(value) => setFormData(prev => ({ ...prev, password: value }))}
           required
         />
 
-        <div className="flex items-center justify-between">
-          <Checkbox
-            id="remember"
-            name="remember"
-            label="Remember me"
-            checked={false}
-          />
-          
-          <a
-            href="#"
-            className="text-sm text-blue-600 hover:text-blue-500 hover:underline"
-          >
-            Forgot your password?
-          </a>
-        </div>
         <Button type="submit" fullWidth disabled={loading}>
-          {loading ? 'Signing in...' : 'Sign in'}
+          {loading ? 'เข้าสู่ระบบ...' : 'เข้าสู่ระบบ'}
         </Button>
       </form>
     </div>

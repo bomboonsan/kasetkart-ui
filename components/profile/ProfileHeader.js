@@ -1,11 +1,8 @@
 "use client"
-// ใช้ SWR ดึงข้อมูลโปรไฟล์ของตนเอง
 import Button from '@/components/Button'
 import ProfileStats from "@/components/ProfileStats";
 import Link from 'next/link';
 import { useState } from 'react'
-import useSWR from 'swr'
-import { api } from '@/lib/api'
 
 function initials(name, fallback) {
   const s = (name || '').trim()
@@ -16,16 +13,27 @@ function initials(name, fallback) {
 
 export default function ProfileHeader() {
   const [error, setError] = useState('')
-  const { data: profile, error: swrError } = useSWR('/profiles/me', api.get)
-  if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
+  
+  // Mock data แทน API call
+  const mockProfile = {
+    profile: {
+      firstName: 'สมชาย',
+      lastName: 'ใจดี',
+      jobType: 'SA',
+      highDegree: 'ปริญญาเอก'
+    },
+    email: 'somchai@ku.ac.th',
+    Department: { name: 'ภาควิชาเศรษฐศาสตร์' },
+    Faculty: { name: 'คณะเศรษฐศาสตร์' }
+  }
 
-  const profObj = profile?.profile || profile?.Profile?.[0]
+  const profObj = mockProfile.profile
   const displayName = profObj
     ? `${profObj.firstName || ''} ${profObj.lastName || ''}`.trim()
     : ''
-  const email = profile?.email || ''
-  const departmentName = profile?.Department?.name || profile?.department?.name || '-'
-  const facultyName = profile?.Faculty?.name || profile?.faculty?.name || ''
+  const email = mockProfile?.email || ''
+  const departmentName = mockProfile?.Department?.name || '-'
+  const facultyName = mockProfile?.Faculty?.name || ''
   const jobType = profObj?.jobType || ''
   const highDegree = profObj?.highDegree || ''
 

@@ -2,13 +2,11 @@
 
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import useSWR from 'swr'
 import PageHeader from '@/components/PageHeader'
 import FormSection from '@/components/FormSection'
 import FormFieldBlock from '@/components/FormFieldBlock'
 import FormInput from '@/components/FormInput'
 import FormTextarea from '@/components/FormTextarea'
-import { api } from '@/lib/api'
 
 function toDash(v) {
   if (v === null || v === undefined) return '-'
@@ -24,17 +22,30 @@ function isoDate(v) {
 export default function ViewWorkPage() {
   const params = useParams()
   const id = params?.id
-  const { data, error } = useSWR(id ? `/works/${id}` : null, api.get)
-  const work = data || null
+  
+  // Mock data แทน API call
+  const mockWork = {
+    id: id,
+    type: 'PUBLICATION',
+    status: 'ACTIVE',
+    detail: {
+      title: 'ตัวอย่างงานตีพิมพ์',
+      journal: 'วารสารตัวอย่าง',
+      volume: '10',
+      issue: '2',
+      pages: '123-145',
+      year: '2024',
+      doi: '10.1234/example',
+      abstract: 'บทคัดย่อตัวอย่าง'
+    }
+  }
+  
+  const work = mockWork
   const d = work?.detail || {}
 
   return (
     <div className="space-y-6">
       <PageHeader title="รายละเอียดผลงานวิจัย" />
-
-      {error && (
-        <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error.message || 'โหลดข้อมูลไม่ได้'}</div>
-      )}
 
       {!work ? (
         <div className="p-4 text-gray-500">กำลังโหลด...</div>

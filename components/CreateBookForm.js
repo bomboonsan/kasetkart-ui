@@ -15,7 +15,6 @@ import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
-import { api } from '@/lib/api'
 import SweetAlert2 from 'react-sweetalert2'
 
 export default function CreateBookForm({ mode = 'create', workId, initialData }) {
@@ -70,25 +69,28 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
         occurredAt: formData.occurredAt || undefined,
       }
       if (mode === 'edit' && workId) {
-        await api.put(`/works/${workId}`, { type: 'BOOK', status: 'DRAFT', detail, authors: [], attachments: [] })
+        // Mock API call
+        console.log('Would update book:', { type: 'BOOK', status: 'DRAFT', detail, authors: [], attachments: [] })
+        await new Promise(resolve => setTimeout(resolve, 1000))
         setSwalProps({ show: true, icon: 'success', title: 'อัปเดตหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
       const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
       const authors = formData.userId ? [{ userId: parseInt(formData.userId), isCorresponding: true }] : []
       const payload = { type: 'BOOK', status: 'DRAFT', detail, authors, attachments }
       if (mode === 'edit' && workId) {
-        await api.put(`/works/${workId}`, payload)
+        // Mock API call
+        console.log('Would update book:', payload)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         setSwalProps({ show: true, icon: 'success', title: 'อัปเดตหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       } else if (formData.projectId) {
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-        const res = await fetch(`${base}/projects/${formData.projectId}/works`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(payload), credentials: 'include'
-        })
-        if (!res.ok) { const data = await res.json().catch(()=>({})); throw new Error(data?.error?.message || 'บันทึกไม่สำเร็จ') }
+        // Mock API call
+        console.log('Would create book for project:', payload)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         setSwalProps({ show: true, icon: 'success', title: 'บันทึกหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
-        await api.post('/works', payload)
+        // Mock API call
+        console.log('Would create book:', payload)
+        await new Promise(resolve => setTimeout(resolve, 1000))
         setSwalProps({ show: true, icon: 'success', title: 'บันทึกหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       }
       }

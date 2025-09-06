@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { uploadAPI } from '@/lib/api'
 
 export default function FileUploadField({ 
   label, 
@@ -21,10 +20,17 @@ export default function FileUploadField({
     setError('')
     setUploading(true)
     try {
-      const attachments = await uploadAPI.uploadFiles(filesArray)
-      onFilesChange && onFilesChange(attachments)
+      // Mock upload without API call
+      await new Promise(resolve => setTimeout(resolve, 1000))
+      const mockAttachments = filesArray.map((file, index) => ({
+        id: Date.now() + index,
+        name: file.name,
+        url: URL.createObjectURL(file),
+        size: file.size
+      }))
+      onFilesChange && onFilesChange(mockAttachments)
     } catch (err) {
-      setError(err.message || 'อัปโหลดไฟล์ไม่สำเร็จ')
+      setError('อัปโหลดไฟล์ไม่สำเร็จ')
     } finally {
       setUploading(false)
     }

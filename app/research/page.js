@@ -1,13 +1,11 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import PageHeader from '@/components/PageHeader'
-import { projectAPI } from '@/lib/api'
 import Link from 'next/link'
 
 export default function ResearchListPage() {
-  const [projects, setProjects] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [filters, setFilters] = useState({
     year: '',
@@ -15,28 +13,27 @@ export default function ResearchListPage() {
     search: ''
   })
 
-  useEffect(() => {
-    loadProjects()
-  }, [filters])
-
-  const loadProjects = async () => {
-    try {
-      setLoading(true)
-      const params = {
-        page: 1,
-        pageSize: 50,
-        ...(filters.year && { year: filters.year }),
-        ...(filters.status && { status: filters.status }),
-        ...(filters.search && { q: filters.search })
-      }
-      const res = await projectAPI.getProjects(params)
-      setProjects(res.data || res.items || res || [])
-    } catch (err) {
-      setError(err.message || 'ไม่สามารถโหลดข้อมูลโครงการวิจัย')
-    } finally {
-      setLoading(false)
+  // Mock data แทน API calls
+  const mockProjects = [
+    {
+      id: 1,
+      nameTh: 'โครงการวิจัยตัวอย่าง 1',
+      fiscalYear: '2567',
+      durationStart: '2024-01-01',
+      durationEnd: '2024-12-31',
+      budget: 500000,
+      status: 'ACTIVE'
+    },
+    {
+      id: 2,
+      nameTh: 'โครงการวิจัยตัวอย่าง 2',
+      fiscalYear: '2567',
+      durationStart: '2024-06-01',
+      durationEnd: '2025-05-31',
+      budget: 750000,
+      status: 'DRAFT'
     }
-  }
+  ]
 
   const formatDate = (dateString) => {
     if (!dateString) return '-'
@@ -148,7 +145,7 @@ export default function ResearchListPage() {
           <div className="p-8 text-center">
             <div className="text-gray-500">กำลังโหลดข้อมูล...</div>
           </div>
-        ) : projects.length === 0 ? (
+        ) : mockProjects.length === 0 ? (
           <div className="p-8 text-center">
             <div className="text-gray-500">ไม่พบโครงการวิจัย</div>
           </div>
@@ -178,7 +175,7 @@ export default function ResearchListPage() {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {projects.map((project) => (
+                {mockProjects.map((project) => (
                   <tr key={project.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>

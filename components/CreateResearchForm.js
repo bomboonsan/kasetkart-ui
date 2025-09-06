@@ -14,7 +14,6 @@ import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import Link from 'next/link'
-import { api } from '@/lib/api'
 import SweetAlert2 from 'react-sweetalert2'
 import { use } from 'react'
 
@@ -103,20 +102,20 @@ export default function CreateResearchForm() {
 
 
   useEffect(() => {
-    ;(async () => {
-      try {
-        const [orgs, depts] = await Promise.all([
-          api.get('/organizations'),
-          api.get('/departments'),
-        ])
-        const orgOpts = (orgs?.data || []).map(o => ({ value: o.id, label: o.name }))
-        const deptOpts = (depts?.data || []).map(d => ({ value: d.id, label: d.name }))
-        setOrgOptions(orgOpts)
-        setDeptOptions(deptOpts)
-      } catch (err) {
-        setError(err.message || 'โหลดข้อมูลตัวเลือกไม่สำเร็จ')
-      }
-    })()
+    // Mock data แทน API calls
+    const mockOrgs = [
+      { id: 1, name: 'มหาวิทยาลัยเกษตรศาสตร์' },
+      { id: 2, name: 'จุฬาลงกรณ์มหาวิทยาลัย' }
+    ]
+    const mockDepts = [
+      { id: 1, name: 'ภาควิชาเศรษฐศาสตร์' },
+      { id: 2, name: 'ภาควิชาการบัญชี' }
+    ]
+    
+    const orgOpts = mockOrgs.map(o => ({ value: o.id, label: o.name }))
+    const deptOpts = mockDepts.map(d => ({ value: d.id, label: d.name }))
+    setOrgOptions(orgOpts)
+    setDeptOptions(deptOpts)
   }, [])  
 
   const handleSubmit = async (e) => {
@@ -146,18 +145,27 @@ export default function CreateResearchForm() {
         setSubmitting(false)
         return
       }
-      // เตรียมผู้ใช้ปัจจุบันให้เป็นหัวหน้าโครงการอัตโนมัติ
-      let me = null
-      try { me = await api.get('/profiles/me') } catch {}
+      // เตรียมผู้ใช้ปัจจุบันให้เป็นหัวหน้าโครงการอัตโนมัติ (Mock data)
+      const mockMe = {
+        id: 1,
+        email: 'user@example.com',
+        Profile: {
+          firstName: 'สมชาย',
+          lastName: 'ใจดี'
+        },
+        Faculty: {
+          name: 'คณะเศรษฐศาสตร์'
+        }
+      }
 
-      const mePartner = me ? {
+      const mePartner = {
         isInternal: true,
-        userId: me.id,
-        fullname: (me.Profile ? `${me.Profile.firstName || ''} ${me.Profile.lastName || ''}`.trim() : me.email) || me.email,
-        orgName: me.Faculty?.name || me.Department?.name || me.Organization?.name || '',
+        userId: mockMe.id,
+        fullname: `${mockMe.Profile.firstName} ${mockMe.Profile.lastName}`,
+        orgName: mockMe.Faculty?.name || '',
         partnerType: 'หัวหน้าโครงการ',
         partnerComment: '',
-      } : null
+      }
 
       // ผู้ร่วมจากแบบฟอร์ม (ถ้าผู้ใช้กรอกเพิ่ม)
       const hasExtraInternal = formData.isInternal === true && formData.userId
@@ -200,12 +208,11 @@ export default function CreateResearchForm() {
         sdg: formData.sdg || undefined,
         partners: partnersArray,
       }
-      const project = await api.post('/projects', payload)
-      // attach files if any
-      if ((formData.attachments || []).length > 0 && project?.id) {
-        const ids = formData.attachments.map(a => a.id)
-        await api.patch(`/projects/${project.id}/attachments`, { attachmentIds: ids })
-      }
+      
+      // Mock API call
+      console.log('Would submit project:', payload)
+      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
+      
       setSwalProps({ show: true, icon: 'success', title: 'สร้างโครงการสำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (err) {
       setError(err.message || 'บันทึกโครงการไม่สำเร็จ')

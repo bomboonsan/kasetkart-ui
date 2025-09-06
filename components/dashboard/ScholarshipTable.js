@@ -1,8 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { api } from '@/lib/api'
-import useSWR from 'swr'
+import { useState } from 'react'
 
 const TYPE_TABS = [
   { key: 'icTypes', label: 'IC Type' },
@@ -10,30 +8,37 @@ const TYPE_TABS = [
   { key: 'sdg', label: 'SDG' },
 ]
 
-// Fetcher function for SWR
-const fetcher = (url) => api.get(url)
-
 export default function ScholarshipTable({ title, subtitle }) {
   const [activeType, setActiveType] = useState('icTypes')
   const [selectedDeptId, setSelectedDeptId] = useState('all')
 
-  // Fetch scholarship statistics data
-  const { data: scholarshipRes, error: scholarshipErr, mutate: mutateScholarship } = useSWR(
-    `/reports/scholarship-stats${selectedDeptId !== 'all' ? `?departmentId=${selectedDeptId}` : ''}`,
-    fetcher,
-    { refreshInterval: 30000 } // refresh every 30 seconds
-  )
+  // Mock data แทน API calls
+  const mockScholarshipData = {
+    icTypes: [
+      { category: 'Technology', count: 15 },
+      { category: 'Healthcare', count: 12 },
+      { category: 'Education', count: 8 }
+    ],
+    impact: [
+      { category: 'High', count: 20 },
+      { category: 'Medium', count: 10 },
+      { category: 'Low', count: 5 }
+    ],
+    sdg: [
+      { category: 'SDG 1', count: 7 },
+      { category: 'SDG 3', count: 12 },
+      { category: 'SDG 4', count: 16 }
+    ]
+  }
+  
+  const mockDepartments = [
+    { id: 1, name: 'ภาควิชาเศรษฐศาสตร์' },
+    { id: 2, name: 'ภาควิชาการบัญชี' }
+  ]
+  
+  const departments = mockDepartments
 
-  // Fetch departments data for dropdown
-  const { data: deptRes } = useSWR('/departments', fetcher)
-  const departments = deptRes?.data || deptRes?.items || deptRes || []
-
-  // Refresh data when department changes
-  useEffect(() => {
-    mutateScholarship()
-  }, [selectedDeptId, mutateScholarship])
-
-  const scholarshipData = scholarshipRes || {}
+  const scholarshipData = mockScholarshipData
   const activeData = scholarshipData[activeType] || []
 
   console.log('activeData', activeData);
@@ -48,15 +53,15 @@ export default function ScholarshipTable({ title, subtitle }) {
   // Calculate total for percentage
   const totalCount = counts[activeType] || 1
 
-  if (scholarshipErr) {
-    return (
-      <div className="p-6 border rounded-lg shadow-sm bg-white">
-        <div className="text-red-500 text-center">
-          เกิดข้อผิดพลาดในการโหลดข้อมูล: {scholarshipErr.message}
-        </div>
-      </div>
-    )
-  }
+  // if (scholarshipErr) {
+  //   return (
+  //     <div className="p-6 border rounded-lg shadow-sm bg-white">
+  //       <div className="text-red-500 text-center">
+  //         เกิดข้อผิดพลาดในการโหลดข้อมูล: {scholarshipErr.message}
+  //       </div>
+  //     </div>
+  //   )
+  // }
 
   return (
     <div className="p-6 border rounded-lg shadow-sm bg-white">

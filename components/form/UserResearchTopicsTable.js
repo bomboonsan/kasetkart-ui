@@ -2,49 +2,73 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { api } from '@/lib/api'
 
 export default function UserResearchTopicsTable({ tab = 1 }) {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
 
   useEffect(() => {
-    ;(async () => {
-      try {
-        setError('')
-        if (tab === 1) {
-          const res = await api.get('/projects?page=1&pageSize=50&mine=1')
-          const data = res.data || res.items || []
-          const mapped = data.map(p => ({
-            id: p.id,
-            number: String(p.fiscalYear || ''),
-            title: p.nameTh || p.nameEn || `Project #${p.id}`,
-            budget: p.budget || 0,
-            status: p.status || 'DRAFT',
-            href: `/research/view/${p.id}`,
-            editHref: `/research/edit/${p.id}`,
-          }))
-          setItems(mapped)
-        } else {
-          const typeMap = { 2: 'CONFERENCE', 3: 'PUBLICATION', 4: 'FUNDING', 5: 'BOOK' }
-          const type = typeMap[tab]
-          const res = await api.get(`/works?type=${encodeURIComponent(type)}&page=1&pageSize=50&mine=1`)
-          const data = res.data || res.items || res || []
-          const mapped = data.map(w => ({
-            id: w.id,
-            number: String(new Date(w.createdAt || Date.now()).getFullYear() + 543),
-            title: `${w.type} #${w.id}`,
-            budget: 0,
-            status: w.status || 'DRAFT',
-            href: `/works/view/${w.id}`,
-            editHref: `/works/edit/${w.id}`,
-          }))
-          setItems(mapped)
-        }
-      } catch (err) {
-        setError(err.message || 'โหลดข้อมูลไม่สำเร็จ')
+    // Mock data แทน API calls
+    try {
+      setError('')
+      if (tab === 1) {
+        const mockProjects = [
+          {
+            id: 1,
+            fiscalYear: '2567',
+            nameTh: 'โครงการตัวอย่าง 1',
+            budget: 500000,
+            status: 'ACTIVE'
+          },
+          {
+            id: 2, 
+            fiscalYear: '2567',
+            nameTh: 'โครงการตัวอย่าง 2',
+            budget: 750000,
+            status: 'DRAFT'
+          }
+        ]
+        
+        const mapped = mockProjects.map(p => ({
+          id: p.id,
+          number: String(p.fiscalYear || ''),
+          title: p.nameTh || p.nameEn || `Project #${p.id}`,
+          budget: p.budget || 0,
+          status: p.status || 'DRAFT',
+          href: `/research/view/${p.id}`,
+          editHref: `/research/edit/${p.id}`,
+        }))
+        setItems(mapped)
+      } else {
+        const mockWorks = [
+          {
+            id: 1,
+            type: 'PUBLICATION',
+            status: 'ACTIVE',
+            createdAt: '2024-01-01'
+          },
+          {
+            id: 2,
+            type: 'CONFERENCE', 
+            status: 'DRAFT',
+            createdAt: '2024-02-01'
+          }
+        ]
+        
+        const mapped = mockWorks.map(w => ({
+          id: w.id,
+          number: String(new Date(w.createdAt || Date.now()).getFullYear() + 543),
+          title: `${w.type} #${w.id}`,
+          budget: 0,
+          status: w.status || 'DRAFT',
+          href: `/works/view/${w.id}`,
+          editHref: `/works/edit/${w.id}`,
+        }))
+        setItems(mapped)
       }
-    })()
+    } catch (err) {
+      setError(err.message || 'โหลดข้อมูลไม่สำเร็จ')
+    }
   }, [tab])
 
   return (

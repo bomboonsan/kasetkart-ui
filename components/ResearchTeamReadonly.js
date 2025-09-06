@@ -1,11 +1,25 @@
 "use client"
 
-import useSWR from 'swr'
-import { api } from '@/lib/api'
-
 export default function ResearchTeamReadonly({ projectId }) {
-  const { data: project, error } = useSWR(projectId ? `/projects/${projectId}` : null, api.get)
-  const partners = (project?.ProjectPartner || [])
+  // Mock data แทน API call
+  const mockPartners = [
+    {
+      id: 1,
+      fullname: 'สมชาย ใจดี',
+      orgName: 'คณะเศรษฐศาสตร์',
+      partnerType: 'หัวหน้าโครงการ',
+      isInternal: true
+    },
+    {
+      id: 2,
+      fullname: 'สมหญิง ดีใจ',
+      orgName: 'คณะวิศวกรรมศาสตร์',
+      partnerType: 'นักวิจัยร่วม',
+      isInternal: true
+    }
+  ]
+  
+  const partners = mockPartners
 
   return (
     <div className="space-y-4">

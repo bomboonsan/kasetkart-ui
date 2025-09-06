@@ -1,30 +1,47 @@
 "use client"
 
 import { useState } from 'react'
-import useSWR from 'swr'
-import { api } from '@/lib/api'
 import Button from '@/components/Button'
 
 function Manager({ title, path }) {
-  const { data, mutate, error } = useSWR(path, api.get)
-  const items = data || []
+  // Mock data แทน API calls
+  const mockData = {
+    '/organizations': [
+      { id: 1, name: 'มหาวิทยาลัยเกษตรศาสตร์' },
+      { id: 2, name: 'จุฬาลงกรณ์มหาวิทยาลัย' }
+    ],
+    '/faculties': [
+      { id: 1, name: 'คณะเศรษฐศาสตร์' },
+      { id: 2, name: 'คณะวิศวกรรมศาสตร์' }
+    ],
+    '/departments': [
+      { id: 1, name: 'ภาควิชาเศรษฐศาสตร์' },
+      { id: 2, name: 'ภาควิชาการบัญชี' }
+    ]
+  }
+  
+  const [items, setItems] = useState(mockData[path] || [])
   const [name, setName] = useState('')
   const [editing, setEditing] = useState(null)
   const [editName, setEditName] = useState('')
-  const base = path
 
   async function add() {
     if (!name.trim()) return
-    await api.post(base, { name: name.trim() })
+    const newItem = { id: Date.now(), name: name.trim() }
+    setItems(prev => [...prev, newItem])
     setName('')
-    mutate()
   }
+  
   async function save(id) {
-    await api.patch(`${base}/${id}`, { name: editName.trim() })
-    setEditing(null); setEditName(''); mutate()
+    setItems(prev => prev.map(item => 
+      item.id === id ? { ...item, name: editName.trim() } : item
+    ))
+    setEditing(null)
+    setEditName('')
   }
+  
   async function remove(id) {
-    await api.del(`${base}/${id}`); mutate()
+    setItems(prev => prev.filter(item => item.id !== id))
   }
 
   return (

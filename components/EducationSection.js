@@ -1,32 +1,30 @@
 "use client"
 
-// ใช้ SWR แทน useEffect สำหรับโหลดโปรไฟล์
+// Mock data instead of SWR
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
 import SectionCard from './SectionCard'
 import EducationItem from './EducationItem'
-import { api } from '@/lib/api'
 
 export default function EducationSection() {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
 
-  const { data: me, error: swrError } = useSWR('/profiles/me', api.get)
+  // Mock profile data
   useEffect(() => {
-    if (!me) return
+    const mockProfile = {
+      highDegree: 'ปริญญาเอก',
+      academicRank: 'ผู้ช่วยศาสตราจารย์'
+    }
+    
     try {
-      const prof = me?.Profile?.[0] || me?.profile || {}
-      const highDegree = prof?.highDegree || ''
-      const academicRank = prof?.academicRank || ''
       const list = []
-      if (highDegree) list.push({ degree: highDegree, school: me?.Faculty?.name || me?.Department?.name || '', period: '' })
-      if (academicRank) list.push({ degree: academicRank, school: me?.Faculty?.name || me?.Department?.name || '', period: '' })
+      if (mockProfile.highDegree) list.push({ degree: mockProfile.highDegree, school: 'มหาวิทยาลัยเกษตรศาสตร์', period: '' })
+      if (mockProfile.academicRank) list.push({ degree: mockProfile.academicRank, school: 'มหาวิทยาลัยเกษตรศาสตร์', period: '' })
       setItems(list)
     } catch (e) {
-      setError(e.message || 'ไม่สามารถโหลดประวัติการศึกษา')
+      setError('ไม่สามารถโหลดประวัติการศึกษา')
     }
-  }, [me])
-  useEffect(() => { if (swrError) setError(swrError.message || 'ไม่สามารถโหลดประวัติการศึกษา') }, [swrError])
+  }, [])
 
   return (
     <SectionCard title="ประวัติการศึกษา">

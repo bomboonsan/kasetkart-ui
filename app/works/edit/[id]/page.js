@@ -1,8 +1,7 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import { worksAPI } from '@/lib/api'
 import CreateConferenceForm from '@/components/CreateConferenceForm'
 import CreatePublicationsForm from '@/components/CreatePublicationsForm'
 import CreateFundingForm from '@/components/CreateFundingForm'
@@ -11,24 +10,26 @@ import CreateBookForm from '@/components/CreateBookForm'
 export default function EditWorkPage() {
   const params = useParams()
   const id = params?.id
-  const [work, setWork] = useState(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-
-  useEffect(() => {
-    if (!id) return
-    (async () => {
-      try {
-        setLoading(true)
-        const data = await worksAPI.getWork(id)
-        setWork(data)
-      } catch (err) {
-        setError(err.message || 'ไม่สามารถโหลดข้อมูลผลงาน')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [id])
+  
+  // Mock data แทน API call
+  const mockWork = {
+    id: id,
+    type: 'PUBLICATION',
+    status: 'ACTIVE',
+    detail: {
+      titleTh: 'ตัวอย่างงานตีพิมพ์ภาษาไทย',
+      titleEn: 'Example Publication Work',
+      journal: 'วารสารตัวอย่าง',
+      volume: '10',
+      issue: '2',
+      pages: '123-145',
+      year: '2024'
+    }
+  }
+  
+  const work = mockWork
+  const loading = false
+  const error = ''
 
   const initial = useMemo(() => {
     if (!work) return null

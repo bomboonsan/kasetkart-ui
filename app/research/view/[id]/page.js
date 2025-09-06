@@ -1,14 +1,12 @@
 "use client"
 
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import useSWR from 'swr'
 import PageHeader from '@/components/PageHeader'
 import FormSection from '@/components/FormSection'
 import FormFieldBlock from '@/components/FormFieldBlock'
 import FormInput from '@/components/FormInput'
 import FormTextarea from '@/components/FormTextarea'
-import { api } from '@/lib/api'
 import ResearchTeamReadonly from '@/components/ResearchTeamReadonly'
 
 function toDash(v) {
@@ -25,16 +23,27 @@ function isoDate(v) {
 export default function ViewProjectPage() {
   const params = useParams()
   const id = params?.id
-  const { data, error } = useSWR(id ? `/projects/${id}` : null, api.get)
-  const project = data || null
+  
+  // Mock data แทน API call
+  const mockProject = {
+    id: id,
+    nameTh: 'โครงการวิจัยตัวอย่าง',
+    nameEn: 'Example Research Project',
+    fiscalYear: '2567',
+    durationStart: '2024-01-01',
+    durationEnd: '2024-12-31',
+    budget: 500000,
+    status: 'ACTIVE',
+    objective: 'วัตถุประสงค์ตัวอย่าง',
+    methodology: 'วิธีการดำเนินงานตัวอย่าง',
+    expectedOutcome: 'ผลที่คาดว่าจะได้รับตัวอย่าง'
+  }
+  
+  const project = mockProject
 
   return (
     <div className="space-y-6">
       <PageHeader title="รายละเอียดโครงการวิจัย" />
-
-      {error && (
-        <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error.message || 'โหลดข้อมูลไม่ได้'}</div>
-      )}
 
       {!project ? (
         <div className="p-4 text-gray-500">กำลังโหลด...</div>

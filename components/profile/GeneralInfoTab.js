@@ -1,82 +1,47 @@
 "use client"
 
-// ใช้ SWR ดึงข้อมูลโปรไฟล์ของตนเอง แทน useEffect
-import { useEffect, useState } from 'react'
-import useSWR from 'swr'
+import { useState } from 'react'
 import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
-import { Trash2 } from "lucide-react"
-import { api } from '@/lib/api'
+import { Trash2 } from 'lucide-react'
 import SweetAlert2 from 'react-sweetalert2'
 
 export default function GeneralInfoTab() {
   const [swalProps, setSwalProps] = useState({})
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    firstNameEn: '',
-    lastNameEn: '',
-    highDegree: '',
-    jobType: '',
-    email: '',
-    phone: '',
-    nameEn: '',
-    academicPosition: '',
-    department: ''
+    firstName: 'สมชาย',
+    lastName: 'ใจดี',
+    firstNameEn: 'Somchai',
+    lastNameEn: 'Jaidee',
+    highDegree: 'ปริญญาเอก',
+    jobType: 'SA',
+    email: 'somchai@ku.ac.th',
+    phone: '02-123-4567',
+    nameEn: 'Somchai Jaidee',
+    academicPosition: 'ผู้ช่วยศาสตราจารย์',
+    department: 'Accounting & Finance'
   })
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  // ใช้ SWR เพื่อโหลดข้อมูลโปรไฟล์ครั้งเดียว
-  const { data: me, error: swrError } = useSWR('/profiles/me', api.get)
-  useEffect(() => {
-    if (!me) return
-    try {
-      const prof = me?.Profile?.[0] || me?.profile || {}
-      setFormData(prev => ({
-        ...prev,
-        firstName: prof.firstName || '',
-        lastName: prof.lastName || '',
-        firstNameEn: prof.firstNameEn || '',
-        lastNameEn: prof.lastNameEn || '',
-        highDegree: prof.highDegree || '',
-        jobType: prof.jobType || '',
-        phone: prof.phone || '',
-        academicPosition: prof.academicRank || '',
-        email: me.email || '',
-        department: me.Department?.name || me.department?.name || ''
-      }))
-    } catch (err) {
-      setError(err.message || 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ')
-    } finally {
-      setLoading(false)
-    }
-  }, [me])
-  useEffect(() => { if (swrError) setError(swrError.message || 'โหลดข้อมูลโปรไฟล์ไม่สำเร็จ') }, [swrError])
-
   const handleSave = async () => {
     try {
       setError('')
-      await api.patch('/profiles/me', {
-        firstName: formData.firstName || undefined,
-        lastName: formData.lastName || undefined,
-        firstNameEn: formData.firstNameEn || undefined,
-        lastNameEn: formData.lastNameEn || undefined,
-        highDegree: formData.highDegree || undefined,
-        jobType: formData.jobType || undefined,
-        phone: formData.phone || undefined,
-        academicRank: formData.academicPosition || undefined,
-      })
+      setLoading(true)
+      // Mock save success without API call
+      await new Promise(resolve => setTimeout(resolve, 500))
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (err) {
-      setError(err.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'บันทึกโปรไฟล์ไม่สำเร็จ', text: err.message || '', timer: 2200 })
+      setError(err?.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกโปรไฟล์ไม่สำเร็จ', text: err?.message || '', timer: 2200 })
+    } finally {
+      setLoading(false)
     }
   }
 

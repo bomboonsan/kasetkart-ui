@@ -1,36 +1,50 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { usePathname, useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation'
+import { isAuthenticated, getCurrentUser } from '@/lib/auth'
 
-export default function AuthGuard({ children }) {
-  const pathname = usePathname()
+export default function AuthGuard({ children, requireAuth = true, requireRole = null }) {
+  const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState(null)
   const router = useRouter()
-  const [allowed, setAllowed] = useState(false)
 
   useEffect(() => {
-    const isAuthPage = pathname === '/login'
-    let token = null
-    try {
-      // ตรวจจาก localStorage หรือ cookie ฝั่ง client
-      token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-      if (!token && typeof document !== 'undefined') {
-        const cookieStr = document.cookie || ''
-        const m = cookieStr.split(';').map(s => s.trim()).find(s => s.startsWith('token='))
-        if (m) token = m.split('=')[1]
+    const checkAuth = () => {
+      if (requireAuth) {
+        const currentUser = getCurrentUser()
+        
+        if (!currentUser) {
+          router.push('/login')
+          return
+        }
+
+        // Check role requirement
+        if (requireRole && currentUser.role !== requireRole) {
+          router.push('/unauthorized')
+          return
+        }
+
+        setUser(currentUser)
       }
-    } catch {}
-
-    if (!token && !isAuthPage) {
-      // ไม่ได้ล็อกอินและไม่ใช่หน้า login → ส่งกลับหน้า login
-      router.replace('/login')
-      setAllowed(false)
-      return
+      
+      setIsLoading(false)
     }
-    setAllowed(true)
-  }, [pathname, router])
 
-  // ซ่อนเนื้อหาระหว่างตรวจสอบ/กำลัง redirect
-  if (!allowed && pathname !== '/login') return null
+    checkAuth()
+  }, [requireAuth, requireRole, router])
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-500"></div>
+      </div>
+    )
+  }
+
+  if (requireAuth && !user) {
+    return null // Will redirect to login
+  }
+
   return children
 }

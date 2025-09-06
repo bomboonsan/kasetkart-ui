@@ -3,8 +3,6 @@ import UserPicker from './UserPicker'
 import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
 import FormCheckbox from './FormCheckbox';
-import useSWR from 'swr'
-import { api } from '@/lib/api'
 import { useEffect, useMemo, useState } from 'react'
 import SweetAlert2 from 'react-sweetalert2'
 import {
@@ -14,8 +12,27 @@ import {
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const [swalProps, setSwalProps] = useState({})
-  const { data: project, mutate } = useSWR(projectId ? `/projects/${projectId}` : null, api.get)
-  const { data: me } = useSWR('/profiles/me', api.get)
+  
+  // Mock data แทน API calls
+  const mockProject = {
+    ProjectPartner: [
+      {
+        id: 1,
+        fullname: 'สมชาย ใจดี',
+        orgName: 'คณะเศรษฐศาสตร์',
+        partnerType: 'หัวหน้าโครงการ',
+        isInternal: true
+      }
+    ]
+  }
+  
+  const mockMe = {
+    id: 1,
+    email: 'user@example.com'
+  }
+  
+  const project = mockProject
+  const me = mockMe
   const [localPartners, setLocalPartners] = useState([])
   const [editingIndex, setEditingIndex] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -60,10 +77,9 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         partnerComment: p.partnerComment || p.comment,
         partnerProportion: p.partnerProportion !== undefined ? parseFloat(p.partnerProportion) : undefined,
       }))
-      // อัปเดตเฉพาะ partners ในโปรเจกต์นี้
-      await api.put(`/projects/${projectId}`, { partners: payloadPartners })
-      // รีเฟรชข้อมูลโปรเจกต์เพื่อให้ข้อมูลตรงกับเซิร์ฟเวอร์
-      await mutate()
+      // Mock API call
+      console.log('Would save team:', payloadPartners)
+      await new Promise(resolve => setTimeout(resolve, 1000))
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกทีมสำเร็จ', timer: 1000, showConfirmButton: false })
     } catch (err) {
       setSaveError(err.message || 'บันทึกผู้ร่วมโครงการไม่สำเร็จ')
