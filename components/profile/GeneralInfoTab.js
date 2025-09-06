@@ -64,11 +64,29 @@ export default function GeneralInfoTab() {
       }
 
       // เตรียมข้อมูลสำหรับ user (relations + email)
-      // Strapi v5: ใช้ documentId สำหรับ relations
+      // Strapi v5: ต้องแปลง documentId กลับเป็น id สำหรับบันทึก
       const userBody = {}
       const setIf = (key, val) => {
         if (val !== undefined && val !== null && val !== '') {
-          userBody[key] = val
+          // หา realId จาก documentId ที่เลือกไว้
+          let realId = val
+          if (key === 'department') {
+            const dept = departments.find(d => d.id === val)
+            realId = dept?.realId || val
+          } else if (key === 'faculty') {
+            const fac = faculties.find(f => f.id === val)
+            realId = fac?.realId || val
+          } else if (key === 'organization') {
+            const org = organizations.find(o => o.id === val)
+            realId = org?.realId || val
+          } else if (key === 'academic_type') {
+            const at = academicTypes.find(a => a.id === val)
+            realId = at?.realId || val
+          } else if (key === 'participation_type') {
+            const pt = participationTypes.find(p => p.id === val)
+            realId = pt?.realId || val
+          }
+          userBody[key] = realId
         }
       }
       setIf('department', formData.department)
@@ -142,7 +160,7 @@ export default function GeneralInfoTab() {
     if (!profileRes) return
 
     // คอมเมนต์ (ไทย): map ฟิลด์จาก profile และ user
-    // Strapi v5: response ไม่มี attributes แล้ว, relations ใช้ id ในการส่งข้อมูล แต่ documentId ในการเรียก API
+    // Strapi v5: ใช้ documentId สำหรับแสดงค่าใน select (frontend) แต่เก็บ id ไว้สำหรับบันทึก (backend)
     setFormData(prev => ({
       ...prev,
       firstName: profObj?.firstNameTH || profObj?.firstName || '',
@@ -154,16 +172,16 @@ export default function GeneralInfoTab() {
       nameEn: profObj ? `${profObj?.firstNameEN || profObj?.firstNameEn || profObj?.firstName || ''} ${profObj?.lastNameEN || profObj?.lastNameEn || profObj?.lastName || ''}`.trim() : '',
       academicPosition: profObj?.academicPosition || profObj?.position || '',
       highDegree: profObj?.highDegree || '',
-      academic_type: res?.academic_type?.id || '',
-      participation_type: res?.participation_type?.id || '',
-      department: res?.department?.id || '',
-      faculty: res?.faculty?.id || '',
-      organization: res?.organization?.id || '',
-    }))    // ดึงวุฒิการศึกษาที่ populate มาด้วย (Strapi v5: ใช้ documentId สำหรับ API calls, id สำหรับ relations)
+      academic_type: res?.academic_type?.documentId || '',
+      participation_type: res?.participation_type?.documentId || '',
+      department: res?.department?.documentId || '',
+      faculty: res?.faculty?.documentId || '',
+      organization: res?.organization?.documentId || '',
+    }))    // ดึงวุฒิการศึกษาที่ populate มาด้วย (Strapi v5: ใช้ documentId สำหรับแสดงผล, id สำหรับบันทึก)
     const eduArr = res?.educations || []
     const normalized = (eduArr || []).map(e => ({
       documentId: e?.documentId || undefined,
-      education_level: e?.education_level?.id || '',
+      education_level: e?.education_level?.documentId || '',
       name: e?.name || '',
       faculty: e?.faculty || '',
       year: e?.year || '',
@@ -175,13 +193,14 @@ export default function GeneralInfoTab() {
   console.log('formData', formData)
 
   useEffect(() => {
-    // คอมเมนต์ (ไทย): แปลงรูปแบบ response ของ Strapi v5 ที่ไม่มี attributes แล้ว
-    // ใช้ documentId สำหรับ value และ id สำหรับ relations
+    // คอมเมนต์ (ไทย): แปลงรูปแบบ response ของ Strapi v5
+    // ใช้ documentId สำหรับ value ใน select และ id สำหรับบันทึกข้อมูล
     const normalize = (raw) => {
       const arr = raw?.data || raw || []
       return arr.map(x => ({
-        id: x?.id, // ใช้ id สำหรับส่งใน relations
-        name: x?.name // Strapi v5 ไม่มี attributes แล้ว
+        id: x?.documentId, // ใช้ documentId เป็น value ใน select
+        name: x?.name, // Strapi v5 ไม่มี attributes แล้ว
+        realId: x?.id // เก็บ id จริงไว้สำหรับบันทึก
       }))
     }
 
@@ -374,7 +393,7 @@ export default function GeneralInfoTab() {
                   >
                     <option value="">เลือกระดับวุฒิการศึกษา</option>
                     {(eduLevelsRaw?.data || eduLevelsRaw || []).map((lv) => (
-                      <option key={lv.id} value={lv.id}>
+                      <option key={lv.documentId} value={lv.documentId}>
                         {lv.name}
                       </option>
                     ))}
@@ -444,10 +463,17 @@ export default function GeneralInfoTab() {
                   const userId = res?.id
                   if (!userId) throw new Error('ไม่พบผู้ใช้ (userId) สำหรับบันทึกวุฒิการศึกษา')
 
-                  // อัปเดต/สร้างทีละรายการ - Strapi v5: ใช้ documentId
+                  // อัปเดต/สร้างทีละรายการ - Strapi v5: แปลง documentId กลับเป็น id สำหรับบันทึก
                   for (const e of educations) {
+                    // หา id จริงของ education_level จาก documentId
+                    let educationLevelId = e.education_level
+                    if (e.education_level) {
+                      const eduLevel = (eduLevelsRaw?.data || eduLevelsRaw || []).find(lv => lv.documentId === e.education_level)
+                      educationLevelId = eduLevel?.id || e.education_level
+                    }
+
                     const payload = {
-                      education_level: e.education_level || null,
+                      education_level: educationLevelId || null,
                       name: e.name?.trim() || '',
                       faculty: e.faculty?.trim() || '',
                       year: e.year ? Number(e.year) : null,
