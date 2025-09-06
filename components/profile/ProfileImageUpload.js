@@ -1,36 +1,119 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import useSWR from 'swr'
+import useSWR, { mutate } from 'swr'
 import Button from '@/components/Button'
-import { uploadAPI, API_BASE, api } from '@/lib/api'
+import { uploadAPI, API_BASE, profileAPI } from '@/lib/api'
 
 export default function ProfileImageUpload() {
   const [imagePreview, setImagePreview] = useState(null)
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
-  const { data: me } = useSWR('/profiles/me', api.get)
+  // Fetch current user profile to get avatar
+  const { data: profileRes, error: profileError } = useSWR('profile', () => profileAPI.getMyProfile())
+
   useEffect(() => {
-    const url = me?.Profile?.[0]?.avatarUrl
-    if (url) setImagePreview(url)
-  }, [me])
+    if (profileRes) {
+      const res = profileRes?.data || profileRes || {}
+      const profObj = res.profile || res.Profile?.[0] || res
+      
+      // Try to find avatar URL from various possible fields
+      let avatarUrl = ''
+      const tryPaths = [
+        profObj?.avatarUrl?.data?.attributes?.url,
+        profObj?.avatarUrl?.url,
+        profObj?.profileImage?.data?.attributes?.url,
+        profObj?.profile_image?.data?.attributes?.url,
+        profObj?.picture?.data?.attributes?.url,
+        profObj?.image?.data?.attributes?.url,
+        profObj?.avatarUrl,
+        profObj?.avatar_url,
+      ]
+      
+      for (const p of tryPaths) {
+        if (p) {
+          avatarUrl = p
+          break
+        }
+      }
+
+      // If URL is relative, make it absolute
+      if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
+        const mediaBase = API_BASE.replace(/\/api\/?$/, '')
+        avatarUrl = `${mediaBase}${avatarUrl}`
+      }
+
+      setImagePreview(avatarUrl || null)
+    }
+  }, [profileRes])
 
   const handleImageUpload = async (event) => {
     const file = event.target.files[0]
     if (!file) return
+
     try {
       setError('')
       setUploading(true)
-      const [attachment] = await uploadAPI.uploadFiles([file])
-      const fullUrl = `${API_BASE}${attachment.url}`
-      await api.patch('/profiles/me', { avatarUrl: fullUrl })
+
+      // Upload file to Strapi
+      const uploadResponse = await uploadAPI.uploadFiles([file])
+      const uploadedFile = uploadResponse[0]
+      
+      if (!uploadedFile?.id) {
+        throw new Error('อัปโหลดไฟล์ไม่สำเร็จ')
+      }
+
+      // Get current user ID from profile
+      const res = profileRes?.data || profileRes || {}
+      const userId = res?.id
+      const profileId = res?.profile?.id || res?.Profile?.[0]?.id
+
+      if (!userId || !profileId) {
+        throw new Error('ไม่พบข้อมูลผู้ใช้')
+      }
+
+      // Update profile with new avatar
+      await profileAPI.updateProfileData(profileId, {
+        avatarUrl: uploadedFile.id // Store file ID for Strapi relation
+      })
+
+      // Create full URL for preview
+      let fullUrl = uploadedFile.url
+      if (fullUrl && !/^https?:\/\//i.test(fullUrl)) {
+        const mediaBase = API_BASE.replace(/\/api\/?$/, '')
+        fullUrl = `${mediaBase}${fullUrl}`
+      }
+
       setImagePreview(fullUrl)
+      
+      // Refresh profile data in all components
+      mutate('profile')
+
     } catch (err) {
+      console.error('Upload error:', err)
       setError(err.message || 'อัปโหลดรูปภาพไม่สำเร็จ')
     } finally {
       setUploading(false)
     }
+  }
+
+  const generateInitials = () => {
+    if (profileRes) {
+      const res = profileRes?.data || profileRes || {}
+      const profObj = res.profile || res.Profile?.[0] || res
+      const firstName = profObj?.firstName || profObj?.firstNameTH || ''
+      const lastName = profObj?.lastName || profObj?.lastNameTH || ''
+      const email = res?.email || ''
+      const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
+      
+      if (displayName) {
+        const parts = displayName.split(/[\s+]+/)
+        return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '') || displayName[0]).toUpperCase()
+      }
+      return email ? email[0].toUpperCase() : 'U'
+    }
+    return 'U'
   }
 
   return (
@@ -42,10 +125,11 @@ export default function ProfileImageUpload() {
               src={imagePreview} 
               alt="Profile preview" 
               className="w-full h-full object-cover"
+              onError={() => setImagePreview(null)}
             />
           ) : (
             <div className="w-full h-full bg-blue-500 text-white text-2xl font-bold flex items-center justify-center rounded-full">
-              ธี
+              {generateInitials()}
             </div>
           )}
         </div>
@@ -61,17 +145,23 @@ export default function ProfileImageUpload() {
             accept="image/*"
             onChange={handleImageUpload}
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            disabled={uploading}
           />
         </div>
       </div>
       
       <div className="text-center space-x-2 space-y-3">
-        {/* <p className="text-sm text-gray-600 mb-2">อัปโหลดรูปภาพ</p> */}
-        <Button variant="primary" size="sm" onClick={() => document.querySelector('input[type="file"]').click()} disabled={uploading}>
+        <Button 
+          variant="primary" 
+          size="sm" 
+          onClick={() => document.querySelector('input[type="file"]').click()} 
+          disabled={uploading}
+        >
           {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดรูปภาพ'}
         </Button>
         <p className="text-xs text-gray-500">JPG, PNG ขนาดไม่เกิน 10MB</p>
         {error && <div className="text-xs text-red-600">{error}</div>}
+        {profileError && <div className="text-xs text-red-600">โหลดโปรไฟล์ไม่สำเร็จ</div>}
       </div>
     </div>
   )
