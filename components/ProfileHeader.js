@@ -5,7 +5,8 @@ import ProfileStats from "@/components/ProfileStats";
 import Link from 'next/link';
 import { useState } from 'react'
 import useSWR from 'swr'
-import { api } from '@/lib/api'
+import { profileAPI, API_BASE } from '@/lib/api'
+import Image from 'next/image'
 
 function initials(name, fallback) {
   const s = (name || '').trim()
@@ -16,15 +17,39 @@ function initials(name, fallback) {
 
 export default function ProfileHeader() {
   const [error, setError] = useState('')
-  const { data: profile, error: swrError } = useSWR('/profiles/me', api.get)
+  const { data: profileRes, error: swrError } = useSWR('profile', () => profileAPI.getMyProfile())
   if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
 
-  const profObj = profile?.profile || profile?.Profile?.[0]
-  const displayName = profObj
-    ? `${profObj.firstName || ''} ${profObj.lastName || ''}`.trim()
-    : ''
-  const email = profile?.email || ''
-  const departmentName = profile?.Department?.name || profile?.department?.name || '-'
+  const res = profileRes?.data || profileRes || {}
+  // profile entity may be nested under `profile` or be the entity itself
+  const profObj = res.profile || res.Profile?.[0] || res
+
+  // Resolve display name from multiple possible fields
+  const firstName = profObj?.firstName || profObj?.firstNameTH || profObj?.firstname || profObj?.name || ''
+  const lastName = profObj?.lastName || profObj?.lastNameTH || profObj?.lastname || ''
+  const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
+  const email = res?.email || profObj?.email || ''
+  const departmentName = profObj?.department?.name || res?.Department?.name || res?.department?.name || '-'
+
+  // Try to find an avatar URL in common Strapi response shapes
+  let avatarUrl = ''
+  const tryPaths = [
+    profObj?.avatar?.data?.attributes?.url,
+    profObj?.avatar?.url,
+    profObj?.profileImage?.data?.attributes?.url,
+    profObj?.profile_image?.data?.attributes?.url,
+    profObj?.picture?.data?.attributes?.url,
+    profObj?.image?.data?.attributes?.url,
+    profObj?.avatarUrl,
+    profObj?.avatar_url,
+  ]
+  for (const p of tryPaths) {
+    if (p) { avatarUrl = p; break }
+  }
+  if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
+    const mediaBase = API_BASE.replace(/\/api\/?$/, '')
+    avatarUrl = `${mediaBase}${avatarUrl}`
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -35,11 +60,17 @@ export default function ProfileHeader() {
         <div className="flex flex-col lg:flex-row items-start space-y-4 lg:space-y-0 lg:space-x-6">
           {/* Profile Image */}
           <div className="flex-shrink-0">
-            <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
-              <div className="w-full h-full bg-primary text-white text-2xl font-bold flex items-center justify-center rounded-full">
-                {initials(displayName, email)}
+            {avatarUrl ? (
+              <div className="w-24 h-24 rounded-full overflow-hidden">
+                <Image src={avatarUrl} alt={displayName || 'avatar'} width={96} height={96} className="object-cover w-24 h-24 rounded-full" />
               </div>
-            </div>
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                <div className="w-full h-full bg-primary text-white text-2xl font-bold flex items-center justify-center rounded-full">
+                  {initials(displayName, email)}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Profile Info */}

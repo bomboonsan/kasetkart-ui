@@ -1,41 +1,77 @@
 "use client"
+
 import Button from '@/components/Button'
 import ProfileStats from "@/components/ProfileStats";
 import Link from 'next/link';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import Image from 'next/image'
+import { profileAPI, API_BASE } from '@/lib/api'
 
 function initials(name, fallback) {
   const s = (name || '').trim()
   if (!s) return (fallback || 'U').slice(0, 2).toUpperCase()
-  const parts = s.split(/[\s]+/)
+  const parts = s.split(/[\n+\s]+/)
   return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '') || s[0]).toUpperCase()
 }
 
 export default function ProfileHeader() {
   const [error, setError] = useState('')
-  
-  // Mock data แทน API call
-  const mockProfile = {
-    profile: {
-      firstName: 'สมชาย',
-      lastName: 'ใจดี',
-      jobType: 'SA',
-      highDegree: 'ปริญญาเอก'
-    },
-    email: 'somchai@ku.ac.th',
-    Department: { name: 'ภาควิชาเศรษฐศาสตร์' },
-    Faculty: { name: 'คณะเศรษฐศาสตร์' }
-  }
 
-  const profObj = mockProfile.profile
-  const displayName = profObj
-    ? `${profObj.firstName || ''} ${profObj.lastName || ''}`.trim()
-    : ''
-  const email = mockProfile?.email || ''
-  const departmentName = mockProfile?.Department?.name || '-'
-  const facultyName = mockProfile?.Faculty?.name || ''
+  const [profileRes, setProfileRes] = useState(null)
+
+  useEffect(() => {
+    let mounted = true
+
+    async function loadProfile() {
+      try {
+        const r = await profileAPI.getMyProfile()
+        if (!mounted) return
+        setProfileRes(r)
+      } catch (err) {
+        if (!mounted) return
+        setError(err?.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
+      }
+    }
+
+    loadProfile()
+    return () => { mounted = false }
+  }, [])
+
+  const res = profileRes?.data || profileRes || {}
+  const profObj = res.profile || res.Profile?.[0] || res
+
+  const firstName = profObj?.firstName || profObj?.firstNameTH || profObj?.firstname || profObj?.name || ''
+  const lastName = profObj?.lastName || profObj?.lastNameTH || profObj?.lastname || ''
+  const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
+  const email = res?.email || profObj?.email || ''
+  const departmentName = profObj?.department?.name || res?.Department?.name || res?.department?.name || '-'
+  const facultyName = res?.Faculty?.name || res?.faculty?.name || ''
   const jobType = profObj?.jobType || ''
   const highDegree = profObj?.highDegree || ''
+
+  // Resolve avatar URL from common Strapi shapes
+  let avatarUrl = ''
+  const tryPaths = [
+    // profObj?.avatar?.data?.attributes?.url,
+    // profObj?.avatar?.url,
+    // profObj?.profileImage?.data?.attributes?.url,
+    // profObj?.profile_image?.data?.attributes?.url,
+    // profObj?.picture?.data?.attributes?.url,
+    // profObj?.image?.data?.attributes?.url,
+    // profObj?.avatarUrl,
+    // profObj?.avatar_url,
+
+    profObj?.avatarUrl?.url,
+  ]
+  for (const p of tryPaths) {
+    if (p) { avatarUrl = p; break }
+  }
+  if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
+    const mediaBase = API_BASE.replace(/\/api\/?$/, '')
+    avatarUrl = `${mediaBase}${avatarUrl}`
+  }
+
+  console.log('avatarUrl', avatarUrl)
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -46,15 +82,17 @@ export default function ProfileHeader() {
         <div className="flex flex-col lg:flex-row items-start space-y-4 lg:space-y-0 lg:space-x-6">
           {/* Profile Image */}
           <div className="flex-shrink-0">
-            <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
-              {profObj?.avatarUrl ? (
-                <img src={profObj.avatarUrl} alt="avatar" className="w-24 h-24 object-cover rounded-full" />
-              ) : (
+            {avatarUrl ? (
+              <div className="w-24 h-24 rounded-full overflow-hidden">
+                <Image src={avatarUrl} alt={displayName || 'avatar'} width={96} height={96} className="object-cover w-24 h-24 rounded-full" />
+              </div>
+            ) : (
+              <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
                 <div className="w-full h-full bg-primary text-white text-2xl font-bold flex items-center justify-center rounded-full">
                   {initials(displayName, email)}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {/* Profile Info */}

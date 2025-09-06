@@ -137,7 +137,7 @@ export default function Sidebar() {
 
     async function loadProfile() {
       try {
-        const res = await profileAPI.getMyProfile()
+        const res = await profileAPI.getMyProfileSidebar()
 
         // res may be the user object directly or { data: ... }
         const user = res?.data || res || {}
