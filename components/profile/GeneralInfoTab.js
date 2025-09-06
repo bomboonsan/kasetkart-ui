@@ -30,6 +30,9 @@ export default function GeneralInfoTab() {
   const [error, setError] = useState('')
   const [departments, setDepartments] = useState([])
   const [academicTypes, setAcademicTypes] = useState([])
+  const [participationTypes, setParticipationTypes] = useState([])
+  const [faculties, setFaculties] = useState([])
+  const [organizations, setOrganizations] = useState([])
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -72,6 +75,7 @@ export default function GeneralInfoTab() {
   const { data: facultiesRes, error: facError } = useSWR('faculties', () => orgAPI.getFaculties())
   const { data: departmentsRaw, error: depError } = useSWR('departments', () => orgAPI.getDepartments())
   const { data: academicTypesRaw, error: acadError } = useSWR('academic-types', () => orgAPI.getAcademicType())
+  const { data: participationTypesRaw, error: partError } = useSWR('participation-types', () => orgAPI.getParticipationTypes())
 
   if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
 
@@ -88,13 +92,15 @@ export default function GeneralInfoTab() {
       lastName: profObj?.lastName || profObj?.lastNameTH || '',
       firstNameEn: profObj?.firstNameEn || profObj?.firstNameEN || '',
       lastNameEn: profObj?.lastNameEn || profObj?.lastNameEN || '',
-      highDegree: profObj?.highDegree || '',
-      academic_type: res?.academic_type?.documentId || '', // มันไม่ได้อยู่ใน profile
-      email: res?.email || profObj?.email || '',
       phone: profObj?.telephoneNo || '',
+      email: res?.email || profObj?.email || '',
       nameEn: profObj ? `${profObj?.firstNameEn || profObj?.firstName || ''} ${profObj?.lastNameEn || profObj?.lastName || ''}`.trim() : '',
       academicPosition: profObj?.academicPosition || profObj?.position || '',
+      highDegree: profObj?.highDegree || '',
+      academic_type: res?.academic_type?.documentId || '', // มันไม่ได้อยู่ใน profile
+      participation_type: res?.participation_type?.documentId || '', // มันไม่ได้อยู่ใน profile
       department: res?.department?.documentId || ''  // มันไม่ได้อยู่ใน profile
+
     }))
   }, [profileRes])
   console.log('formData', formData)
@@ -111,7 +117,26 @@ export default function GeneralInfoTab() {
     if (acadError) console.error('academic types load error:', acadError)
     console.log('academic types', academicTypes)
     setAcademicTypes(academicTypes)
-  }, [departmentsRaw, academicTypesRaw])
+
+    // Participation Types
+    const participationTypes = participationTypesRaw?.data || participationTypesRaw || []
+    if (partError) console.error('participation types load error:', partError)
+    console.log('participation types', participationTypes)
+    setParticipationTypes(participationTypes)
+
+    // Faculties
+    const faculties = facultiesRes?.data || facultiesRes || []
+    if (facError) console.error('faculties load error:', facError)
+    console.log('faculties', faculties)
+    setFaculties(faculties)
+
+    // Organizations
+    const organizations = organizationsRes?.data || organizationsRes || []
+    if (orgError) console.error('organizations load error:', orgError)
+    console.log('organizations', organizations)
+    setOrganizations(organizations)
+
+  }, [departmentsRaw, academicTypesRaw, participationTypesRaw, facultiesRes, organizationsRes])
 
   const updateEducation = (index, field, value) => {
     setEducations(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e))
@@ -173,9 +198,9 @@ export default function GeneralInfoTab() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
-                      label="ตำแหน่งทางวิชาการ"
-                      value={formData.academicPosition}
-                      onChange={(value) => handleInputChange('academicPosition', value)}
+                      label="เบอร์ติดต่อ"
+                      value={formData.phone}
+                      onChange={(value) => handleInputChange('phone', value)}
                       placeholder=""
                     />
                     <FormField
@@ -189,37 +214,52 @@ export default function GeneralInfoTab() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <FormField
-                      label="เบอร์ติดต่อ"
-                      value={formData.phone}
-                      onChange={(value) => handleInputChange('phone', value)}
+                      label="ตำแหน่งทางวิชาการ"
+                      value={formData.academicPosition}
+                      onChange={(value) => handleInputChange('academicPosition', value)}
                       placeholder=""
                     />
-                    {/* <FormField
-                  label="ภาควิชา"
-                  value={formData.department}
-                  onChange={(value) => handleInputChange('department', value)}
-                  placeholder="กรุณาระบุภาควิชา"
-                /> */}
+                    <FormField
+                      label="HighDegree"
+                      value={formData.highDegree}
+                      onChange={(value) => handleInputChange('highDegree', value)}
+                      placeholder="เช่น Ph.D., M.Sc., B.Eng."
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <SelectField
+                      label="ประเภทอาจารย์"
+                      value={formData.academic_type}
+                      onChange={(value) => handleInputChange('academic_type', value)}
+                      options={academicTypes.map(at => ({ value: at.documentId, label: at.name }))}
+                    />
+                    <SelectField
+                      label="ประเภทการเข้าร่วม"
+                      value={formData.participation_type}
+                      onChange={(value) => handleInputChange('participation_type', value)}
+                      options={participationTypes.map(pt => ({ value: pt.documentId, label: pt.name }))}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     <SelectField
                       label="ภาควิชา"
                       value={formData.department}
                       onChange={(value) => handleInputChange('department', value)}
                       options={departments.map(dep => ({ value: dep.documentId, label: dep.name }))}
                     />
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      label="วุฒิการศึกษาสูงสุด (High Degree)"
-                      value={formData.highDegree}
-                      onChange={(value) => handleInputChange('highDegree', value)}
-                      placeholder="เช่น Ph.D., M.Sc., B.Eng."
+                    <SelectField
+                      label="คณะ"
+                      value={formData.faculties}
+                      onChange={(value) => handleInputChange('faculties', value)}
+                      options={faculties.map(fac => ({ value: fac.documentId, label: fac.name }))}
                     />
                     <SelectField
-                      label="ประเภทอาจารย์"
-                      value={formData.academic_type}
-                      onChange={(value) => handleInputChange('academic_type', value)}
-                      options={academicTypes.map(at => ({ value: at.documentId, label: at.name }))}
+                      label="มหาวิทยาลัย/หน่วยงาน"
+                      value={formData.organizations}
+                      onChange={(value) => handleInputChange('organizations', value)}
+                      options={organizations.map(org => ({ value: org.documentId, label: org.name }))}
                     />
                   </div>
                 </div>
