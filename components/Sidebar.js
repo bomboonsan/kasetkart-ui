@@ -140,8 +140,22 @@ export default function Sidebar() {
   }
 
   function handleLogout() {
-    // Simple logout without API call
-    console.log('Logout clicked')
+    // Clear client-side auth (localStorage + cookie) so middleware and client know user is logged out
+    try {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem('jwt')
+        // remove cookie by setting it expired
+        document.cookie = 'jwt=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+      }
+    } catch (err) {
+      console.error('Error clearing auth token:', err)
+    }
+
+    // Reset UI state
+    setUserDisplayName('')
+    setUserEmail('')
+
+    // Redirect to login
     router.push('/login')
   }
 
