@@ -6,7 +6,7 @@ import useSWR from 'swr'
 import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
-import { orgAPI, userAPI, uploadAPI, API_BASE, api } from '@/lib/api'
+// import { orgAPI, userAPI, uploadAPI, API_BASE, api } from '@/lib/api'
 import SweetAlert2 from 'react-sweetalert2'
 
 export default function AddUserForm() {

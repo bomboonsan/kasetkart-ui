@@ -142,9 +142,7 @@ export default function Sidebar() {
         // res may be the user object directly or { data: ... }
         const user = res?.data || res || {}
 
-        console.log('Loaded user profile:', user)
         const backendURL = "http://localhost:1337"
-        console.log('Avatar URL:', backendURL + user?.profile?.avatarUrl?.url)
 
         // Try multiple possible fields for display name
         const firstName = user.profile.firstNameTH || user.email

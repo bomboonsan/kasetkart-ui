@@ -1,8 +1,11 @@
 "use client"
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import useSWR from 'swr'
+import { profileAPI , orgAPI } from '@/lib/api'
 import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/FormField'
+import FormSelect from '@/components/FormSelect'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
 import { Trash2 } from 'lucide-react'
@@ -11,17 +14,17 @@ import SweetAlert2 from 'react-sweetalert2'
 export default function GeneralInfoTab() {
   const [swalProps, setSwalProps] = useState({})
   const [formData, setFormData] = useState({
-    firstName: 'สมชาย',
-    lastName: 'ใจดี',
-    firstNameEn: 'Somchai',
-    lastNameEn: 'Jaidee',
-    highDegree: 'ปริญญาเอก',
-    jobType: 'SA',
-    email: 'somchai@ku.ac.th',
-    phone: '02-123-4567',
-    nameEn: 'Somchai Jaidee',
-    academicPosition: 'ผู้ช่วยศาสตราจารย์',
-    department: 'Accounting & Finance'
+    firstName: '',
+    lastName: '',
+    firstNameEn: '',
+    lastNameEn: '',
+    highDegree: '',
+    academic_type: '',
+    email: '',
+    phone: '',
+    nameEn: '',
+    academicPosition: '',
+    department: ''
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -34,8 +37,9 @@ export default function GeneralInfoTab() {
     try {
       setError('')
       setLoading(true)
-      // Mock save success without API call
-      await new Promise(resolve => setTimeout(resolve, 500))
+  // TODO: Call profileAPI.updateProfile(...) to persist changes
+  // Mock save success without API call for now
+  await new Promise(resolve => setTimeout(resolve, 500))
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (err) {
       setError(err?.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
@@ -60,6 +64,41 @@ export default function GeneralInfoTab() {
     setEducations(prev => [...prev, { degree: '', institution: '', major: '', year: '' }])
   }
 
+  // Load profile and populate form fields
+  const { data: profileRes, error: swrError } = useSWR('profile', () => profileAPI.getMyProfile())
+  const { data: organizationsRes, error: orgError } = useSWR('organizations', () => orgAPI.getOrganizations())
+  const { data: facultiesRes, error: facError } = useSWR('faculties', () => orgAPI.getFaculties())
+  const { data: departmentsRaw, error: depError } = useSWR('departments', () => orgAPI.getDepartments())
+
+  if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
+
+  useEffect(() => {
+    const res = profileRes?.data || profileRes || {}
+    const profObj = res.profile || res.Profile?.[0] || res
+    console.log('profileRes', profileRes)
+    // departmentsRaw may be an object with `.data` (api wrapper) or an array directly
+    const departments = departmentsRaw?.data || departmentsRaw || []
+    if (depError) console.error('departments load error:', depError)
+    console.log('departments', departments)
+
+    if (!profileRes) return
+
+    setFormData(prev => ({
+      ...prev,
+      firstName: profObj?.firstName || profObj?.firstNameTH || '',
+      lastName: profObj?.lastName || profObj?.lastNameTH || '',
+      firstNameEn: profObj?.firstNameEn || profObj?.firstNameEN || '',
+      lastNameEn: profObj?.lastNameEn || profObj?.lastNameEN || '',
+      highDegree: profObj?.highDegree || '',
+      academic_type: res?.academic_type?.id || '', // มันไม่ได้อยู่ใน profile
+      email: res?.email || profObj?.email || '',
+      phone: profObj?.telephoneNo || '',
+      nameEn: profObj ? `${profObj?.firstNameEn || profObj?.firstName || ''} ${profObj?.lastNameEn || profObj?.lastName || ''}`.trim() : '',
+      academicPosition: profObj?.academicPosition || profObj?.position || '',
+      department: profObj?.department?.name || profObj?.department || ''
+    }))
+  }, [profileRes])
+
   const updateEducation = (index, field, value) => {
     setEducations(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e))
   }
@@ -67,6 +106,8 @@ export default function GeneralInfoTab() {
   const removeEducation = (index) => {
     setEducations(prev => prev.filter((_, i) => i !== index))
   }
+  
+  console.log('formData',formData)
 
   return (
     <>
@@ -141,11 +182,23 @@ export default function GeneralInfoTab() {
                   onChange={(value) => handleInputChange('phone', value)}
                   placeholder=""
                 />
-                <FormField
+                {/* <FormField
                   label="ภาควิชา"
                   value={formData.department}
                   onChange={(value) => handleInputChange('department', value)}
                   placeholder="กรุณาระบุภาควิชา"
+                /> */}
+                <SelectField
+                  label="ประเภทอาจารย์"
+                  value={formData.department}
+                  onChange={(value) => handleInputChange('department', value)}
+                  options={[
+                    { value: '1', label: 'SA' },
+                    { value: '3', label: 'PA' },
+                    { value: '5', label: 'SP' },
+                    { value: '7', label: 'IP' },
+                    { value: '9', label: 'A' }
+                  ]}
                 />
               </div>
 
@@ -156,11 +209,17 @@ export default function GeneralInfoTab() {
                   onChange={(value) => handleInputChange('highDegree', value)}
                   placeholder="เช่น Ph.D., M.Sc., B.Eng."
                 />
-                <FormField
-                  label="ประเภทอาจารย์ (Job Type)"
-                  value={formData.jobType}
-                  onChange={(value) => handleInputChange('jobType', value)}
-                  placeholder="เช่น SA, PA, SP, IP, A"
+                <SelectField
+                  label="ประเภทอาจารย์"
+                  value={formData.academic_type}
+                  onChange={(value) => handleInputChange('academic_type', value)}
+                  options={[
+                    { value: '1', label: 'SA' },
+                    { value: '3', label: 'PA' },
+                    { value: '5', label: 'SP' },
+                    { value: '7', label: 'IP' },
+                    { value: '9', label: 'A' }
+                  ]}
                 />
               </div>
             </div>
