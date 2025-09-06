@@ -1,156 +1,49 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import ProfileImageUpload from './ProfileImageUpload'
 import FormField from './FormField'
 import SelectField from './SelectField'
-import Button from './Button'
-import { profileAPI, orgAPI } from '../lib/api' // Import API functions
 
-export default function GeneralInfoTab() {
-  const [user, setUser] = useState(null);
-  const [formData, setFormData] = useState({
-    // Profile fields
-    firstNameTH: '',
-    lastNameTH: '',
-    firstNameEN: '',
-    lastNameEN: '',
-    academicPosition: '',
-    telephoneNo: '',
-    // User fields
-    email: '',
-    department: null, // Will store the department ID
-  });
-  const [departments, setDepartments] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+/**
+ * GeneralInfoTab (Presentational Component)
+ * @param {object} props - The props object.
+ * @param {object} props.formData - The form data state from the parent component.
+ * @param {object} props.options - The options for all select fields.
+ * @param {function} props.onFormChange - The handler function to update form data in the parent.
+ * @returns {JSX.Element}
+ * @description
+ * คอมโพเนนต์นี้เป็น "Presentational Component" หรือ "Dumb Component" ที่รับผิดชอบเฉพาะการแสดงผล UI ของแท็บข้อมูลทั่วไป
+ * ไม่มีการจัดการ State หรือ Logic ในการดึง/บันทึกข้อมูลเอง แต่จะรับข้อมูลและฟังก์ชันทั้งหมดมาจาก Parent Component (ProfileEditForm)
+ */
+export default function GeneralInfoTab({ formData, options, onFormChange }) {
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setIsLoading(true);
-        const [userResponse, departmentsResponse] = await Promise.all([
-          profileAPI.getMyProfile(),
-          orgAPI.getDepartments()
-        ]);
-
-        if (userResponse) {
-          setUser(userResponse);
-          setFormData({
-            firstNameTH: userResponse.profile?.firstNameTH || '',
-            lastNameTH: userResponse.profile?.lastNameTH || '',
-            firstNameEN: userResponse.profile?.firstNameEN || '',
-            lastNameEN: userResponse.profile?.lastNameEN || '',
-            academicPosition: userResponse.profile?.academicPosition || '',
-            telephoneNo: userResponse.profile?.telephoneNo || '',
-            email: userResponse.email || '',
-            department: userResponse.department?.id || null,
-          });
-        }
-
-        if (departmentsResponse && Array.isArray(departmentsResponse.data)) {
-          const departmentOptions = departmentsResponse.data.map(dep => ({
-            value: dep.id,
-            label: dep.attributes.name,
-          }));
-          setDepartments(departmentOptions);
-        }
-        setError(null);
-      } catch (err) {
-        console.error("Failed to fetch profile data:", err);
-        setError("ไม่สามารถดึงข้อมูลโปรไฟล์ได้");
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
-
+  // Handler สำหรับการเปลี่ยนแปลงค่าในฟอร์ม
+  // โดยจะเรียกฟังก์ชัน onFormChange ที่ได้รับมาจาก props เพื่อส่งข้อมูลกลับไปให้ Parent Component อัปเดต
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
-
-  const handleSave = async () => {
-    if (!user || !user.profile) {
-      console.error("User or profile data is missing.");
-      return;
-    }
-
-    try {
-      setIsLoading(true);
-      const profileId = user.profile.id;
-      
-      // 1. Update Profile Data
-      const profileDataToUpdate = {
-        firstNameTH: formData.firstNameTH,
-        lastNameTH: formData.lastNameTH,
-        firstNameEN: formData.firstNameEN,
-        lastNameEN: formData.lastNameEN,
-        academicPosition: formData.academicPosition,
-        telephoneNo: formData.telephoneNo,
-      };
-      await profileAPI.updateProfileData(profileId, profileDataToUpdate);
-
-      // 2. Update User Data (department and email)
-      const userDataToUpdate = {
-        email: formData.email,
-        department: formData.department,
-      };
-      await profileAPI.updateProfile(user.id, userDataToUpdate);
-
-      alert("บันทึกข้อมูลสำเร็จ!");
-      setError(null);
-    } catch (err) {
-      console.error("Failed to save profile data:", err);
-      setError("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-      alert("เกิดข้อผิดพลาดในการบันทึกข้อมูล");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleCancel = () => {
-    // Reset form to initial state from user data
-    if (user) {
-      setFormData({
-        firstNameTH: user.profile?.firstNameTH || '',
-        lastNameTH: user.profile?.lastNameTH || '',
-        firstNameEN: user.profile?.firstNameEN || '',
-        lastNameEN: user.profile?.lastNameEN || '',
-        academicPosition: user.profile?.academicPosition || '',
-        telephoneNo: user.profile?.telephoneNo || '',
-        email: user.email || '',
-        department: user.department?.id || null,
-      });
-    }
-  };
-
-  if (isLoading) {
-    return <div>กำลังโหลดข้อมูล...</div>;
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
+    onFormChange(field, value)
   }
 
   return (
     <div className="space-y-8">
+      {/* ส่วนข้อมูลโปรไฟล์พื้นฐาน */}
       <div className="flex flex-col lg:flex-row items-start space-y-4 lg:space-y-0 lg:space-x-8">
         <div className="flex-shrink-0">
+          {/* หมายเหตุ: คอมโพเนนต์ ProfileImageUpload อาจจะต้องมีการ refactor เพิ่มเติม
+              เพื่อให้ทำงานกับ State ที่ถูกยกขึ้นไปจัดการที่ ProfileEditForm ได้อย่างสมบูรณ์ 
+              แต่ในที่นี้จะคงไว้ตามเดิมก่อนเพื่อให้ส่วนอื่นทำงานได้ */}
           <ProfileImageUpload />
         </div>
         
         <div className="flex-1 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormField
-              label="ชื่อ"
+              label="ชื่อ (ภาษาไทย)"
               value={formData.firstNameTH}
               onChange={(value) => handleInputChange('firstNameTH', value)}
               placeholder="กรุณาระบุชื่อ"
             />
             <FormField
-              label="นามสกุล"
+              label="นามสกุล (ภาษาไทย)"
               value={formData.lastNameTH}
               onChange={(value) => handleInputChange('lastNameTH', value)}
               placeholder="กรุณาระบุนามสกุล"
@@ -190,32 +83,48 @@ export default function GeneralInfoTab() {
         </div>
       </div>
 
+      {/* ส่วนข้อมูลการทำงานที่เกี่ยวข้องกับ Relations */}
       <div className="border-t pt-8">
-        <h3 className="text-lg font-medium text-gray-900 mb-6">ข้อมูลการทำงาน</h3>
+        <h3 className="text-lg font-medium text-gray-900 mb-6">ข้อมูลการทำงานและสังกัด</h3>
+        
+        {/* เพิ่มฟิลด์สำหรับ Relations ที่ขาดไป */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormField
-            label="ตำแหน่งงาน"
-            value={formData.academicPosition}
-            onChange={(value) => handleInputChange('academicPosition', value)}
-            placeholder="กรุณาระบุตำแหน่งงาน"
+          <SelectField
+            label="ประเภทนักวิชาการ"
+            value={formData.academic_type}
+            onChange={(value) => handleInputChange('academic_type', value)}
+            options={options.academicTypes}
+            placeholder="เลือกประเภทนักวิชาการ"
           />
           <SelectField
-            label="แผนกที่สังกัด"
+            label="ประเภทการมีส่วนร่วม"
+            value={formData.participation_type}
+            onChange={(value) => handleInputChange('participation_type', value)}
+            options={options.participationTypes}
+            placeholder="เลือกประเภทการมีส่วนร่วม"
+          />
+          <SelectField
+            label="หน่วยงาน"
+            value={formData.organization}
+            onChange={(value) => handleInputChange('organization', value)}
+            options={options.organizations}
+            placeholder="เลือกหน่วยงาน"
+          />
+           <SelectField
+            label="คณะ"
+            value={formData.faculty}
+            onChange={(value) => handleInputChange('faculty', value)}
+            options={options.faculties}
+            placeholder="เลือกคณะ"
+          />
+          <SelectField
+            label="ภาควิชา/แผนก"
             value={formData.department}
             onChange={(value) => handleInputChange('department', value)}
-            options={departments}
-            placeholder="เลือกแผนก"
+            options={options.departments}
+            placeholder="เลือกภาควิชา/แผนก"
           />
         </div>
-      </div>
-
-      <div className="flex justify-end space-x-4 pt-6 border-t">
-        <Button variant="outline" onClick={handleCancel} disabled={isLoading}>
-          ยกเลิก
-        </Button>
-        <Button variant="primary" onClick={handleSave} disabled={isLoading}>
-          {isLoading ? 'กำลังบันทึก...' : 'บันทึก'}
-        </Button>
       </div>
     </div>
   )

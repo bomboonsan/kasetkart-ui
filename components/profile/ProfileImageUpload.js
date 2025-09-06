@@ -17,7 +17,7 @@ export default function ProfileImageUpload() {
     if (profileRes) {
       const res = profileRes?.data || profileRes || {}
       const profObj = res.profile || res.Profile?.[0] || res
-      
+
       // Try to find avatar URL from various possible fields
       let avatarUrl = ''
       const tryPaths = [
@@ -30,7 +30,7 @@ export default function ProfileImageUpload() {
         profObj?.avatarUrl,
         profObj?.avatar_url,
       ]
-      
+
       for (const p of tryPaths) {
         if (p) {
           avatarUrl = p
@@ -59,53 +59,37 @@ export default function ProfileImageUpload() {
       // Upload file to Strapi
       const uploadResponse = await uploadAPI.uploadFiles([file])
       const uploadedFile = uploadResponse[0]
-      
+
       if (!uploadedFile?.id) {
         throw new Error('อัปโหลดไฟล์ไม่สำเร็จ')
       }
 
       // Get current user & profile IDs from profile response
       const res = profileRes?.data || profileRes || {}
-      const userId = res?.id || res?.user?.id
-      const profileId = res?.profile?.id || res?.profile?.data?.id || res?.Profile?.[0]?.id || res?.Profile?.[0]?.data?.id
+      const userId = res?.id
 
-      console.log('upload: userId=', userId, 'profileId=', profileId, 'uploadedFile=', uploadedFile)
-
-      if (!userId && !profileId) {
+      if (!userId) {
         throw new Error('ไม่พบข้อมูลผู้ใช้')
       }
 
-      // Try to update profile entity first (preferred)
-      let updated = false
-      if (profileId) {
-        try {
-          await profileAPI.updateProfileData(profileId, { avatarUrl: uploadedFile.id })
-          updated = true
-        } catch (err) {
-          console.warn('updateProfileData failed, will try updating user entity', err)
-        }
+      // Try to find existing profile using correct schema - ใช้ documentId ใน Strapi v5
+      let profileDocumentId = res?.profile?.documentId || res?.profile?.data?.documentId || res?.Profile?.[0]?.documentId || res?.Profile?.[0]?.data?.documentId
+
+      // If no profile exists, try to find it by user ID
+      if (!profileDocumentId) {
+        const existingProfile = await profileAPI.findProfileByUserId(userId)
+        profileDocumentId = existingProfile?.documentId
       }
 
-      // Fallback: try updating user entity directly with profile relation or avatar field
-      if (!updated && userId) {
-        try {
-          // Attempt 1: set profile relation to file id (depends on backend schema)
-          await profileAPI.updateProfile(userId, { profile: uploadedFile.id })
-          updated = true
-        } catch (err) {
-          console.warn('update user with profile id failed, trying avatarUrl on profile via users endpoint', err)
-          try {
-            // Attempt 2: set nested profile.avatarUrl via user update
-            await profileAPI.updateProfile(userId, { profile: { avatarUrl: uploadedFile.id } })
-            updated = true
-          } catch (err2) {
-            console.warn('second user update attempt failed', err2)
-          }
-        }
-      }
+      // Update or create profile with the uploaded file ID (ต้องส่งเป็น media ID)
+      const profileData = { avatarUrl: uploadedFile.id }
 
-      if (!updated) {
-        throw new Error('อัปเดตโปรไฟล์ไม่สำเร็จ (resource not found)')
+      if (profileDocumentId) {
+        // Update existing profile using collection endpoint with documentId
+        await profileAPI.updateProfileData(profileDocumentId, profileData)
+      } else {
+        // Create new profile linked to user using collection endpoint
+        await profileAPI.createProfile({ ...profileData, user: userId })
       }
 
       // Create full URL for preview
@@ -116,7 +100,7 @@ export default function ProfileImageUpload() {
       }
 
       setImagePreview(fullUrl)
-      
+
       // Refresh profile data in all components
       mutate('profile')
 
@@ -136,7 +120,7 @@ export default function ProfileImageUpload() {
       const lastName = profObj?.lastName || profObj?.lastNameTH || ''
       const email = res?.email || ''
       const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
-      
+
       if (displayName) {
         const parts = displayName.split(/[\s+]+/)
         return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '') || displayName[0]).toUpperCase()
@@ -151,9 +135,9 @@ export default function ProfileImageUpload() {
       <div className="relative">
         <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
           {imagePreview ? (
-            <img 
-              src={imagePreview} 
-              alt="Profile preview" 
+            <img
+              src={imagePreview}
+              alt="Profile preview"
               className="w-full h-full object-cover"
               onError={() => setImagePreview(null)}
             />
@@ -163,7 +147,7 @@ export default function ProfileImageUpload() {
             </div>
           )}
         </div>
-        
+
         {/* Camera icon overlay */}
         <div className="absolute bottom-0 right-0 w-7 h-7 bg-blue-600 rounded-full flex items-center justify-center cursor-pointer hover:bg-blue-700 transition-colors">
           <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -179,12 +163,12 @@ export default function ProfileImageUpload() {
           />
         </div>
       </div>
-      
+
       <div className="text-center space-x-2 space-y-3">
-        <Button 
-          variant="primary" 
-          size="sm" 
-          onClick={() => document.querySelector('input[type="file"]').click()} 
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => document.querySelector('input[type="file"]').click()}
           disabled={uploading}
         >
           {uploading ? 'กำลังอัปโหลด...' : 'อัปโหลดรูปภาพ'}
