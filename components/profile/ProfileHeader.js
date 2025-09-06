@@ -3,7 +3,8 @@
 import Button from '@/components/Button'
 import ProfileStats from "@/components/ProfileStats";
 import Link from 'next/link';
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
+import useSWR from 'swr'
 import Image from 'next/image'
 import { profileAPI, API_BASE } from '@/lib/api'
 
@@ -17,25 +18,8 @@ function initials(name, fallback) {
 export default function ProfileHeader() {
   const [error, setError] = useState('')
 
-  const [profileRes, setProfileRes] = useState(null)
-
-  useEffect(() => {
-    let mounted = true
-
-    async function loadProfile() {
-      try {
-        const r = await profileAPI.getMyProfile()
-        if (!mounted) return
-        setProfileRes(r)
-      } catch (err) {
-        if (!mounted) return
-        setError(err?.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
-      }
-    }
-
-    loadProfile()
-    return () => { mounted = false }
-  }, [])
+  const { data: profileRes, error: swrError } = useSWR('profile', () => profileAPI.getMyProfile())
+  if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
 
   const res = profileRes?.data || profileRes || {}
   const profObj = res.profile || res.Profile?.[0] || res
