@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import useSWR from 'swr'
-import { profileAPI , orgAPI } from '@/lib/api'
+import { profileAPI, orgAPI } from '@/lib/api'
 import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/FormField'
 import FormSelect from '@/components/FormSelect'
@@ -28,6 +28,8 @@ export default function GeneralInfoTab() {
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [departments, setDepartments] = useState([])
+  const [academicTypes, setAcademicTypes] = useState([])
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -37,9 +39,9 @@ export default function GeneralInfoTab() {
     try {
       setError('')
       setLoading(true)
-  // TODO: Call profileAPI.updateProfile(...) to persist changes
-  // Mock save success without API call for now
-  await new Promise(resolve => setTimeout(resolve, 500))
+      // TODO: Call profileAPI.updateProfile(...) to persist changes
+      // Mock save success without API call for now
+      await new Promise(resolve => setTimeout(resolve, 500))
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (err) {
       setError(err?.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
@@ -69,19 +71,16 @@ export default function GeneralInfoTab() {
   const { data: organizationsRes, error: orgError } = useSWR('organizations', () => orgAPI.getOrganizations())
   const { data: facultiesRes, error: facError } = useSWR('faculties', () => orgAPI.getFaculties())
   const { data: departmentsRaw, error: depError } = useSWR('departments', () => orgAPI.getDepartments())
+  const { data: academicTypesRaw, error: acadError } = useSWR('academic-types', () => orgAPI.getAcademicType())
 
   if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
 
   useEffect(() => {
     const res = profileRes?.data || profileRes || {}
     const profObj = res.profile || res.Profile?.[0] || res
-    console.log('profileRes', profileRes)
-    // departmentsRaw may be an object with `.data` (api wrapper) or an array directly
-    const departments = departmentsRaw?.data || departmentsRaw || []
-    if (depError) console.error('departments load error:', depError)
-    console.log('departments', departments)
-
     if (!profileRes) return
+
+    console.log('profileRes', profileRes)
 
     setFormData(prev => ({
       ...prev,
@@ -90,14 +89,29 @@ export default function GeneralInfoTab() {
       firstNameEn: profObj?.firstNameEn || profObj?.firstNameEN || '',
       lastNameEn: profObj?.lastNameEn || profObj?.lastNameEN || '',
       highDegree: profObj?.highDegree || '',
-      academic_type: res?.academic_type?.id || '', // มันไม่ได้อยู่ใน profile
+      academic_type: res?.academic_type?.documentId || '', // มันไม่ได้อยู่ใน profile
       email: res?.email || profObj?.email || '',
       phone: profObj?.telephoneNo || '',
       nameEn: profObj ? `${profObj?.firstNameEn || profObj?.firstName || ''} ${profObj?.lastNameEn || profObj?.lastName || ''}`.trim() : '',
       academicPosition: profObj?.academicPosition || profObj?.position || '',
-      department: profObj?.department?.name || profObj?.department || ''
+      department: res?.department?.documentId || ''  // มันไม่ได้อยู่ใน profile
     }))
   }, [profileRes])
+  console.log('formData', formData)
+
+  useEffect(() => {
+    // Departments
+    const departments = departmentsRaw?.data || departmentsRaw || []
+    if (depError) console.error('departments load error:', depError)
+    console.log('departments', departments)
+    setDepartments(departments)
+
+    // Academic Types
+    const academicTypes = academicTypesRaw?.data || academicTypesRaw || []
+    if (acadError) console.error('academic types load error:', acadError)
+    console.log('academic types', academicTypes)
+    setAcademicTypes(academicTypes)
+  }, [departmentsRaw, academicTypesRaw])
 
   const updateEducation = (index, field, value) => {
     setEducations(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e))
@@ -106,8 +120,6 @@ export default function GeneralInfoTab() {
   const removeEducation = (index) => {
     setEducations(prev => prev.filter((_, i) => i !== index))
   }
-  
-  console.log('formData',formData)
 
   return (
     <>
@@ -121,120 +133,108 @@ export default function GeneralInfoTab() {
           {loading ? (
             <div className="text-sm text-gray-500">กำลังโหลด...</div>
           ) : (
-              <>
-            {/* Profile Image Section */}
-            <div className="space-y-4 lg:space-y-0 lg:space-x-8">
-            <div className="">
-              <ProfileImageUpload />
-            </div>
+            <>
+              {/* Profile Image Section */}
+              <div className="space-y-4 lg:space-y-0 lg:space-x-8">
+                <div className="">
+                  <ProfileImageUpload />
+                </div>
 
-            <div className="flex-1 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  label="ชื่อ"
-                  value={formData.firstName}
-                  onChange={(value) => handleInputChange('firstName', value)}
-                  placeholder="กรุณาระบุชื่อ"
-                />
-                <FormField
-                  label="นามสกุล"
-                  value={formData.lastName}
-                  onChange={(value) => handleInputChange('lastName', value)}
-                  placeholder="กรุณาระบุนามสกุล"
-                />
-              </div>
+                <div className="flex-1 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      label="ชื่อ"
+                      value={formData.firstName}
+                      onChange={(value) => handleInputChange('firstName', value)}
+                      placeholder="กรุณาระบุชื่อ"
+                    />
+                    <FormField
+                      label="นามสกุล"
+                      value={formData.lastName}
+                      onChange={(value) => handleInputChange('lastName', value)}
+                      placeholder="กรุณาระบุนามสกุล"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  label="First Name (EN)"
-                  value={formData.firstNameEn}
-                  onChange={(value) => handleInputChange('firstNameEn', value)}
-                  placeholder="First name in English"
-                />
-                <FormField
-                  label="Last Name (EN)"
-                  value={formData.lastNameEn}
-                  onChange={(value) => handleInputChange('lastNameEn', value)}
-                  placeholder="Last name in English"
-                />
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      label="First Name (EN)"
+                      value={formData.firstNameEn}
+                      onChange={(value) => handleInputChange('firstNameEn', value)}
+                      placeholder="First name in English"
+                    />
+                    <FormField
+                      label="Last Name (EN)"
+                      value={formData.lastNameEn}
+                      onChange={(value) => handleInputChange('lastNameEn', value)}
+                      placeholder="Last name in English"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  label="ตำแหน่งทางวิชาการ"
-                  value={formData.academicPosition}
-                  onChange={(value) => handleInputChange('academicPosition', value)}
-                  placeholder=""
-                />
-                <FormField
-                  label="อีเมล"
-                  type="email"
-                  value={formData.email}
-                  onChange={(value) => handleInputChange('email', value)}
-                  placeholder="กรุณาระบุอีเมล"
-                />
-              </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      label="ตำแหน่งทางวิชาการ"
+                      value={formData.academicPosition}
+                      onChange={(value) => handleInputChange('academicPosition', value)}
+                      placeholder=""
+                    />
+                    <FormField
+                      label="อีเมล"
+                      type="email"
+                      value={formData.email}
+                      onChange={(value) => handleInputChange('email', value)}
+                      placeholder="กรุณาระบุอีเมล"
+                    />
+                  </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  label="เบอร์ติดต่อ"
-                  value={formData.phone}
-                  onChange={(value) => handleInputChange('phone', value)}
-                  placeholder=""
-                />
-                {/* <FormField
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      label="เบอร์ติดต่อ"
+                      value={formData.phone}
+                      onChange={(value) => handleInputChange('phone', value)}
+                      placeholder=""
+                    />
+                    {/* <FormField
                   label="ภาควิชา"
                   value={formData.department}
                   onChange={(value) => handleInputChange('department', value)}
                   placeholder="กรุณาระบุภาควิชา"
                 /> */}
-                <SelectField
-                  label="ประเภทอาจารย์"
-                  value={formData.department}
-                  onChange={(value) => handleInputChange('department', value)}
-                  options={[
-                    { value: '1', label: 'SA' },
-                    { value: '3', label: 'PA' },
-                    { value: '5', label: 'SP' },
-                    { value: '7', label: 'IP' },
-                    { value: '9', label: 'A' }
-                  ]}
-                />
+                    <SelectField
+                      label="ภาควิชา"
+                      value={formData.department}
+                      onChange={(value) => handleInputChange('department', value)}
+                      options={departments.map(dep => ({ value: dep.documentId, label: dep.name }))}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <FormField
+                      label="วุฒิการศึกษาสูงสุด (High Degree)"
+                      value={formData.highDegree}
+                      onChange={(value) => handleInputChange('highDegree', value)}
+                      placeholder="เช่น Ph.D., M.Sc., B.Eng."
+                    />
+                    <SelectField
+                      label="ประเภทอาจารย์"
+                      value={formData.academic_type}
+                      onChange={(value) => handleInputChange('academic_type', value)}
+                      options={academicTypes.map(at => ({ value: at.documentId, label: at.name }))}
+                    />
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <FormField
-                  label="วุฒิการศึกษาสูงสุด (High Degree)"
-                  value={formData.highDegree}
-                  onChange={(value) => handleInputChange('highDegree', value)}
-                  placeholder="เช่น Ph.D., M.Sc., B.Eng."
-                />
-                <SelectField
-                  label="ประเภทอาจารย์"
-                  value={formData.academic_type}
-                  onChange={(value) => handleInputChange('academic_type', value)}
-                  options={[
-                    { value: '1', label: 'SA' },
-                    { value: '3', label: 'PA' },
-                    { value: '5', label: 'SP' },
-                    { value: '7', label: 'IP' },
-                    { value: '9', label: 'A' }
-                  ]}
-                />
+              {/* Action Buttons */}
+              <div className="flex justify-start space-x-4">
+                <Button variant="primary" onClick={handleSave}>
+                  บันทึก
+                </Button>
+                <Button variant="outline" onClick={handleCancel}>
+                  ยกเลิก
+                </Button>
               </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex justify-start space-x-4">
-            <Button variant="primary" onClick={handleSave}>
-              บันทึก
-            </Button>
-            <Button variant="outline" onClick={handleCancel}>
-              ยกเลิก
-            </Button>
-          </div>
-              </>
+            </>
           )}
         </div>
       </div>
