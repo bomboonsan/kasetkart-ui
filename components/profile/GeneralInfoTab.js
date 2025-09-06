@@ -177,7 +177,9 @@ export default function GeneralInfoTab() {
       department: res?.department?.documentId || '',
       faculty: res?.faculty?.documentId || '',
       organization: res?.organization?.documentId || '',
-    }))    // ดึงวุฒิการศึกษาที่ populate มาด้วย (Strapi v5: ใช้ documentId สำหรับแสดงผล, id สำหรับบันทึก)
+    }))
+
+    // ดึงวุฒิการศึกษาที่ populate มาด้วย (Strapi v5: ใช้ documentId สำหรับแสดงผล, id สำหรับบันทึก)
     const eduArr = res?.educations || []
     const normalized = (eduArr || []).map(e => ({
       documentId: e?.documentId || undefined,
