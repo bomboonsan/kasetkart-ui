@@ -64,19 +64,49 @@ export default function ProfileImageUpload() {
         throw new Error('อัปโหลดไฟล์ไม่สำเร็จ')
       }
 
-      // Get current user ID from profile
+      // Get current user & profile IDs from profile response
       const res = profileRes?.data || profileRes || {}
-      const userId = res?.id
-      const profileId = res?.profile?.id || res?.Profile?.[0]?.id
+      const userId = res?.id || res?.user?.id
+      const profileId = res?.profile?.id || res?.profile?.data?.id || res?.Profile?.[0]?.id || res?.Profile?.[0]?.data?.id
 
-      if (!userId || !profileId) {
+      console.log('upload: userId=', userId, 'profileId=', profileId, 'uploadedFile=', uploadedFile)
+
+      if (!userId && !profileId) {
         throw new Error('ไม่พบข้อมูลผู้ใช้')
       }
 
-      // Update profile with new avatar
-      await profileAPI.updateProfileData(profileId, {
-        avatarUrl: uploadedFile.id // Store file ID for Strapi relation
-      })
+      // Try to update profile entity first (preferred)
+      let updated = false
+      if (profileId) {
+        try {
+          await profileAPI.updateProfileData(profileId, { avatarUrl: uploadedFile.id })
+          updated = true
+        } catch (err) {
+          console.warn('updateProfileData failed, will try updating user entity', err)
+        }
+      }
+
+      // Fallback: try updating user entity directly with profile relation or avatar field
+      if (!updated && userId) {
+        try {
+          // Attempt 1: set profile relation to file id (depends on backend schema)
+          await profileAPI.updateProfile(userId, { profile: uploadedFile.id })
+          updated = true
+        } catch (err) {
+          console.warn('update user with profile id failed, trying avatarUrl on profile via users endpoint', err)
+          try {
+            // Attempt 2: set nested profile.avatarUrl via user update
+            await profileAPI.updateProfile(userId, { profile: { avatarUrl: uploadedFile.id } })
+            updated = true
+          } catch (err2) {
+            console.warn('second user update attempt failed', err2)
+          }
+        }
+      }
+
+      if (!updated) {
+        throw new Error('อัปเดตโปรไฟล์ไม่สำเร็จ (resource not found)')
+      }
 
       // Create full URL for preview
       let fullUrl = uploadedFile.url
