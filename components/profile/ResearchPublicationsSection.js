@@ -66,9 +66,15 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 				const books = []
 
 				if (projectIds.length > 0) {
-					const idsParam = projectIds.join(',')
+					// Build Strapi v5 $in array params properly
+					const confParams = { publicationState: 'preview', ['pagination[pageSize]']: 1000 }
+					const pubParams = { publicationState: 'preview', ['pagination[pageSize]']: 1000 }
+					projectIds.forEach((id, idx) => {
+						confParams[`filters[project_research][documentId][$in][${idx}]`] = id
+						pubParams[`filters[project_research][documentId][$in][${idx}]`] = id
+					})
 					try {
-						const confRes = await worksAPI.getConferences({ ['filters[project_research][documentId][$in]']: idsParam, publicationState: 'preview', ['pagination[pageSize]']: 1000 })
+						const confRes = await worksAPI.getConferences(confParams)
 						const confData = confRes?.data || confRes || []
 						confs.push(...confData)
 					} catch (e) {
@@ -76,7 +82,7 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 					}
 
 					try {
-						const pubRes = await worksAPI.getPublications({ ['filters[project_research][documentId][$in]']: idsParam, publicationState: 'preview', ['pagination[pageSize]']: 1000 })
+						const pubRes = await worksAPI.getPublications(pubParams)
 						const pubData = pubRes?.data || pubRes || []
 						pubs.push(...pubData)
 					} catch (e) {
@@ -99,7 +105,11 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 					const fundingIds = fundingArr.map(f => f.documentId || f.id).filter(Boolean)
 					if (fundingIds.length > 0) {
 						try {
-							const booksRes = await worksAPI.getBooks({ ['filters[project_funding][documentId][$in]']: fundingIds.join(','), publicationState: 'preview', ['pagination[pageSize]']: 1000 })
+							const bookParams = { publicationState: 'preview', ['pagination[pageSize]']: 1000 }
+							fundingIds.forEach((id, idx) => {
+								bookParams[`filters[project_funding][documentId][$in][${idx}]`] = id
+							})
+							const booksRes = await worksAPI.getBooks(bookParams)
 							const bookData = booksRes?.data || booksRes || []
 							books.push(...bookData)
 						} catch (e) {
@@ -269,4 +279,3 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 		</SectionCard>
 	)
 }
-

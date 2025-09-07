@@ -36,12 +36,18 @@ export default function ProfileStats() {
 
         // 2) If there are projects, fetch related works counts using documentId filters
         if (projectIds.length > 0) {
-          const idsParam = projectIds.join(',')
+          // Build Strapi v5 $in array params: filters[field][$in][0]=id0&filters[field][$in][1]=id1 ...
+          const confParams = { publicationState: 'preview', ['pagination[pageSize]']: 1 }
+          const pubParams = { publicationState: 'preview', ['pagination[pageSize]']: 1 }
+          projectIds.forEach((id, idx) => {
+            confParams[`filters[project_research][documentId][$in][${idx}]`] = id
+            pubParams[`filters[project_research][documentId][$in][${idx}]`] = id
+          })
 
-          const confRes = await worksAPI.getConferences({ ['filters[project_research][documentId][$in]']: idsParam, publicationState: 'preview', ['pagination[pageSize]']: 1 })
+          const confRes = await worksAPI.getConferences(confParams)
           confCount = confRes?.meta?.pagination?.total ?? (confRes?.data?.length ?? 0)
 
-          const pubRes = await worksAPI.getPublications({ ['filters[project_research][documentId][$in]']: idsParam, publicationState: 'preview', ['pagination[pageSize]']: 1 })
+          const pubRes = await worksAPI.getPublications(pubParams)
           pubCount = pubRes?.meta?.pagination?.total ?? (pubRes?.data?.length ?? 0)
         }
 
@@ -62,7 +68,11 @@ export default function ProfileStats() {
           // For books: count work-books that are linked to those fundings
           const fundingIds = (fundRes?.data || fundRes || []).map(f => f.documentId || f.id).filter(Boolean)
           if (fundingIds.length > 0) {
-            const fbRes = await worksAPI.getBooks({ ['filters[project_funding][documentId][$in]']: fundingIds.join(','), publicationState: 'preview', ['pagination[pageSize]']: 1 })
+            const bookParams = { publicationState: 'preview', ['pagination[pageSize]']: 1 }
+            fundingIds.forEach((id, idx) => {
+              bookParams[`filters[project_funding][documentId][$in][${idx}]`] = id
+            })
+            const fbRes = await worksAPI.getBooks(bookParams)
             bookCount = fbRes?.meta?.pagination?.total ?? (fbRes?.data?.length ?? 0)
           }
         }
