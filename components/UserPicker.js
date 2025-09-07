@@ -8,16 +8,39 @@ import { api } from '@/lib/api'
 
 export default function UserPicker({ label = 'ผู้ร่วมงาน', onSelect, selectedUser }) {
   const [open, setOpen] = useState(false)
-  const { data: usersRes, error: usersErr } = useSWR(
-    open ? '/users?populate[profile]=*&populate[organization]=*&populate[faculty]=*&populate[department]=*&pageSize=1000' : null, 
-    api.get
+  // query must be declared before the debounce effect
+  const [query, setQuery] = useState('')
+  // Debounced query so we don't refetch on every keystroke
+  const [debouncedQuery, setDebouncedQuery] = useState('')
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedQuery(query.trim()), 300)
+    return () => clearTimeout(t)
+  }, [query])
+
+  // Wrap api.get so `this` binding inside ApiClient is preserved and SWR fetcher works
+  const { data: usersRes, error: usersErr, isValidating } = useSWR(
+    open ? ['/users', debouncedQuery] : null,
+    // fetcher builds Strapi filter when query present
+    async ([, q]) => {
+      const base = '/users?populate[profile]=*&populate[organization]=*&populate[faculty]=*&populate[department]=*&pageSize=1000'
+      if (!q) return api.get(base)
+      const filters = `&filters[$or][0][profile][firstName][$containsi]=${encodeURIComponent(q)}&filters[$or][1][profile][lastName][$containsi]=${encodeURIComponent(q)}&filters[$or][2][email][$containsi]=${encodeURIComponent(q)}`
+      return api.get(base + filters)
+    }
   )
-  const users = usersRes?.data || usersRes?.items || []
+  const users = (() => {
+    if (!usersRes) return []
+    if (Array.isArray(usersRes)) return usersRes
+    if (Array.isArray(usersRes.data)) return usersRes.data
+    if (Array.isArray(usersRes.items)) return usersRes.items
+    // Strapi sometimes returns { data: { data: [...] } }
+    if (usersRes.data && Array.isArray(usersRes.data.data)) return usersRes.data.data
+    return []
+  })()
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [query, setQuery] = useState('')
   useEffect(() => {
-    setLoading(!usersRes && open)
+    setLoading((!usersRes && open) || isValidating)
     if (usersErr) setError(usersErr.message || 'ต้องเป็นผู้ดูแลระบบจึงจะสามารถค้นหารายชื่อผู้ใช้ได้')
   }, [usersRes, usersErr, open])
 

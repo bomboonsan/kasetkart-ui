@@ -395,7 +395,11 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                         }
                         return formData.partnerFullName || ''
                       })()}
-                      readOnly={true}
+                      readOnly={!!formData.__userObj}
+                      onChange={(value) => {
+                        // allow manual name editing when internal but not linked to a user
+                        if (!formData.__userObj) handleInputChange("partnerFullName", value)
+                      }}
                     />
                   </div>
                   <div>
@@ -413,7 +417,10 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                         }
                         return formData.orgName || ''
                       })()}
-                      readOnly={true}
+                      readOnly={!!formData.__userObj}
+                      onChange={(value) => {
+                        if (!formData.__userObj) handleInputChange("orgName", value)
+                      }}
                     />
                   </div>
                 </>
