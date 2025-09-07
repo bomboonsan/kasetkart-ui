@@ -34,10 +34,22 @@ export default function PersonnelChart({
   const loadDepartments = async () => {
     try {
       const response = await valueFromAPI.getDepartments()
-      const depts = response?.data || response || []
+      const raw = response?.data || response || []
+
+      // Normalize various shapes returned by the API to { id, documentId, name }
+      const depts = (raw || []).map(d => {
+        // d may be a string, an object with attributes, or an object with id/documentId
+        const attributes = d?.attributes || {}
+        const id = d?.id || attributes?.id || null
+        const documentId = attributes?.documentId || d?.documentId || null
+        const name = attributes?.name || d?.name || attributes?.displayName || d?.displayName || String(d)
+        return { id, documentId, name }
+      })
+
       setDepartments(depts)
-      if (depts.length > 0 && !selectedDeptId) {
-        setSelectedDeptId(String(depts[0].id || depts[0].documentId))
+      // default to 'all' so parent/consumer can decide; keep existing behaviour if user explicitly wants first
+      if (!selectedDeptId) {
+        setSelectedDeptId('all')
       }
     } catch (err) {
       console.error('Error loading departments:', err)
@@ -71,6 +83,8 @@ export default function PersonnelChart({
   }
 
   const displayData = computedData || data
+  console.log('Display data:', displayData)
+  console.log('data:', data)
 
   // Create series data for stacked bar
   const seriesData = displayData.map((item) => ({
@@ -174,11 +188,11 @@ export default function PersonnelChart({
             disabled={loading}
           >
             <option value="all">ทั้งหมด</option>
-            {departments.map((dept) => (
-              <option key={dept.id || dept.documentId} value={String(dept.id || dept.documentId)}>
-                {dept.name}
-              </option>
-            ))}
+              {departments.map((dept) => (
+                <option key={dept.id || dept.documentId || dept.name} value={String(dept.documentId || dept.id || '')}>
+                  {dept.name}
+                </option>
+              ))}
           </select>
         </div>
       </div>

@@ -16,27 +16,47 @@ export default function DashboardHome() {
   const [stats, setStats] = useState([])
   const [facultyPersonnelData, setFacultyPersonnelData] = useState([])
   const [departmentPersonnelData, setDepartmentPersonnelData] = useState([])
+  const [departments, setDepartments] = useState([])
+  const [selectedDept, setSelectedDept] = useState('all')
   const [researchStats, setResearchStats] = useState({ icTypes: [], impacts: [], sdgs: [] })
 
   useEffect(() => {
     loadDashboardData()
   }, [])
 
+  useEffect(() => {
+    // When selectedDept changes, reload personnel-by-department
+    loadPersonnelForDepartment(selectedDept)
+  }, [selectedDept])
+
   const loadDashboardData = async () => {
     try {
       setLoading(true)
       setError('')
 
-      // Load all stats in parallel
+      // Load departments first so we can request department-specific stats
       const [
+        departmentsRes,
         [projectsRes, fundingsRes, publicationsRes, conferencesRes, booksRes],
         facultyPersonnel,
         researchStatsData
       ] = await Promise.all([
+        valueFromAPI.getDepartments(),
         dashboardAPI.getStats(),
         dashboardAPI.getPersonnelByAcademicType(),
         dashboardAPI.getResearchStatsByTypes()
       ])
+
+      // Departments list (set selected to first if any)
+      const deptList = (departmentsRes?.data || departmentsRes || []).map(d => ({
+        id: d.id || d.documentId || d.attributes?.documentId || d.attributes?.id,
+        name: d.attributes?.name || d.name || d.title || d.attributes?.displayName || d.displayName || d
+      }))
+      setDepartments(deptList)
+      if (deptList.length && selectedDept === 'all') {
+        // choose first department by documentId if available, else id
+        setSelectedDept(deptList[0].id || 'all')
+      }
 
       // Process stats data
       const projectsCount = projectsRes?.meta?.pagination?.total || projectsRes?.data?.length || 0
@@ -53,15 +73,30 @@ export default function DashboardHome() {
         { value: String(booksCount), label: 'หนังสือและตำรา', icon: () => <BookOpen className='size-8 text-gray-600' /> },
       ]
 
+      // Normalize personnel counts to ensure keys SA, PA, SP, IP, A
+      const normalizePersonnelCounts = (raw = {}) => {
+        const keys = ['SA', 'PA', 'SP', 'IP', 'A']
+        const out = {}
+        keys.forEach(k => {
+          // accept case-insensitive keys if present
+          const foundKey = Object.keys(raw || {}).find(rk => String(rk).toUpperCase() === k)
+          out[k] = Number(foundKey ? raw[foundKey] : 0)
+        })
+        return out
+      }
+
+      const normalizedFaculty = normalizePersonnelCounts(facultyPersonnel)
+
       // Process faculty personnel data for donut chart
-      const totalPersonnel = Object.values(facultyPersonnel).reduce((sum, count) => sum + count, 0) || 1
-      const facultyChartData = Object.entries(facultyPersonnel).map(([type, count]) => ({
+      const totalPersonnel = Object.values(normalizedFaculty).reduce((sum, count) => sum + count, 0) || 1
+      const facultyChartData = Object.entries(normalizedFaculty).map(([type, count]) => ({
         label: type,
-        value: ((count / totalPersonnel) * 100).toFixed(1)
+        value: ((count / totalPersonnel) * 100).toFixed(1),
+        raw: count
       }))
 
-      // Process department personnel data for bar chart  
-      const departmentChartData = Object.entries(facultyPersonnel).map(([type, count]) => ({
+      // Default department chart uses faculty data until a department is selected
+      const departmentChartData = Object.entries(normalizedFaculty).map(([type, count]) => ({
         category: type,
         personnel: count,
         percentage: ((count / totalPersonnel) * 100).toFixed(1)
@@ -72,11 +107,47 @@ export default function DashboardHome() {
       setDepartmentPersonnelData(departmentChartData)
       setResearchStats(researchStatsData)
 
+      // If we have a selected department (set above) load its data
+      if (deptList && deptList.length) {
+        await loadPersonnelForDepartment(selectedDept || deptList[0].id)
+      }
+
     } catch (err) {
       console.error('Error loading dashboard data:', err)
       setError('ไม่สามารถโหลดข้อมูล Dashboard ได้')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadPersonnelForDepartment = async (departmentId) => {
+    try {
+      // departmentId could be 'all' meaning overall
+      if (!departmentId || departmentId === 'all') {
+        // use facultyPersonnelData already set
+        return
+      }
+
+      const deptPersonnel = await dashboardAPI.getPersonnelByAcademicType(departmentId)
+
+      // Ensure keys exist (SA,PA,SP,IP,A) and default to 0
+      const keys = ['SA','PA','SP','IP','A']
+      const normalized = {}
+      keys.forEach(k => {
+        const foundKey = Object.keys(deptPersonnel || {}).find(rk => String(rk).toUpperCase() === k)
+        normalized[k] = Number(foundKey ? deptPersonnel[foundKey] : 0)
+      })
+
+      const total = Object.values(normalized).reduce((s, v) => s + v, 0) || 1
+      const deptChartData = Object.entries(normalized).map(([type, count]) => ({
+        category: type,
+        personnel: count,
+        percentage: ((count / total) * 100).toFixed(1)
+      }))
+
+      setDepartmentPersonnelData(deptChartData)
+    } catch (err) {
+      console.error('Error loading personnel for department:', err)
     }
   }
 
