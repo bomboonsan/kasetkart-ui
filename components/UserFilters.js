@@ -1,9 +1,11 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import useSWR from 'swr'
 import FormField from './FormField'
 import SelectField from './SelectField'
 import Button from './Button'
+import { api } from '@/lib/api'
 
 export default function UserFilters({ onFilter }) {
   const [filters, setFilters] = useState({
@@ -12,6 +14,21 @@ export default function UserFilters({ onFilter }) {
     status: 'all',
     department: 'all'
   })
+
+  // Load departments from API
+  const { data: departmentsRes } = useSWR(
+    'departments', 
+    () => api.get('/departments'),
+    { revalidateOnFocus: false, dedupingInterval: 300000 } // cache for 5 minutes
+  )
+
+  const departmentOptions = [
+    { value: 'all', label: 'ทั้งหมด' },
+    ...((departmentsRes?.data || departmentsRes || []).map(dept => ({
+      value: dept.name,
+      label: dept.name
+    })))
+  ]
 
   const handleFilterChange = (field, value) => {
     const newFilters = { ...filters, [field]: value }
@@ -68,14 +85,7 @@ export default function UserFilters({ onFilter }) {
           label="ภาควิชา"
           value={filters.department}
           onChange={(value) => handleFilterChange('department', value)}
-          options={[
-            { value: 'all', label: 'ทั้งหมด' },
-            { value: 'ภาควิชาบัญชี', label: 'ภาควิชาบัญชี' },
-            { value: 'ภาควิชาการเงิน', label: 'ภาควิชาการเงิน' },
-            { value: 'ภาควิชาการจัดการ', label: 'ภาควิชาการจัดการ' },
-            { value: 'ภาควิชาการจัดการเทคโนโลยีและการปฏิบัติการ', label: 'ภาควิชาการจัดการเทคโนโลยีและการปฏิบัติการ' },
-            { value: 'ภาควิชาการตลาด', label: 'ภาควิชาการตลาด' },
-          ]}
+          options={departmentOptions}
         />
       </div>
 

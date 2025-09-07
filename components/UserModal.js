@@ -9,9 +9,11 @@ export default function UserModal({ user, mode, onClose, onSave }) {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    username: '',
     role: 'User',
     department: '',
-    approvalStatus: 'APPROVED'
+    status: 'Active',
+    password: ''
   })
 
   useEffect(() => {
@@ -19,17 +21,21 @@ export default function UserModal({ user, mode, onClose, onSave }) {
       setFormData({
         name: user.name || '',
         email: user.email || '',
+        username: user.username || '',
         role: user.role || 'User',
         department: user.department || '',
-        approvalStatus: user.approvalStatus || 'APPROVED'
+        status: user.status || 'Active',
+        password: ''
       })
     } else {
       setFormData({
         name: '',
         email: '',
+        username: '',
         role: 'User',
         department: '',
-        approvalStatus: 'APPROVED'
+        status: 'Active',
+        password: ''
       })
     }
   }, [user])
@@ -85,6 +91,16 @@ export default function UserModal({ user, mode, onClose, onSave }) {
           />
 
           <FormField
+            label="Username"
+            value={formData.username}
+            onChange={(value) => handleInputChange('username', value)}
+            placeholder="กรุณาป้อน username"
+            required={isCreateMode}
+            className={isViewMode ? 'bg-gray-50' : ''}
+            disabled={isViewMode}
+          />
+
+          <FormField
             label="อีเมล"
             type="email"
             value={formData.email}
@@ -94,6 +110,17 @@ export default function UserModal({ user, mode, onClose, onSave }) {
             className={isViewMode ? 'bg-gray-50' : ''}
             disabled={isViewMode}
           />
+
+          {isCreateMode && (
+            <FormField
+              label="รหัสผ่าน"
+              type="password"
+              value={formData.password}
+              onChange={(value) => handleInputChange('password', value)}
+              placeholder="กรุณาป้อนรหัสผ่าน"
+              required={isCreateMode}
+            />
+          )}
 
           <SelectField
             label="บทบาท"
@@ -108,18 +135,11 @@ export default function UserModal({ user, mode, onClose, onSave }) {
             disabled={isViewMode}
           />
 
-          <SelectField
-            label="หน่วยงาน"
+          <FormField
+            label="ภาควิชา"
             value={formData.department}
             onChange={(value) => handleInputChange('department', value)}
-            options={[
-              { value: '', label: 'เลือกหน่วยงาน' },
-              { value: 'IT Department', label: 'แผนกไอที' },
-              { value: 'Research Department', label: 'แผนกวิจัย' },
-              { value: 'Academic Affairs', label: 'กิจการนักศึกษา' },
-              { value: 'Finance Department', label: 'แผนกการเงิน' },
-              { value: 'HR Department', label: 'แผนกทรัพยากรมนุษย์' }
-            ]}
+            placeholder="ภาควิชา"
             className={isViewMode ? 'bg-gray-50' : ''}
             disabled={isViewMode}
           />

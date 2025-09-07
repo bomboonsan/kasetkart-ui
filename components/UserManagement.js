@@ -6,13 +6,32 @@ import useSWR, { mutate } from 'swr'
 import UserTable from "./UserTable";
 import UserFilters from "./UserFilters";
 import UserModal from "./UserModal";
-// import { userAPI, api } from "@/lib/api";
+import { api } from "@/lib/api";
+
+// User API functions for Strapi v5
+const userAPI = {
+  async updateUser(documentId, data) {
+    return api.put(`/users/${documentId}`, data);
+  },
+  
+  async updateUserStatus(documentId, blocked, confirmed) {
+    return api.put(`/users/${documentId}`, { blocked, confirmed });
+  },
+  
+  async createUser(data) {
+    return api.post('/auth/local/register', data);
+  },
+  
+  async deleteUser(documentId) {
+    return api.delete(`/users/${documentId}`);
+  }
+};
 
 const mapRoleToLabel = (role) => {
   switch (role) {
-    case "ADMIN":
-      return "Moderator";
     case "SUPERADMIN":
+      return "Super Admin";
+    case "ADMIN":
       return "Admin";
     case "USER":
     default:
@@ -50,36 +69,63 @@ const UserManagement = forwardRef((props, ref) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // โหลดรายชื่อผู้ใช้ด้วย SWR
-  const { data: usersRes, error: usersErr, isLoading } = useSWR('/users?page=1&pageSize=100', api.get)
+  // โหลดรายชื่อผู้ใช้ด้วย SWR - populate relations เพื่อได้ department, role, faculty
+  const { data: usersRes, error: usersErr, isLoading } = useSWR(
+    'users-all', 
+    () => api.get('/users?populate[department]=*&populate[role]=*&populate[faculty]=*&populate[academic_type]=*&populate[organization]=*&populate[profile]=*&pagination[pageSize]=100'),
+    { revalidateOnFocus: false, dedupingInterval: 30000 }
+  )
 
   // เมื่อข้อมูลผู้ใช้เปลี่ยน แปลงเป็นโครงสร้างที่ตารางใช้งาน แล้วเซ็ต filteredUsers เริ่มต้น
   useEffect(() => {
     try {
-      const usersData = usersRes?.data || usersRes?.items || usersRes || [];
+      const usersData = usersRes?.data || usersRes || [];
       const mapped = usersData.map((u) => {
-        const prof = Array.isArray(u.Profile) ? u.Profile[0] : u.Profile;
-        const displayName = prof
-          ? `${prof.firstName || ""} ${prof.lastName || ""}`.trim() || u.email
-          : u.email;
+        // Extract data from Strapi v5 structure
+        const profile = u.profile;
+        console.log('User profile data:', profile);
+        const firstName = profile?.firstNameTH || '';
+        const lastName = profile?.lastNameTH || '';
+        const displayName = `${firstName} ${lastName}`.trim() || u.username || u.email;
+        
+        // Map role from Strapi role relation
+        const roleType = u.role?.name || 'authenticated';
+        const roleLabel = roleType === 'Super admin' ? 'SUPERADMIN' : 
+          roleType === 'Admin' ? 'ADMIN' : 'USER';
+        // Map department, faculty, organization
+        const department = u.department?.name || '-';
+        const faculty = u.faculty?.name || '-';
+        const organization = u.organization?.name || '-';
+
+        console.log('User:', u, 'mapped to label:', roleLabel);
+        
+        // Map status from user fields
+        const status = u.blocked ? 'Inactive' : 
+                      u.confirmed ? 'Active' : 'Pending';
+
         return {
           id: u.id,
+          documentId: u.documentId, // Strapi v5 documentId
           name: displayName,
           email: u.email,
-          role: mapRoleToLabel(u.role),
-          department: u.Department?.name || "-",
-          faculty: u.Faculty?.name || "-",
-          organization: u.Organization?.name || "-",
-          status: mapApprovalToStatus(u.approvalStatus),
-          lastLogin: "Never",
+          username: u.username,
+          role: roleLabel,
+          department: department,
+          faculty: faculty,
+          organization: u.organization?.name || '-',
+          status: status,
+          lastLogin: "Never", // Strapi doesn't track this by default
           avatar: toAvatar(displayName || u.email),
-          avatarUrl: prof?.avatarUrl || '',
+          avatarUrl: profile?.avatarUrl?.url || '',
+          blocked: u.blocked,
+          confirmed: u.confirmed,
           rawData: u,
         };
       });
       setUsers(mapped);
       setFilteredUsers(mapped);
     } catch (err) {
+      console.error('Error processing users data:', err);
       setError(err.message || "ไม่สามารถโหลดข้อมูลผู้ใช้");
     }
   }, [usersRes]);
@@ -146,17 +192,23 @@ const UserManagement = forwardRef((props, ref) => {
           user &&
           window.confirm("Are you sure you want to delete this user?")
         ) {
-          // Note: Delete endpoint may not exist in API, this is placeholder
-          console.log("Delete user:", user);
+          try {
+            await userAPI.deleteUser(user.documentId || user.id);
+            mutate('users-all'); // รีเฟรชรายการ
+          } catch (err) {
+            console.error('Delete user error:', err);
+            setError(err.message || "ไม่สามารถลบผู้ใช้");
+          }
         }
         break;
       case "approve":
       case "activate":
         if (user) {
           try {
-            await userAPI.updateUserApproval(user.id, "APPROVED");
-            mutate('/users?page=1&pageSize=100'); // รีเฟรชรายการ
+            await userAPI.updateUserStatus(user.documentId || user.id, false, true); // unblock and confirm
+            mutate('users-all'); // รีเฟรชรายการ
           } catch (err) {
+            console.error('Approve user error:', err);
             setError(err.message || "ไม่สามารถอนุมัติผู้ใช้");
           }
         }
@@ -165,9 +217,10 @@ const UserManagement = forwardRef((props, ref) => {
       case "deactivate":
         if (user) {
           try {
-            await userAPI.updateUserApproval(user.id, "DISABLED");
-            mutate('/users?page=1&pageSize=100'); // รีเฟรชรายการ
+            await userAPI.updateUserStatus(user.documentId || user.id, true, true); // block user
+            mutate('users-all'); // รีเฟรชรายการ
           } catch (err) {
+            console.error('Disable user error:', err);
             setError(err.message || "ไม่สามารถปิดใช้งานผู้ใช้");
           }
         }
@@ -179,41 +232,36 @@ const UserManagement = forwardRef((props, ref) => {
     try {
       if (modalMode === "create") {
         const payload = {
+          username: userData.username || userData.email,
           email: userData.email,
           password: userData.password || "defaultpassword123",
-          role:
-            userData.role === "Moderator"
-              ? "ADMIN"
-              : userData.role === "Admin"
-                ? "SUPERADMIN"
-                : "USER",
+          confirmed: true,
+          blocked: false
         };
         await userAPI.createUser(payload);
       } else if (modalMode === "edit" && selectedUser) {
         const payload = {
           email: userData.email,
-          role:
-            userData.role === "Moderator"
-              ? "ADMIN"
-              : userData.role === "Admin"
-                ? "SUPERADMIN"
-                : "USER",
+          username: userData.username,
+          blocked: userData.status === 'Inactive',
+          confirmed: userData.status !== 'Pending'
         };
-        await userAPI.updateUser(selectedUser.id, payload);
+        await userAPI.updateUser(selectedUser.documentId || selectedUser.id, payload);
       }
-      await loadUsers(); // Reload data
+      mutate('users-all'); // Reload data with SWR
       setIsModalOpen(false);
       setSelectedUser(null);
     } catch (err) {
+      console.error('Save user error:', err);
       setError(err.message || "ไม่สามารถบันทึกข้อมูลผู้ใช้");
     }
   };
 
   return (
     <div className="space-y-6">
-      {error && (
+      {(error || usersErr) && (
         <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">
-          {error}
+          {error || usersErr?.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล"}
         </div>
       )}
 

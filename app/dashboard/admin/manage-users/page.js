@@ -8,11 +8,11 @@ import Button from '@/components/Button'
 export default function ManageUsersPage() {
   const userManagementRef = useRef()
 
-  // const handleAddUser = () => {
-  //   if (userManagementRef.current) {
-  //     userManagementRef.current.openCreateModal()
-  //   }
-  // }
+  const handleAddUser = () => {
+    if (userManagementRef.current) {
+      userManagementRef.current.openCreateModal()
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -22,9 +22,7 @@ export default function ManageUsersPage() {
           showAddButton={false}
         />
         <div>
-          <a href='/dashboard/admin/add-user'>
-          <Button>เพิ่มผู้ใช้งาน</Button>
-          </a>
+          <Button onClick={handleAddUser}>เพิ่มผู้ใช้งาน</Button>
         </div>
       </div>
       <UserManagement ref={userManagementRef} />

@@ -29,15 +29,15 @@ export default function UserTableRow({ user, onAction }) {
 
   const getRoleBadge = (role) => {
     const styles = {
-      Admin: "bg-purple-100 text-purple-800",
-      Moderator: "bg-blue-100 text-blue-800",
-      User: "bg-gray-100 text-gray-800",
+      SUPERADMIN: "bg-purple-100 text-purple-800",
+      ADMIN: "bg-blue-100 text-blue-800",
+      USER: "bg-gray-100 text-gray-800",
     };
 
     const labels = {
-      Admin: "Super Admin",
-      Moderator: "Admin",
-      User: "User",
+      SUPERADMIN: "Super Admin",
+      ADMIN: "Admin",
+      USER: "User",
     };
 
     return (
