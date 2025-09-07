@@ -26,7 +26,9 @@ export default function DashboardHome() {
 
   useEffect(() => {
     // When selectedDept changes, reload personnel-by-department
-    loadPersonnelForDepartment(selectedDept)
+  loadPersonnelForDepartment(selectedDept)
+  // also reload research stats for the selected department
+  loadResearchStatsForDepartment(selectedDept)
   }, [selectedDept])
 
   const loadDashboardData = async () => {
@@ -48,14 +50,17 @@ export default function DashboardHome() {
       ])
 
       // Departments list (set selected to first if any)
-      const deptList = (departmentsRes?.data || departmentsRes || []).map(d => ({
-        id: d.id || d.documentId || d.attributes?.documentId || d.attributes?.id,
-        name: d.attributes?.name || d.name || d.title || d.attributes?.displayName || d.displayName || d
-      }))
+      const deptList = (departmentsRes?.data || departmentsRes || []).map(d => {
+        const rawId = d?.id ?? d?.attributes?.id ?? null
+        const rawDoc = d?.documentId ?? d?.attributes?.documentId ?? null
+        const name = d?.attributes?.name || d?.name || d?.title || d?.attributes?.displayName || d?.displayName || d
+        return { id: rawId, documentId: rawDoc, name }
+      })
       setDepartments(deptList)
       if (deptList.length && selectedDept === 'all') {
         // choose first department by documentId if available, else id
-        setSelectedDept(deptList[0].id || 'all')
+        console.log('Defaulting selectedDept to first department:', deptList[0])
+        setSelectedDept(deptList[0].documentId || deptList[0].id || 'all')
       }
 
       // Process stats data
@@ -109,7 +114,13 @@ export default function DashboardHome() {
 
       // If we have a selected department (set above) load its data
       if (deptList && deptList.length) {
-        await loadPersonnelForDepartment(selectedDept || deptList[0].id)
+        
+        const deptToLoad = selectedDept || deptList[0].documentId || deptList[0].id
+        // console.log('Loading data for department:', deptToLoad)
+        await Promise.all([
+          loadPersonnelForDepartment(deptToLoad),
+          loadResearchStatsForDepartment(deptToLoad)
+        ])
       }
 
     } catch (err) {
@@ -117,6 +128,22 @@ export default function DashboardHome() {
       setError('ไม่สามารถโหลดข้อมูล Dashboard ได้')
     } finally {
       setLoading(false)
+    }
+  }
+
+  const loadResearchStatsForDepartment = async (departmentId) => {
+    try {
+      if (!departmentId || departmentId === 'all') {
+        // load overall
+        const stats = await dashboardAPI.getResearchStatsByTypes()
+        setResearchStats(stats)
+        return
+      }
+      console.log('Loading research stats for department:', departmentId)
+      const stats = await dashboardAPI.getResearchStatsByTypes(departmentId)
+      setResearchStats(stats)
+    } catch (err) {
+      console.error('Error loading research stats for department:', err)
     }
   }
 

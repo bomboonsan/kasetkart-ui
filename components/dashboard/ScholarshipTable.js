@@ -16,6 +16,8 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
   const [currentStats, setCurrentStats] = useState({ icTypes: [], impacts: [], sdgs: [] })
   const [loading, setLoading] = useState(false)
 
+  // console.log('departments:', departments)
+
   // Load departments on mount
   useEffect(() => {
     loadDepartments()
@@ -95,7 +97,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
           >
             <option value="all">ทั้งหมด</option>
             {departments.map((dept) => (
-              <option key={dept.id || dept.documentId} value={String(dept.id || dept.documentId)}>
+              <option key={dept.documentId} value={String(dept.documentId)}>
                 {dept.name}
               </option>
             ))}
