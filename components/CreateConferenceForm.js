@@ -15,6 +15,7 @@ import FormTextarea from './FormTextarea'
 import FormDateSelect from './FormDateSelect'
 import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
+import EditableResearchTeamSection from './EditableResearchTeamSection'
 import Button from './Button'
 import SweetAlert2 from 'react-sweetalert2'
 
@@ -545,12 +546,10 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           </FormFieldBlock>
         </FormSection>
 
-        {/* Project Partners (Display Only) */}
+        {/* Research Team Section (Editable) */}
         {formData.__projectObj && (
           <div className='p-4 rounded-md border shadow border-gray-200/70'>
-            <FormSection title="ผู้ร่วมวิจัยในโครงการ">
-              <ProjectPartnersDisplay project={formData.__projectObj} />
-            </FormSection>
+            <EditableResearchTeamSection project={formData.__projectObj} />
           </div>
         )}
 
