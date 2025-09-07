@@ -1,12 +1,11 @@
 'use client'
 
-// ใช้ SWR โหลด organizations / faculties / departments
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
-// import { orgAPI, userAPI, uploadAPI, API_BASE, api } from '@/lib/api'
+import { orgAPI, userAPI, uploadAPI, API_BASE, api } from '@/lib/api'
 import SweetAlert2 from 'react-sweetalert2'
 
 export default function AddUserForm() {
@@ -15,79 +14,128 @@ export default function AddUserForm() {
     email: '',
     password: '',
     role: 'USER',
-    organizationID: '',
-    facultyId: '',
-    departmentId: '',
+    organization: '',
+    faculty: '',
+    department: '',
+    academic_type: '',
+    participation_type: '',
     firstName: '',
     lastName: '',
     firstNameEn: '',
     lastNameEn: '',
     highDegree: '',
-    jobType: '',
     phone: '',
     academicPosition: '',
     avatarUrl: ''
   })
-  const [orgs, setOrgs] = useState([])
+  
+  const [organizations, setOrganizations] = useState([])
   const [faculties, setFaculties] = useState([])
-  const [depts, setDepts] = useState([])
-  const [loading, setLoading] = useState(true)
+  const [departments, setDepartments] = useState([])
+  const [academicTypes, setAcademicTypes] = useState([])
+  const [participationTypes, setParticipationTypes] = useState([])
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
   const onChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
-  const { data: orgRes, error: orgErr } = useSWR('/organizations', api.get)
-  const { data: facRes, error: facErr } = useSWR('/faculties', api.get)
-  const { data: deptRes, error: deptErr } = useSWR('/departments', api.get)
+  // Load data using SWR like in GeneralInfoTab
+  const { data: organizationsRes, error: orgError } = useSWR('organizations', () => orgAPI.getOrganizations())
+  const { data: facultiesRes, error: facError } = useSWR('faculties', () => orgAPI.getFaculties())
+  const { data: departmentsRaw, error: depError } = useSWR('departments', () => orgAPI.getDepartments())
+  const { data: academicTypesRaw, error: acadError } = useSWR('academic-types', () => orgAPI.getAcademicType())
+  const { data: participationTypesRaw, error: partError } = useSWR('participation-types', () => orgAPI.getParticipationTypes())
+
   useEffect(() => {
-    try {
-      setLoading(!orgRes || !facRes || !deptRes)
-      const orgOptions = [{ value: '', label: 'เลือกหน่วยงาน' }].concat((orgRes?.data || []).map(o => ({ value: String(o.id), label: o.name })))
-      const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat((facRes?.data || []).map(f => ({ value: String(f.id), label: f.name })))
-      const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat((deptRes?.data || []).map(d => ({ value: String(d.id), label: d.name })))
-      setOrgs(orgOptions); setFaculties(facultyOptions); setDepts(deptOptions)
-    } catch (err) {
-      setError(err.message || 'โหลดข้อมูลหน่วยงาน/ภาควิชาไม่สำเร็จ')
+    // Normalize data like in GeneralInfoTab - use documentId for UI, keep realId for saving
+    const normalize = (raw) => {
+      const arr = raw?.data || raw || []
+      return arr.map(x => ({
+        id: x?.documentId, // ใช้ documentId เป็น value ใน select
+        name: x?.name,
+        realId: x?.id // เก็บ id จริงไว้สำหรับบันทึก
+      }))
     }
-  }, [orgRes, facRes, deptRes])
+
+    setOrganizations(normalize(organizationsRes))
+    setFaculties(normalize(facultiesRes))
+    setDepartments(normalize(departmentsRaw))
+    setAcademicTypes(normalize(academicTypesRaw))
+    setParticipationTypes(normalize(participationTypesRaw))
+  }, [organizationsRes, facultiesRes, departmentsRaw, academicTypesRaw, participationTypesRaw])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setLoading(true)
+    
     try {
+      // Convert documentId to numeric id for relations like in GeneralInfoTab
+      const convertToId = (docId, list) => {
+        if (!docId) return undefined
+        const item = list.find(x => x.id === docId)
+        return item?.realId || docId
+      }
+
       const payload = {
         email: form.email,
-        password: form.password,
+        password: form.password || 'defaultPassword123',
         role: form.role,
-        organizationID: form.organizationID ? parseInt(form.organizationID) : undefined,
-        facultyId: form.facultyId ? parseInt(form.facultyId) : undefined,
-        departmentId: form.departmentId ? parseInt(form.departmentId) : undefined,
+        organizationID: convertToId(form.organization, organizations),
+        facultyId: convertToId(form.faculty, faculties), 
+        departmentId: convertToId(form.department, departments),
+        academic_type: convertToId(form.academic_type, academicTypes),
+        participation_type: convertToId(form.participation_type, participationTypes),
       }
+
+      console.log('Debug: Creating user with payload:', payload)
+
       const user = await userAPI.createUser(payload)
-      // upsert profile
-      const profile = {
-        ...(form.firstName ? { firstName: form.firstName } : {}),
-        ...(form.lastName ? { lastName: form.lastName } : {}),
-        ...(form.firstNameEn ? { firstNameEn: form.firstNameEn } : {}),
-        ...(form.lastNameEn ? { lastNameEn: form.lastNameEn } : {}),
-        ...(form.highDegree ? { highDegree: form.highDegree } : {}),
-        ...(form.jobType ? { jobType: form.jobType } : {}),
-        ...(form.academicPosition ? { academicRank: form.academicPosition } : {}),
-        ...(form.phone ? { phone: form.phone } : {}),
-        ...(form.avatarUrl ? { avatarUrl: form.avatarUrl } : {}),
+      
+      // Handle response - user might be in data field or directly returned
+      const userId = user?.data?.id || user?.id
+      if (!userId) {
+        throw new Error('ไม่สามารถดึง user ID จากการสร้าง user ได้')
       }
-      if (Object.keys(profile).length > 0) {
-        await userAPI.upsertUserProfile(user.id, profile)
+
+      console.log('Debug: Created user with ID:', userId)
+      
+      // Create profile data
+      const profileData = {
+        firstNameTH: form.firstName || '',
+        lastNameTH: form.lastName || '',
+        firstNameEN: form.firstNameEn || '',
+        lastNameEN: form.lastNameEn || '',
+        telephoneNo: form.phone || '',
+        academicPosition: form.academicPosition || '',
+        highDegree: form.highDegree || '',
+        ...(form.avatarUrl && { avatarUrl: form.avatarUrl })
       }
+
+      if (Object.keys(profileData).length > 0) {
+        await userAPI.upsertUserProfile(userId, profileData)
+      }
+
       setSwalProps({ show: true, icon: 'success', title: 'สร้างผู้ใช้สำเร็จ', timer: 1600, showConfirmButton: false })
-      setForm({ email: '', password: '', role: 'USER', organizationID: '', facultyId: '', departmentId: '', firstName: '', lastName: '', firstNameEn: '', lastNameEn: '', highDegree: '', jobType: '', phone: '', academicPosition: '', avatarUrl: '' })
+      
+      // Reset form
+      setForm({
+        email: '', password: '', role: 'USER', organization: '', faculty: '', department: '',
+        academic_type: '', participation_type: '', firstName: '', lastName: '', firstNameEn: '', 
+        lastNameEn: '', highDegree: '', phone: '', academicPosition: '', avatarUrl: ''
+      })
     } catch (err) {
+      console.error('Error creating user:', err)
       setError(err.message || 'สร้างผู้ใช้ไม่สำเร็จ')
       setSwalProps({ show: true, icon: 'error', title: 'สร้างผู้ใช้ไม่สำเร็จ', text: err.message || '', timer: 2200 })
+    } finally {
+      setLoading(false)
     }
   }
 
-  if (loading) return <div className="p-6 text-gray-500">กำลังโหลด...</div>
+  const dataLoaded = organizations.length > 0 && faculties.length > 0 && departments.length > 0 && academicTypes.length > 0 && participationTypes.length > 0
+
+  if (!dataLoaded) return <div className="p-6 text-gray-500">กำลังโหลดข้อมูล...</div>
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
@@ -234,46 +282,25 @@ export default function AddUserForm() {
           label="HighDegree"
           value={form.highDegree}
           onChange={(v) => onChange('highDegree', v)}
+          placeholder="เช่น Ph.D., M.Sc., B.Eng."
           required
         />
         <SelectField
           label="ประเภทอาจารย์"
-          value={form.jobType}
-          onChange={(v) => onChange('jobType', v)}
+          value={form.academic_type}
+          onChange={(v) => onChange('academic_type', v)}
           required
-          options={[
-            { value: 'SA', label: 'SA' },
-            { value: 'PA', label: 'PA' },
-            { value: 'SP', label: 'SP' },
-            { value: 'IP', label: 'IP' },
-            { value: 'A', label: 'A' },
-          ]}
-        />
-      </div>      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">        
-        <SelectField
-          label="มหาวิทยาลัย"
-          value={form.organizationID}
-          onChange={(v) => onChange('organizationID', v)}
-          required
-          options={orgs}
-        />
-        <SelectField
-          label="คณะ (Faculty)"
-          value={form.facultyId}
-          onChange={(v) => onChange('facultyId', v)}
-          required
-          options={faculties}
-        />
-        <SelectField
-          label="ภาควิชา"
-          value={form.departmentId}
-          onChange={(v) => onChange('departmentId', v)}
-          required
-          options={depts}
+          options={[{ value: '', label: 'เลือกประเภทอาจารย์' }, ...academicTypes.map(at => ({ value: at.id, label: at.name }))]}
         />
       </div>
-      <div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <SelectField
+          label="ประเภทการเข้าร่วม"
+          value={form.participation_type}
+          onChange={(v) => onChange('participation_type', v)}
+          required
+          options={[{ value: '', label: 'เลือกประเภทการเข้าร่วม' }, ...participationTypes.map(pt => ({ value: pt.id, label: pt.name }))]}
+        />
         <SelectField
           label="สิทธิ์ (Role)"
           value={form.role}
@@ -285,9 +312,34 @@ export default function AddUserForm() {
             { value: 'SUPERADMIN', label: 'SUPERADMIN' },
           ]}
         />
+      </div>      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">        
+        <SelectField
+          label="มหาวิทยาลัย/หน่วยงาน"
+          value={form.organization}
+          onChange={(v) => onChange('organization', v)}
+          required
+          options={[{ value: '', label: 'เลือกมหาวิทยาลัย/หน่วยงาน' }, ...organizations.map(org => ({ value: org.id, label: org.name }))]}
+        />
+        <SelectField
+          label="คณะ"
+          value={form.faculty}
+          onChange={(v) => onChange('faculty', v)}
+          required
+          options={[{ value: '', label: 'เลือกคณะ' }, ...faculties.map(fac => ({ value: fac.id, label: fac.name }))]}
+        />
+        <SelectField
+          label="ภาควิชา"
+          value={form.department}
+          onChange={(v) => onChange('department', v)}
+          required
+          options={[{ value: '', label: 'เลือกภาควิชา' }, ...departments.map(dep => ({ value: dep.id, label: dep.name }))]}
+        />
       </div>
       <div className="flex justify-end">
-        <Button type="submit" variant="primary">สร้างผู้ใช้</Button>
+        <Button type="submit" variant="primary" disabled={loading}>
+          {loading ? 'กำลังสร้าง...' : 'สร้างผู้ใช้'}
+        </Button>
       </div>
     </form>
   )
