@@ -1,11 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import useSWR, { mutate } from 'swr'
+import { worksAPI, projectAPI, profileAPI } from '../lib/api'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
 import ProjectPicker from './ProjectPicker'
-import UserPicker from './UserPicker'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from './FormCheckbox'
@@ -13,15 +15,16 @@ import FormTextarea from './FormTextarea'
 import FormDateSelect from './FormDateSelect'
 import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
-import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
-import { api } from '@/lib/api'
 import SweetAlert2 from 'react-sweetalert2'
 
-export default function CreateAcademicForm({ mode = 'create', workId, initialData }) {
+export default function CreateConferenceForm({ mode = 'create', workId, initialData }) {
+  const router = useRouter()
   const [swalProps, setSwalProps] = useState({})
-  // Align to ConferenceDetail fields
+  
+  // Form state aligned to work-conference schema
   const [formData, setFormData] = useState({
+    project_research: '', // relation to project-research
     titleTH: "", // ชื่อผลงาน (ไทย)
     titleEN: "", // ชื่อผลงาน (อังกฤษ)
     isEnvironmentallySustainable: 0, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
@@ -32,7 +35,6 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
     durationEnd: "", // ระยะเวลาการทำวิจัย (Date)
     cost: 0, // ค่าใช้จ่าย (Int)
     costType: 0, // ค่าใช้จ่ายมาจาก  (Int) Value จาก select
-    projectId: "", // โครงการวิจัย (Relation to Project)
     __projectObj: undefined, // สำหรับเก็บ object โครงการวิจัยที่เลือก
     presentationWork: 0, // การนำเสนอผลงาน (Int) 0=ได้รับเชิญ (Invited Paper.), 1=เสนอเอง
     presentType: 0, // ประเภทการนำเสนอ (Int) 0=ภาคบรรยาย (Oral), 1=ภาคโปสเตอร์ (Poster), 2=เข้าร่วมประชุมวิชาการ
@@ -51,68 +53,129 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  // Load current user for context
+  const { data: userRes, error: userError } = useSWR('users/me', () => profileAPI.getCurrentUser())
+  
+  // Load existing work when editing
+  const { data: workRes, error: workError } = useSWR(
+    mode === 'edit' && workId ? ['work-conference', workId] : null,
+    () => worksAPI.getConference(workId)
+  )
 
   // Prefill when editing
   useEffect(() => {
-    if (!initialData) return
+    if (!workRes?.data) return
+    const work = workRes.data
     setFormData(prev => ({
       ...prev,
-      ...initialData,
-      durationStart: initialData.durationStart ? String(initialData.durationStart).slice(0,10) : '',
-      durationEnd: initialData.durationEnd ? String(initialData.durationEnd).slice(0,10) : '',
-      projectId: initialData?.Project?.id ? String(initialData.Project.id) : (prev.projectId || ''),
+      project_research: work.project_research?.documentId || work.project_research?.id || '',
+      titleTH: work.titleTH || '',
+      titleEN: work.titleEN || '',
+      isEnvironmentallySustainable: work.isEnvironmentallySustainable || 0,
+      journalName: work.journalName || '',
+      doi: work.doi || '',
+      isbn: work.isbn || '',
+      durationStart: work.durationStart ? String(work.durationStart).slice(0,10) : '',
+      durationEnd: work.durationEnd ? String(work.durationEnd).slice(0,10) : '',
+      cost: work.cost || 0,
+      costType: work.costType || 0,
+      presentationWork: work.presentationWork || 0,
+      presentType: work.presentType || 0,
+      articleType: work.articleType || 0,
+      abstractTH: work.abstractTH || '',
+      abstractEN: work.abstractEN || '',
+      summary: work.summary || '',
+      keywords: work.keywords || '',
+      level: work.level || 0,
+      countryCode: work.countryCode || 0,
+      state: work.state || 0,
+      city: work.city || 0,
+      fundName: work.fundName || '',
+      attachments: work.attachments || [],
+      __projectObj: work.project_research || undefined,
     }))
-  }, [initialData])
+  }, [workRes])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('')
     setSubmitting(true)
+    
     try {
-      const detail = {
-        titleTH: formData.titleTH,
+      // Prepare payload aligned to work-conference schema
+      const payload = {
+        project_research: formData.project_research || undefined,
+        titleTH: formData.titleTH || undefined,
         titleEN: formData.titleEN || undefined,
-        isEnvironmentallySustainable: formData.isEnvironmentallySustainable,
+        isEnvironmentallySustainable: parseInt(formData.isEnvironmentallySustainable) || 0,
         journalName: formData.journalName || undefined,
         doi: formData.doi || undefined,
         isbn: formData.isbn || undefined,
-        durationStart: formData.durationStart,
-        durationEnd: formData.durationEnd,
+        durationStart: formData.durationStart || undefined,
+        durationEnd: formData.durationEnd || undefined,
         cost: formData.cost ? parseInt(formData.cost) : undefined,
-        presentationWork: formData.presentationWork || undefined,
-        presentType: formData.presentType || undefined,
-        articleType: formData.articleType || undefined,
+        costType: parseInt(formData.costType) || 0,
+        presentationWork: parseInt(formData.presentationWork) || 0,
+        presentType: parseInt(formData.presentType) || 0,
+        articleType: parseInt(formData.articleType) || 0,
         abstractTH: formData.abstractTH || undefined,
         abstractEN: formData.abstractEN || undefined,
         summary: formData.summary || undefined,
         keywords: formData.keywords || undefined,
-        level: formData.level || undefined,
-        countryCode: formData.countryCode || undefined,
-        state: formData.state || undefined,
-        city: formData.city || undefined,
+        level: parseInt(formData.level) || 0,
+        countryCode: formData.countryCode ? parseInt(formData.countryCode) : undefined,
+        state: formData.state ? parseInt(formData.state) : undefined,
+        city: formData.city ? parseInt(formData.city) : undefined,
         fundName: formData.fundName || undefined,
+        attachments: (formData.attachments || []).map(a => ({ id: a.id })),
       }
-      const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
-      const authors = formData.userId ? [{ userId: parseInt(formData.userId), isCorresponding: true }] : []
-      const payload = { type: 'CONFERENCE', status: 'DRAFT', detail, authors, attachments }
+
+      // Remove undefined values
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === undefined) {
+          delete payload[key]
+        }
+      })
+
+      let result
       if (mode === 'edit' && workId) {
-        await api.put(`/works/${workId}`, payload)
-        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตผลงานประชุมวิชาการสำเร็จ', timer: 1600, showConfirmButton: false })
-      } else if (formData.projectId) {
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-        const res = await fetch(`${base}/projects/${formData.projectId}/works`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: JSON.stringify(payload), credentials: 'include'
+        result = await worksAPI.updateConference(workId, payload)
+        setSwalProps({ 
+          show: true, 
+          icon: 'success', 
+          title: 'แก้ไขผลงานการประชุมสำเร็จ', 
+          timer: 1600, 
+          showConfirmButton: false 
         })
-        if (!res.ok) { const data = await res.json().catch(()=>({})); throw new Error(data?.error?.message || 'บันทึกไม่สำเร็จ') }
-        setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานประชุมวิชาการสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
-        await api.post('/works', payload)
-        setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานประชุมวิชาการสำเร็จ', timer: 1600, showConfirmButton: false })
+        result = await worksAPI.createConference(payload)
+        setSwalProps({ 
+          show: true, 
+          icon: 'success', 
+          title: 'สร้างผลงานการประชุมสำเร็จ', 
+          timer: 1600, 
+          showConfirmButton: false 
+        })
       }
+
+      // Refresh data and navigate
+      mutate('work-conferences')
+      setTimeout(() => {
+        router.push('/works/conferences')
+      }, 1700)
+
     } catch (err) {
-      setError(err.message || 'บันทึกไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'บันทึกไม่สำเร็จ', text: err.message || '', timer: 2200 })
+      console.error('Submit error:', err)
+      setError(err?.response?.data?.error?.message || err?.message || 'เกิดข้อผิดพลาดในการบันทึก')
+      setSwalProps({ 
+        show: true, 
+        icon: 'error', 
+        title: 'บันทึกไม่สำเร็จ', 
+        text: err?.response?.data?.error?.message || err?.message || '', 
+        timer: 2200 
+      })
     } finally {
       setSubmitting(false)
     }
@@ -129,6 +192,20 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
         )}
+        <FormSection>
+          <FormFieldBlock>
+            <ProjectPicker
+              label="โครงการวิจัย"
+              required
+              selectedProject={formData.__projectObj}
+              onSelect={(project) => {
+                handleInputChange('project_research', project.documentId || project.id)
+                handleInputChange('__projectObj', project)
+              }}
+            />
+          </FormFieldBlock>
+        </FormSection>
+
         <FormSection>
           <FormFieldBlock>
             <FormTextarea
@@ -468,23 +545,63 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
           </FormFieldBlock>
         </FormSection>
 
-        <div className='p-4 rounded-md border shadow border-gray-200/70'>
-                  <FormSection title="* ผู้ร่วมวิจัย">
-                    <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-                  </FormSection>
-                </div>
+        {/* Project Partners (Display Only) */}
+        {formData.__projectObj && (
+          <div className='p-4 rounded-md border shadow border-gray-200/70'>
+            <FormSection title="ผู้ร่วมวิจัยในโครงการ">
+              <ProjectPartnersDisplay project={formData.__projectObj} />
+            </FormSection>
+          </div>
+        )}
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">
           <Button variant="outline" type="button">
-            Cancel
+            ยกเลิก
           </Button>
           
           <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? 'Submitting...' : 'Submit'}
+            {submitting ? 'กำลังบันทึก...' : (mode === 'edit' ? 'แก้ไข' : 'บันทึก')}
           </Button>
         </div>
       </form>
     </div>
   );
+}
+
+// Component to display project partners
+function ProjectPartnersDisplay({ project }) {
+  const { data: partnersRes, error: partnersError } = useSWR(
+    project ? ['project-partners', project.documentId || project.id] : null,
+    () => projectAPI.getProjectPartners(project.documentId || project.id)
+  )
+
+  const partners = partnersRes?.data || partnersRes || []
+
+  if (partnersError) {
+    return <div className="text-sm text-gray-500">ไม่สามารถโหลดข้อมูลผู้ร่วมวิจัยได้</div>
+  }
+
+  if (!partners.length) {
+    return <div className="text-sm text-gray-500">ไม่มีผู้ร่วมวิจัยในโครงการนี้</div>
+  }
+
+  return (
+    <div className="space-y-2">
+      {partners.map((partner, idx) => (
+        <div key={partner.documentId || partner.id || idx} className="flex items-center space-x-4 p-3 bg-gray-50 rounded">
+          <div className="flex-1">
+            <div className="font-medium text-gray-900">
+              {partner.internal_user ? (
+                `${partner.internal_user.firstNameTH || partner.internal_user.firstName || ''} ${partner.internal_user.lastNameTH || partner.internal_user.lastName || ''}`
+              ) : (
+                `${partner.firstNameTH || partner.firstName || ''} ${partner.lastNameTH || partner.lastName || ''}`
+              )}
+            </div>
+            <div className="text-sm text-gray-600">{partner.role || 'ผู้ร่วมวิจัย'}</div>
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }

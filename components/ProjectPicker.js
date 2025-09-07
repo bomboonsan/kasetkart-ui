@@ -1,30 +1,33 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import useSWR from 'swr'
+import { projectAPI } from '../lib/api'
 import Button from './Button'
 
 export default function ProjectPicker({ label = 'โครงการวิจัย', onSelect, selectedProject, required = false }) {
   const [open, setOpen] = useState(false)
-  const [projects, setProjects] = useState([])
   const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
 
-  // const current = getCurrentUser()
+  // Load user's projects from API
+  const { data: projectsRes, error: projectsError, isLoading } = useSWR(
+    open ? 'my-projects' : null,
+    () => projectAPI.getMyProjects(),
+    {
+      onError: (error) => {
+        console.error('ProjectPicker error:', error)
+        setError(error?.response?.data?.error?.message || error?.message || 'โหลดโครงการไม่สำเร็จ')
+      }
+    }
+  )
 
   useEffect(() => {
-    if (!open) return
-    // Mock data แทน API call
-    setLoading(true)
-    setError('')
-    setTimeout(() => {
-      const mockProjects = [
-        { id: 1, nameTh: 'โครงการตัวอย่าง 1', fiscalYear: '2567' },
-        { id: 2, nameTh: 'โครงการตัวอย่าง 2', fiscalYear: '2567' }
-      ]
-      setProjects(mockProjects)
-      setLoading(false)
-    }, 500)
-  }, [open])
+    if (projectsError) {
+      setError(projectsError.message || 'โหลดโครงการไม่สำเร็จ')
+    }
+  }, [projectsError])
+
+  const projects = projectsRes?.data || projectsRes || []
 
   return (
     <div className="space-y-1 flex items-center">
@@ -40,7 +43,7 @@ export default function ProjectPicker({ label = 'โครงการวิจ�
           {selectedProject ? 'เปลี่ยนโครงการ' : 'คลิกเพื่อเลือกโครงการวิจัย'}
         </button>
         {selectedProject && (
-          <span className="text-sm text-gray-700">{selectedProject.nameTh || selectedProject.nameEn || `Project #${selectedProject.id}`}</span>
+          <span className="text-sm text-gray-700">{selectedProject.nameTE || selectedProject.nameEN || `Project #${selectedProject.id}`}</span>
         )}
       </div>
 
@@ -50,18 +53,18 @@ export default function ProjectPicker({ label = 'โครงการวิจ�
           <div className="relative bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 space-y-4">
             <div className="text-lg font-medium">เลือกโครงการวิจัย</div>
             {error && <div className="text-sm text-red-600">{error}</div>}
-            {loading ? (
+            {isLoading ? (
               <div className="text-sm text-gray-500">กำลังโหลด...</div>
             ) : (
               <div className="max-h-80 overflow-auto divide-y divide-gray-100 border rounded">
                 {projects.map(p => (
                   <button
-                    key={p.id}
+                    key={p.documentId || p.id}
                     type="button"
                     onClick={() => { onSelect && onSelect(p); setOpen(false) }}
                     className="w-full text-left p-3 hover:bg-gray-50"
                   >
-                    <div className="font-medium text-gray-900">{p.nameTh || p.nameEn || `Project #${p.id}`}</div>
+                    <div className="font-medium text-gray-900">{p.nameTE || p.nameEN || `Project #${p.id}`}</div>
                     <div className="text-xs text-gray-600">ปีงบประมาณ: {p.fiscalYear}</div>
                   </button>
                 ))}
