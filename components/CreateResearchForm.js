@@ -293,12 +293,14 @@ export default function CreateResearchForm() {
         const commentField = p.partnerComment || p.comment || ''
         const fullnameField = p.fullname || p.partnerFullName || ''
         const orgField = p.orgName || p.org || p.orgFullName || ''
-        const proportionField = p.partnerProportion !== undefined && p.partnerProportion !== null ? parseFloat(p.partnerProportion) : undefined
+  const proportionField = p.partnerProportion !== undefined && p.partnerProportion !== null ? parseFloat(p.partnerProportion) : undefined
+  const proportionCustomField = p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '' ? parseFloat(p.partnerProportion_percentage_custom) : undefined
 
         const partnerData = {
           fullname: fullnameField || undefined,
           orgName: orgField || undefined,
           participation_percentage: proportionField,
+          participation_percentage_custom: proportionCustomField,
           participant_type: partnerTypeMap[p.partnerType] || undefined,
           isFirstAuthor: String(commentField).includes('First Author') || false,
           isCoreespondingAuthor: String(commentField).includes('Corresponding Author') || false,
