@@ -438,6 +438,12 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
         "label": "ระดับอื่น",
       },
     ],
+  // selected standard values (use ints for API)
+  standardScopus: 0,
+  standardScopusSubset: 0,
+  standardWebOfScience: 0,
+  standardABDC: 0,
+  standardAJG: 0,
 
   });
 
@@ -461,28 +467,50 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
     setError('')
     setSubmitting(true)
     try {
+      // Basic validation for volume/issue
+      if (formData.volume < 0 || formData.volume > 9999) {
+        throw new Error('ค่าปี (volume) ต้องอยู่ระหว่าง 0 - 9999')
+      }
+      if (formData.issue < 0 || formData.issue > 9999) {
+        throw new Error('ค่าฉบับที่ (issue) ต้องอยู่ระหว่าง 0 - 9999')
+      }
       const detail = {
-        titleTh: formData.titleTh,
-        titleEn: formData.titleEn || undefined,
+        titleTh: formData.titleTH,
+        titleEn: formData.titleEN || undefined,
         isEnvironmentallySustainable: formData.isEnvironmentallySustainable,
         journalName: formData.journalName || undefined,
         doi: formData.doi || undefined,
-        issn: formData.issn || undefined,
-        durationMonthStart: formData.durationMonthStart || '01',
-        durationMonthEnd: formData.durationMonthEnd || '12',
-        durationYearStart: formData.durationYearStart || String(new Date().getFullYear()),
-        durationYearEnd: formData.durationYearEnd || String(new Date().getFullYear()),
+        issn: formData.isbn || undefined,
+        durationStart: formData.durationStart || undefined,
+        durationEnd: formData.durationEnd || undefined,
         level: formData.level || undefined,
         isJournalDatabase: formData.isJournalDatabase,
-        scopus: formData.scopus,
-        WebOfScience: formData.WebOfScience,
-        ABDC: formData.ABDC,
-        AJG: formData.AJG,
-        SocialScienceResearchNetwork: formData.SocialScienceResearchNetwork,
+        // Map boolean flags/types from formData
+        isScopus: formData.isScopus,
+  scopusType: parseInt(formData.scopusType || 0, 10) || undefined,
+  scopusValue: parseInt(formData.scopusValue || 0, 10) || undefined,
+        isACI: formData.isACI,
+        isTCI1: formData.isTCI1,
+        isTCI2: formData.isTCI2,
+        isAJG: formData.isAJG,
+  ajgType: parseInt(formData.ajgType || 0, 10) || undefined,
+        isSSRN: formData.isSSRN,
+        isWOS: formData.isWOS,
+  wosType: parseInt(formData.wosType || 0, 10) || undefined,
         fundName: formData.fundName || undefined,
         keywords: formData.keywords || undefined,
-        abstractTh: formData.abstractTh || undefined,
-        abstractEn: formData.abstractEn || undefined,
+        abstractTh: formData.abstractTH || undefined,
+        abstractEn: formData.abstractEN || undefined,
+  pageStart: formData.pageStart || undefined,
+  pageEnd: formData.pageEnd || undefined,
+  volume: Number.isFinite(Number(formData.volume)) ? Number(formData.volume) : undefined,
+  issue: Number.isFinite(Number(formData.issue)) ? Number(formData.issue) : undefined,
+  // standard selections as ints
+  standardScopus: parseInt(formData.standardScopus || 0, 10) || undefined,
+  standardScopusSubset: parseInt(formData.standardScopusSubset || 0, 10) || undefined,
+  standardWebOfScience: parseInt(formData.standardWebOfScience || 0, 10) || undefined,
+  standardABDC: parseInt(formData.standardABDC || 0, 10) || undefined,
+  standardAJG: parseInt(formData.standardAJG || 0, 10) || undefined,
       }
       if (mode === 'edit' && workId) {
         // Mock API call
@@ -536,16 +564,16 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
               required
-              value={formData.titleTh}
-              onChange={(value) => handleInputChange("titleTh", value)}
+              value={formData.titleTH}
+              onChange={(value) => handleInputChange("titleTH", value)}
               placeholder=""
             />
 
             <FormTextarea
               label="ชื่อผลงาน (อังกฤษ)"
               required
-              value={formData.titleEn}
-              onChange={(value) => handleInputChange("titleEn", value)}
+              value={formData.titleEN}
+              onChange={(value) => handleInputChange("titleEN", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -621,8 +649,8 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               label="ISSN (ถ้ามี)"
               required
               type="text"
-              value={formData.issn}
-              onChange={(value) => handleInputChange("issn", value)}
+              value={formData.isbn}
+              onChange={(value) => handleInputChange("isbn", value)}
               placeholder=""
             />
             <div className="space-y-1 flex items-center">
@@ -633,8 +661,12 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               <div className="flex-1 flex items-center space-x-3 md:max-w-60">
                 <div className="flex gap-3 items-center">
                   <span className="text-gray-700 inline-block w-[120px]">ปีที่ (Volume) <span className="text-red-500 ml-1">*</span></span>
-                  <input
-                    type="number"
+          <input
+            type="number"
+            min={0}
+            max={9999}
+            value={formData.volume}
+            onChange={(e) => handleInputChange('volume', Number(e.target.value))}
                     className="text-zinc-700
                             px-3 py-2 border border-gray-300 rounded-md
                             placeholder-gray-400 focus:outline-none focus:ring-2 
@@ -647,6 +679,10 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                   <span className="text-gray-700 inline-block w-[120px]">ฉบับที่ (Issue) <span className="text-red-500 ml-1">*</span></span>
                 <input
                   type="number"
+                  min={0}
+                  max={9999}
+                  value={formData.issue}
+                  onChange={(e) => handleInputChange('issue', Number(e.target.value))}
                   className="text-zinc-700
                             px-3 py-2 border border-gray-300 rounded-md
                             placeholder-gray-400 focus:outline-none focus:ring-2 
@@ -667,16 +703,16 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                 <FormDateSelect
                   title="เริ่มต้น"
                   noDay={true}
-                  value={formData.durationYearStart}
-                  onChange={(value) => handleInputChange("durationYearStart", value)}
+                  value={formData.durationStart}
+                  onChange={(value) => handleInputChange("durationStart", value)}
                 />
               </div>
               <div>
                 <FormDateSelect
                   title="สิ้นสุด"
                   noDay={true}
-                  value={formData.durationYearEnd}
-                  onChange={(value) => handleInputChange("durationYearEnd", value)}
+                  value={formData.durationEnd}
+                  onChange={(value) => handleInputChange("durationEnd", value)}
                 />
               </div>
             </div>
@@ -685,8 +721,8 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               label="จากหน้า"
               after="ถึง"
               type="number"
-              value={formData.articleTitleTh}
-              value2={formData.articleTitleEn}
+              value={formData.pageStart}
+              value2={formData.pageEnd}
               onChange={(value, field) => handleInputChange(field, value)}
               placeholder=""
               required
@@ -832,12 +868,12 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                             </label>
                             {
                             // SCOPUS = true
-                            formData.listsStandard[idx].label === 'Scopus' && item.value &&
+                              formData.listsStandard[idx].label === 'Scopus' && item.value &&
                             <div>
                               <select
                                     onChange={
                                       (e) => {
-                                        const selectedValue = e.target.value;
+                                        const selectedValue = parseInt(e.target.value || '0', 10);
                                         setFormData(prev => ({
                                           ...prev,
                                           standardScopus: selectedValue
@@ -849,26 +885,27 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                                 bg-white focus:outline-none focus:ring-2 
                                 focus:ring-blue-500 focus:border-blue-500
                                 transition-colors duration-200">
-                                <option value={''}>-- กรุณาเลือก --</option>
+                                <option value={0}>-- กรุณาเลือก --</option>
                                 {formData.listsStandardScopus.map((item, idx) => (
-                                  
-                                  <option key={idx} value={item.label}>{item.label}</option>
+                                  <option key={idx} value={idx + 1}>{item.label}</option>
                                 ))}
                               </select>
                             </div>
                             }
                             { 
                               // SUBSET SCOPUS
-                              (formData.listsStandard[idx].label === 'Scopus' && item.value && (formData.standardScopus == "Q1" || formData.standardScopus == "Q2" || formData.standardScopus == "Q3" || formData.standardScopus == "Q4")) &&
+                              (formData.listsStandard[idx].label === 'Scopus' && item.value && (formData.standardScopus === 1 || formData.standardScopus === 2 || formData.standardScopus === 3 || formData.standardScopus === 4)) &&
                               <div>
-                                <select className="text-zinc-700
+                                <select
+                                  onChange={(e) => setFormData(prev => ({ ...prev, standardScopusSubset: parseInt(e.target.value || '0', 10) }))}
+                                  className="text-zinc-700
                                   block w-full px-3 py-2 border border-gray-300 rounded-md
                                   bg-white focus:outline-none focus:ring-2 
                                   focus:ring-blue-500 focus:border-blue-500
                                   transition-colors duration-200">
-                                  <option value={''}>-- กรุณาเลือก --</option>
+                                  <option value={0}>-- กรุณาเลือก --</option>
                                     {formData.listsStandardScopusSubset.map((item, idx) => (
-                                    <option key={idx} value={item.label}>{item.label}</option>
+                                    <option key={idx} value={idx + 1}>{item.label}</option>
                                   ))}
                                 </select>
                               </div>
@@ -878,24 +915,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                               formData.listsStandard[idx].label === 'Web of Science' && item.value &&
                               <div>
                                 <select
-                                  onChange={
-                                    (e) => {
-                                      const selectedValue = e.target.value;
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        standardWebOfScience: selectedValue
-                                      }));
-                                    }
-                                  }
+                                  onChange={(e) => setFormData(prev => ({ ...prev, standardWebOfScience: parseInt(e.target.value || '0', 10) }))}
                                   className="text-zinc-700
                                 block w-full px-3 py-2 border border-gray-300 rounded-md
                                 bg-white focus:outline-none focus:ring-2 
                                 focus:ring-blue-500 focus:border-blue-500
                                 transition-colors duration-200">
-                                  <option value={''}>-- กรุณาเลือก --</option>
+                                  <option value={0}>-- กรุณาเลือก --</option>
                                     {formData.listsStandardWebOfScience.map((item, idx) => (
-
-                                    <option key={idx} value={item.label}>{item.label}</option>
+                                    <option key={idx} value={idx + 1}>{item.label}</option>
                                   ))}
                                 </select>
                               </div>
@@ -905,24 +933,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                               formData.listsStandard[idx].label === 'ABDC' && item.value &&
                               <div>
                                 <select
-                                  onChange={
-                                    (e) => {
-                                      const selectedValue = e.target.value;
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        standardABDC: selectedValue
-                                      }));
-                                    }
-                                  }
+                                  onChange={(e) => setFormData(prev => ({ ...prev, standardABDC: parseInt(e.target.value || '0', 10) }))}
                                   className="text-zinc-700
                                 block w-full px-3 py-2 border border-gray-300 rounded-md
                                 bg-white focus:outline-none focus:ring-2 
                                 focus:ring-blue-500 focus:border-blue-500
                                 transition-colors duration-200">
-                                  <option value={''}>-- กรุณาเลือก --</option>
+                                  <option value={0}>-- กรุณาเลือก --</option>
                                   {formData.listsStandardABDC.map((item, idx) => (
-
-                                    <option key={idx} value={item.label}>{item.label}</option>
+                                    <option key={idx} value={idx + 1}>{item.label}</option>
                                   ))}
                                 </select>
                               </div>
@@ -932,24 +951,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                               formData.listsStandard[idx].label === 'AJG' && item.value &&
                               <div>
                                 <select
-                                  onChange={
-                                    (e) => {
-                                      const selectedValue = e.target.value;
-                                      setFormData(prev => ({
-                                        ...prev,
-                                        standardAJG: selectedValue
-                                      }));
-                                    }
-                                  }
+                                  onChange={(e) => setFormData(prev => ({ ...prev, standardAJG: parseInt(e.target.value || '0', 10) }))}
                                   className="text-zinc-700
                                 block w-full px-3 py-2 border border-gray-300 rounded-md
                                 bg-white focus:outline-none focus:ring-2 
                                 focus:ring-blue-500 focus:border-blue-500
                                 transition-colors duration-200">
-                                  <option value={''}>-- กรุณาเลือก --</option>
+                                  <option value={0}>-- กรุณาเลือก --</option>
                                     {formData.listsStandardAJG.map((item, idx) => (
-
-                                    <option key={idx} value={item.label}>{item.label}</option>
+                                    <option key={idx} value={idx + 1}>{item.label}</option>
                                   ))}
                                 </select>
                               </div>
@@ -986,15 +996,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             <FormTextarea
               label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
               required
-              value={formData.abstractTh}
-              onChange={(value) => handleInputChange("abstractTh", value)}
+              value={formData.abstractTH}
+              onChange={(value) => handleInputChange("abstractTH", value)}
               placeholder=""
             />
             <FormTextarea
               label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
               required
-              value={formData.abstractEn}
-              onChange={(value) => handleInputChange("abstractEn", value)}
+              value={formData.abstractEN}
+              onChange={(value) => handleInputChange("abstractEN", value)}
               placeholder=""
             />
           </FormFieldBlock>
