@@ -592,13 +592,20 @@ function ProjectPartnersDisplay({ project }) {
         <div key={partner.documentId || partner.id || idx} className="flex items-center space-x-4 p-3 bg-gray-50 rounded">
           <div className="flex-1">
             <div className="font-medium text-gray-900">
-              {partner.internal_user ? (
-                `${partner.internal_user.firstNameTH || partner.internal_user.firstName || ''} ${partner.internal_user.lastNameTH || partner.internal_user.lastName || ''}`
+              {partner.users_permissions_user ? (
+                `${partner.users_permissions_user.firstName || ''} ${partner.users_permissions_user.lastName || ''}`
               ) : (
-                `${partner.firstNameTH || partner.firstName || ''} ${partner.lastNameTH || partner.lastName || ''}`
+                partner.fullname || 'ไม่ระบุชื่อ'
               )}
             </div>
-            <div className="text-sm text-gray-600">{partner.role || 'ผู้ร่วมวิจัย'}</div>
+            <div className="text-sm text-gray-600">
+              {partner.users_permissions_user?.email || partner.orgName || 'ผู้ร่วมวิจัย'}
+            </div>
+            {partner.participation_percentage && (
+              <div className="text-xs text-gray-500">
+                การมีส่วนร่วม: {partner.participation_percentage}%
+              </div>
+            )}
           </div>
         </div>
       ))}
