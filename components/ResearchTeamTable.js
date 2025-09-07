@@ -30,17 +30,22 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     const internalIdx = result.reduce((arr, p, idx) => (p.isInternal ? [...arr, idx] : arr), [])
     const n = internalIdx.length
     if (n === 0) return result.map(p => ({ ...p, partnerProportion: undefined }))
-    const base = parseFloat((1 / n).toFixed(2))
+    
+    // แบ่งสัดส่วนเท่าๆ กันสำหรับผู้ใช้ภายในเท่านั้น
+    const base = 1 / n
     let assigned = 0
     internalIdx.forEach((idx, i) => {
       if (i < n - 1) {
-        result[idx].partnerProportion = base.toFixed(2)
+        result[idx].partnerProportion = base.toFixed(3)
         assigned += base
       } else {
-        const last = parseFloat((1 - assigned).toFixed(2))
-        result[idx].partnerProportion = last.toFixed(2)
+        // คนสุดท้ายได้ส่วนที่เหลือ เพื่อให้รวมกันเป็น 1.000
+        const last = 1 - assigned
+        result[idx].partnerProportion = last.toFixed(3)
       }
     })
+    
+    // ผู้ร่วมงานภายนอกไม่มีสัดส่วน
     return result.map(p => (p.isInternal ? p : { ...p, partnerProportion: undefined }))
   }
 
@@ -58,11 +63,21 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     // Normalize Strapi partner entries to the UI shape
     const norm = (partners || []).map(item => {
       const p = item?.attributes ? item.attributes : item
+      
+      // Map participant_type numbers to labels
+      const partnerTypeLabels = {
+        1: 'หัวหน้าโครงการ',
+        2: 'ที่ปรึกษาโครงการ',
+        3: 'ผู้ประสานงาน',
+        4: 'นักวิจัยร่วม',
+        99: 'อื่นๆ',
+      }
+      
       return {
         id: item?.id || p.id,
         fullname: p.fullname || p.name || '',
         orgName: p.orgName || p.org || '',
-        partnerType: p.participant_type || p.partnerType || '',
+        partnerType: partnerTypeLabels[p.participant_type] || p.partnerType || '',
         isInternal: !!p.users_permissions_user || !!p.userID || false,
         userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
         partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
@@ -122,12 +137,12 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         'อื่นๆ': 99,
       }
 
-      // ลบ partners เก่าที่เชื่อมโยงกับ project นี้
+      // ลบ partners เก่าที่เชื่อมโยงกับ project นี้ (ใช้ documentId สำหรับ Strapi v5)
       try {
-        const existingPartners = await api.get(`/project-partners?filters[project_researches][id][$eq]=${projectId}`)
+        const existingPartners = await api.get(`/project-partners?filters[project_researches][documentId][$eq]=${projectId}`)
         const partnersToDelete = existingPartners?.data || []
         for (const partner of partnersToDelete) {
-          await api.delete(`/project-partners/${partner.id}`)
+          await api.delete(`/project-partners/${partner.documentId || partner.id}`)
         }
       } catch (err) {
         console.warn('Failed to delete existing partners:', err)
@@ -143,7 +158,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
           isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
           isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
           users_permissions_user: p.userID || undefined,
-          project_researches: [projectId]
+          project_researches: [projectId] // ใช้ documentId
         }
 
         // Remove undefined keys
@@ -177,13 +192,15 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   function handleAddPartner() {
     const internal = formData.isInternal === true
     const u = formData.__userObj || null
-    const prof = u ? (Array.isArray(u.Profile) ? u.Profile[0] : u.Profile) : null
+    const prof = u ? (Array.isArray(u.profile) ? u.profile[0] : u.profile) : null
     const full = u ? (prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email) : ''
-    const org = u ? (u.Faculty?.name || u.Department?.name || '') : ''
+    const org = u ? [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ') : ''
+    
     const pcArr = Array.isArray(formData.partnerComment)
       ? formData.partnerComment
       : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])
     const pcJoined = pcArr.join(', ')
+    
     const partner = {
       isInternal: internal,
       userID: internal && u ? u.id : undefined,
@@ -194,6 +211,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       partnerProportion: undefined,
       User: internal && u ? { email: u.email } : undefined,
     }
+    
     setLocalPartners(prev => {
       const base = prev || []
       let next
@@ -208,6 +226,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       syncToServer(next)
       return next
     })
+    
     const dlg = document.getElementById('my_modal_2');
     if (dlg && dlg.close) dlg.close()
     resetForm()
@@ -284,10 +303,19 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   // สร้างแถวผู้ใช้ปัจจุบันและคำนวณสัดส่วนรวมเพื่อใช้แสดงผล
   const mePartner = useMemo(() => {
     if (!me) return null;
-    const prof = me?.Profile?.[0] || me?.profile;
+    const prof = Array.isArray(me.profile) ? me.profile[0] : me.profile;
     const display = (prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : me?.email) || me?.email || '-';
-    const org = me?.Faculty?.name || me?.Department?.name || me?.Organization?.name || '-';
-    return { isInternal: true, userID: me?.id, fullname: display, orgName: org, partnerType: '-', partnerComment: '', partnerProportion: undefined, User: { email: me?.email } };
+    const org = [me?.department?.name, me?.faculty?.name, me?.organization?.name].filter(Boolean).join(' ') || '-';
+    return { 
+      isInternal: true, 
+      userID: me?.id, 
+      fullname: display, 
+      orgName: org, 
+      partnerType: '-', 
+      partnerComment: '', 
+      partnerProportion: undefined, 
+      User: { email: me?.email } 
+    };
   }, [me]);
 
   const displayRows = useMemo(() => {
@@ -342,8 +370,16 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       label="ผู้ร่วมโครงการวิจัย"
                       selectedUser={formData.__userObj}
                       onSelect={(u) => {
-                        const display = (u.Profile ? `${u.Profile.firstName || ''} ${u.Profile.lastName || ''}`.trim() : u.email)
-                        setFormData(prev => ({ ...prev, partnerFullName: display, orgName: (u.Faculty?.name || u.Department?.name || ''), userId: u.id, __userObj: u }))
+                        const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
+                        const display = prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email
+                        const org = [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ')
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          partnerFullName: display, 
+                          orgName: org, 
+                          userId: u.id, 
+                          __userObj: u 
+                        }))
                       }}
                     />
                   </div>
@@ -352,7 +388,13 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       mini={false}
                       label="ชื่อผู้ร่วมโครงการวิจัย"
                       type="text"
-                      value={formData.__userObj?.Profile ? `${formData.__userObj.Profile[0].firstName || ''} ${formData.__userObj.Profile[0].lastName || ''}`.trim() : ''}
+                      value={(() => {
+                        if (formData.__userObj) {
+                          const prof = Array.isArray(formData.__userObj.profile) ? formData.__userObj.profile[0] : formData.__userObj.profile
+                          return prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : formData.__userObj.email
+                        }
+                        return formData.partnerFullName || ''
+                      })()}
                       readOnly={true}
                     />
                   </div>
@@ -361,7 +403,16 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       mini={false}
                       label="ชื่อหน่วยงาน"
                       type="text"
-                      value={formData.__userObj?.Department?.name ? formData.__userObj?.Department?.name + ' ' + formData.__userObj?.Faculty?.name + ' ' + formData.__userObj?.Organization?.name : ''}
+                      value={(() => {
+                        if (formData.__userObj) {
+                          return [
+                            formData.__userObj.department?.name,
+                            formData.__userObj.faculty?.name,
+                            formData.__userObj.organization?.name
+                          ].filter(Boolean).join(' ')
+                        }
+                        return formData.orgName || ''
+                      })()}
                       readOnly={true}
                     />
                   </div>
@@ -375,7 +426,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       type="text"
                       value={formData.partnerFullName}
                       onChange={(value) => handleInputChange("partnerFullName", value)}
-                      placeholder=""
+                      placeholder="กรอกชื่อ-นามสกุล"
                     />
                   </div>
                   <div>
@@ -385,19 +436,9 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       type="text"
                       value={formData.orgName}
                       onChange={(value) => handleInputChange("orgName", value)}
-                      placeholder=""
+                      placeholder="กรอกชื่อหน่วยงาน"
                     />
-                    </div>
-                    <div>
-                      <FormInput
-                        mini={true}
-                        label="สัดส่วนการมีส่วนร่วม"
-                        type="number"
-                        value={formData.partnerProportionPercent}
-                        onChange={(value) => handleInputChange("partnerProportionPercent", value)}
-                        placeholder="0%"
-                      />
-                    </div>
+                  </div>
                 </>
               )
             }
@@ -547,7 +588,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     <td className="px-4 py-4 whitespace-nowrap">
                       {p.partnerProportion && (
                         <div className="text-sm text-gray-900">
-                          {p.partnerProportion}
+                          {(parseFloat(p.partnerProportion) * 100).toFixed(1)}%
                         </div>
                       )}
                     </td>

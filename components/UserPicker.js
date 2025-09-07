@@ -8,7 +8,10 @@ import { api } from '@/lib/api'
 
 export default function UserPicker({ label = 'ผู้ร่วมงาน', onSelect, selectedUser }) {
   const [open, setOpen] = useState(false)
-  const { data: usersRes, error: usersErr } = useSWR(open ? '/users?role=USER&pageSize=1000' : null, api.get)
+  const { data: usersRes, error: usersErr } = useSWR(
+    open ? '/users?populate[profile]=*&populate[organization]=*&populate[faculty]=*&populate[department]=*&pageSize=1000' : null, 
+    api.get
+  )
   const users = usersRes?.data || usersRes?.items || []
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -18,9 +21,9 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
     if (usersErr) setError(usersErr.message || 'ต้องเป็นผู้ดูแลระบบจึงจะสามารถค้นหารายชื่อผู้ใช้ได้')
   }, [usersRes, usersErr, open])
 
-  // กรองรายชื่อผู้ใช้จากคำค้นหา โดยค้นจาก firstName/lastName (Profile) และอีเมล
+  // กรองรายชื่อผู้ใช้จากคำค้นหา โดยค้นจาก firstName/lastName (profile) และอีเมล
   const filtered = users.filter(u => {
-    const prof = Array.isArray(u.Profile) ? u.Profile[0] : u.Profile
+    const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
     const name = ((prof?.firstName || '') + ' ' + (prof?.lastName || '')).toLowerCase()
     const email = (u.email || '').toLowerCase()
     const q = query.trim().toLowerCase()
@@ -42,7 +45,12 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
           {selectedUser ? 'เปลี่ยนผู้ร่วมงาน' : 'คลิกเพื่อเลือกชื่อผู้ร่วมงาน'}
         </button>
         {selectedUser && (
-          <span className="text-sm text-gray-700">{selectedUser.Profile ? `${selectedUser.Profile.firstName || ''} ${selectedUser.Profile.lastName || ''}`.trim() : selectedUser.email}</span>
+          <span className="text-sm text-gray-700">
+            {(() => {
+              const prof = Array.isArray(selectedUser.profile) ? selectedUser.profile[0] : selectedUser.profile
+              return prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : selectedUser.email
+            })()}
+          </span>
         )}
       </div>
 
@@ -71,8 +79,18 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
                     onClick={() => { onSelect && onSelect(u); setOpen(false) }}
                     className="w-full text-left p-3 hover:bg-gray-50"
                   >
-                    <div className="font-medium text-gray-900">{(Array.isArray(u.Profile) ? u.Profile[0] : u.Profile) ? `${(Array.isArray(u.Profile) ? u.Profile[0] : u.Profile).firstName || ''} ${(Array.isArray(u.Profile) ? u.Profile[0] : u.Profile).lastName || ''}`.trim() : u.email}</div>
+                    <div className="font-medium text-gray-900">
+                      {(() => {
+                        const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
+                        return prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email
+                      })()}
+                    </div>
                     <div className="text-xs text-gray-600">{u.email}</div>
+                    <div className="text-xs text-gray-500">
+                      {u.department?.name && `${u.department.name} `}
+                      {u.faculty?.name && `${u.faculty.name} `}
+                      {u.organization?.name && `${u.organization.name}`}
+                    </div>
                   </button>
                 ))}
                 {filtered.length === 0 && (
