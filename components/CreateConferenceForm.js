@@ -22,37 +22,30 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
   const [swalProps, setSwalProps] = useState({})
   // Align to ConferenceDetail fields
   const [formData, setFormData] = useState({
-    titleTh: "",
-    titleEn: "",
-    isEnvironmentallySustainable: undefined,
-    journalName: "",
-    projectId: "",
-    doi: "",
-    isbn: "",
-    durationStart: "",
-    durationEnd: "",
-    cost: "",
-    presentationWork: "",
-    presentType: "",
-    articleType: "",
-    abstractTh: "",
-    abstractEn: "",
-    summary: "",
-    keywords: "",
-    level: "",
-    countryCode: "",
-    state: "",
-    city: "",
-    fundName: "",
-    // team-like (for ResearchTeamTable)
-    isInternal: undefined,
-    fullname: "",
-    orgName: "",
-    partnerType: "",
-    partnerComment: "",
-    partnerFullName: "",
-    userId: undefined,
-    __userObj: undefined,
+    titleTH: "", // ชื่อผลงาน (ไทย)
+    titleEN: "", // ชื่อผลงาน (อังกฤษ)
+    isEnvironmentallySustainable: 0, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
+    journalName: "", // ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)
+    doi: "", // DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI
+    isbn: "", // ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)
+    durationStart: "", // ระยะเวลาการทำวิจัย (Date)
+    durationEnd: "", // ระยะเวลาการทำวิจัย (Date)
+    cost: 0, // ค่าใช้จ่าย (Int)
+    costType: 0, // ค่าใช้จ่ายมาจาก  (Int) Value จาก select
+    projectId: "", // โครงการวิจัย (Relation to Project)
+    __projectObj: undefined, // สำหรับเก็บ object โครงการวิจัยที่เลือก
+    presentationWork: 0, // การนำเสนอผลงาน (Int) 0=ได้รับเชิญ (Invited Paper.), 1=เสนอเอง
+    presentType: 0, // ประเภทการนำเสนอ (Int) 0=ภาคบรรยาย (Oral), 1=ภาคโปสเตอร์ (Poster), 2=เข้าร่วมประชุมวิชาการ
+    articleType: 0, // ประเภทบทความ (Int) 0=Abstract อย่างเดียว, 1=เรื่องเต็ม
+    abstractTH: "", // บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)
+    abstractEN: "", // บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)
+    summary: "", // กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)
+    keywords: "", // คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)
+    level: 0, // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
+    countryCode: 0, // รหัสประเทศ   (Int) Value จาก select
+    state: 0, // รัฐ/จังหวัด   (Int) Value จาก select
+    city: 0, // เมือง   (Int) Value จาก select
+    fundName: "", // ชื่อแหล่งทุน (String)
     attachments: [],
   });
 
@@ -77,8 +70,8 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
     setSubmitting(true)
     try {
       const detail = {
-        titleTh: formData.titleTh,
-        titleEn: formData.titleEn || undefined,
+        titleTH: formData.titleTH,
+        titleEN: formData.titleEN || undefined,
         isEnvironmentallySustainable: formData.isEnvironmentallySustainable,
         journalName: formData.journalName || undefined,
         doi: formData.doi || undefined,
@@ -89,8 +82,8 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
         presentationWork: formData.presentationWork || undefined,
         presentType: formData.presentType || undefined,
         articleType: formData.articleType || undefined,
-        abstractTh: formData.abstractTh || undefined,
-        abstractEn: formData.abstractEn || undefined,
+        abstractTH: formData.abstractTH || undefined,
+        abstractEN: formData.abstractEN || undefined,
         summary: formData.summary || undefined,
         keywords: formData.keywords || undefined,
         level: formData.level || undefined,
@@ -141,16 +134,16 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
               required
-              value={formData.titleTh}
-              onChange={(value) => handleInputChange("titleTh", value)}
+              value={formData.titleTH}
+              onChange={(value) => handleInputChange("titleTH", value)}
               placeholder=""
             />
 
             <FormTextarea
               label="ชื่อผลงาน (อังกฤษ)"
               required
-              value={formData.titleEn}
-              onChange={(value) => handleInputChange("titleEn", value)}
+              value={formData.titleEN}
+              onChange={(value) => handleInputChange("titleEN", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -280,6 +273,9 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                   />
                   <span className='text-gray-700'>จาก</span>
                   <select
+                    value={formData.costType}
+                    onChange={(e) => handleInputChange("costType", e.target.value)}
+                    required
                     className="text-zinc-700
                                 block w-auto px-3 py-2 border border-gray-300 rounded-md
                                 bg-white focus:outline-none focus:ring-2 
@@ -308,15 +304,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               options={[
                 {
                   label: "ได้รับเชิญ (Invited Paper.)",
-                  value: "ได้รับเชิญ (Invited Paper.)",
+                  value: 0,
                 },
                 {
                   label: "เสนอเอง",
-                  value: "เสนอเอง",
+                  value: 1,
                 },
               ]}
               value={formData.presentationWork}
-              onChange={(value) => handleInputChange("presentationWork", value)}
+              onChange={(value) => handleInputChange("presentationWork", parseInt(value))}
             />
             <FormRadio
               inline={true}
@@ -362,15 +358,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
             <FormTextarea
               label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
               required
-              value={formData.abstractTh}
-              onChange={(value) => handleInputChange("abstractTh", value)}
+              value={formData.abstractTH}
+              onChange={(value) => handleInputChange("abstractTH", value)}
               placeholder=""
             />
             <FormTextarea
               label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
               required
-              value={formData.abstractEn}
-              onChange={(value) => handleInputChange("abstractEn", value)}
+              value={formData.abstractEN}
+              onChange={(value) => handleInputChange("abstractEN", value)}
               placeholder=""
             />
           </FormFieldBlock>
