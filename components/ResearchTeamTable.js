@@ -498,6 +498,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               />
             </div>
             <div>
+              
               <FormInput
                 mini={false}
                 label="สัดส่วนการมีส่วนร่วม (%)"
