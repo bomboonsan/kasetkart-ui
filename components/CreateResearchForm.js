@@ -15,8 +15,10 @@ import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import Link from 'next/link'
 import SweetAlert2 from 'react-sweetalert2'
-import { projectAPI, api, authAPI, valueFromAPI } from '../lib/api'
-import { formatDateDMY } from '../lib/helper'
+// ใช้ path alias (@/) เพื่อให้ import ชัดเจนและลดความซ้ำซ้อนของ path
+import { projectAPI, api, authAPI, valueFromAPI } from '@/lib/api'
+// ใช้ path alias (@/) สำหรับ helper
+import { formatDateDMY } from '@/lib/helper'
 import { use } from 'react'
 import useSWR, { mutate } from 'swr'
 

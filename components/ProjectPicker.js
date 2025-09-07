@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import { projectAPI } from '../lib/api'
+// ใช้ path alias (@/) เพื่อลดความซับซ้อนของโครง import
+import { projectAPI } from '@/lib/api'
 import Button from './Button'
 
 export default function ProjectPicker({ label = 'โครงการวิจัย', onSelect, selectedProject, required = false }) {

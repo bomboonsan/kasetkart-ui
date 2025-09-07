@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation'
 import { fundingAPI } from '@/lib/api'
 import ViewFormSection from './ViewFormSection'
 import ViewFormField from './ViewFormField'
-import Button from '../Button'
+// ใช้ path alias (@/) แทน relative path
+import Button from '@/components/Button'
 
 export default function FundingView({ fundingId }) {
   const router = useRouter()

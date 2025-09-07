@@ -4,7 +4,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { projectAPI, api } from '../lib/api' // Use projectAPI for consistency
+// ใช้ path alias (@/) สำหรับ API (คงพฤติกรรมเดิม)
+import { projectAPI, api } from '@/lib/api'
 import useSWR, { mutate } from 'swr'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'

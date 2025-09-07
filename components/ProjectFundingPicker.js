@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import { api } from '../lib/api'
+// ใช้ path alias (@/) เพื่อลดความยาวของ path และทำให้จัดการได้ง่าย
+import { api } from '@/lib/api'
 import Button from './Button'
 
 export default function ProjectFundingPicker({ label = 'โครงการขอทุน', onSelect, selectedProject, required = false }) {

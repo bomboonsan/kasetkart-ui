@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
-import { worksAPI, projectAPI, profileAPI } from '../lib/api'
+// ใช้ path alias (@/) สำหรับ API
+import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
 import FormSection from "./FormSection";
 import FormFieldBlock from "./FormFieldBlock";
 import FormField from "./FormField";

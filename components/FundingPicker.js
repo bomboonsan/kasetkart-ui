@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import { projectAPI } from '../lib/api'
+// เปลี่ยนเป็น path alias (@/) สำหรับ import API
+import { projectAPI } from '@/lib/api'
 import Button from './Button'
 
 export default function FundingPicker({ label = 'โครงการขอทุน', onSelect, selectedProject, required = false }) {

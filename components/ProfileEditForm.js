@@ -6,7 +6,8 @@ import GeneralInfoTab from './GeneralInfoTab'
 import WorkInfoTab from './WorkInfoTab'
 import SystemAccessTab from './SystemAccessTab'
 import Button from './Button'
-import { profileAPI, orgAPI, eduAPI } from '../lib/api'
+// ใช้ path alias (@/) เพื่อลดความซับซ้อนของ relative path และคงความยืดหยุ่น
+import { profileAPI, orgAPI, eduAPI } from '@/lib/api'
 
 // โครงสร้างข้อมูลเริ่มต้นสำหรับฟอร์ม
 const initialFormData = {

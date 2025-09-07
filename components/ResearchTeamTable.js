@@ -11,7 +11,8 @@ import {
   ChevronUp,
   ChevronDown
 } from "lucide-react";
-import { projectAPI, api, authAPI } from '../lib/api'
+// ใช้ path alias (@/) เพื่อลด relative path และทำให้แก้ไขได้ง่ายขึ้น
+import { projectAPI, api, authAPI } from '@/lib/api'
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const [swalProps, setSwalProps] = useState({})
@@ -26,6 +27,9 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
 
   // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
   function recomputeProportions(list = []) {
+  // หมายเหตุ: ฟังก์ชันนี้รับลิสต์สมาชิก team แล้วคำนวณค่า partnerProportion ใหม่
+  // โดยแบ่งสัดส่วนเท่า ๆ กันเฉพาะสมาชิกที่เป็นภายใน (isInternal=true)
+  // และดูแลไม่ให้รวมกันเกิน/ขาด 1.000 (แก้จุดปัดเศษที่คนสุดท้าย)
     const result = list.map(p => ({ ...p }))
     const internalIdx = result.reduce((arr, p, idx) => (p.isInternal ? [...arr, idx] : arr), [])
     const n = internalIdx.length
@@ -125,6 +129,9 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   }, [localPartners])
 
   async function syncToServer(partnersList) {
+  // หมายเหตุ: ซิงค์ข้อมูลทีมขึ้น Strapi ด้วยแนวทาง replace ทั้งชุด
+  // 1) ลบข้อมูลเดิมของโปรเจกต์นี้ทั้งหมด (อิง documentId)
+  // 2) สร้างข้อมูลใหม่ตามลำดับที่เห็นใน UI (ใช้ field order)
     if (!projectId) return; // ไม่มี project ให้ซิงค์
     setSaveError('')
     setSaving(true)
@@ -152,6 +159,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       // สร้าง partners ใหม่ (รวม order เพื่อให้สามารถจัดลำดับได้ใน Strapi)
       for (let i = 0; i < (partnersList || []).length; i++) {
         const p = partnersList[i]
+  // หมายเหตุ: map ค่าจาก state UI -> ชื่อฟิลด์ของ Strapi
         const partnerData = {
           fullname: p.fullname || undefined,
           orgName: p.orgName || undefined,
@@ -498,7 +506,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               />
             </div>
             <div>
-              
+
               <FormInput
                 mini={false}
                 label="สัดส่วนการมีส่วนร่วม (%)"
