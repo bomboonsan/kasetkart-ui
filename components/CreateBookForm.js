@@ -16,6 +16,7 @@ import FormTextarea from './FormTextarea'
 import FormDateSelect from './FormDateSelect'
 import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
+import EditableResearchTeamSection from './EditableResearchTeamSection'
 import Button from './Button'
 import SweetAlert2 from 'react-sweetalert2'
 
@@ -156,11 +157,12 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
             <ProjectFundingPicker
               label="โครงการขอทุน"
               selectedProject={formData.__projectFundingObj}
-              onSelect={(p) => setFormData(prev => ({ 
-                ...prev, 
-                project_funding: p.documentId || p.id, 
-                __projectFundingObj: p 
-              }))}
+                      onSelect={(p) => setFormData(prev => ({ 
+                        ...prev, 
+                        project_funding: p.documentId || p.id, 
+                        __projectFundingObj: p,
+                        __projectObj: p,
+                      }))}
               required
             />
           </FormFieldBlock>
@@ -238,56 +240,11 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
           </FormFieldBlock>
         </FormSection>
 
-        {/* Writers Section */}
-        <FormSection title="ผู้แต่ง">
-          <div className="space-y-4">
-            {formData.writers.map((writer, index) => (
-              <div key={index} className="border rounded-md p-4 bg-gray-50">
-                <div className="flex justify-between items-center mb-3">
-                  <h4 className="font-medium text-gray-700">ผู้แต่งคนที่ {index + 1}</h4>
-                  <button
-                    type="button"
-                    onClick={() => removeWriter(index)}
-                    className="text-red-600 hover:text-red-800 text-sm"
-                  >
-                    ลบ
-                  </button>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <FormInput
-                    label="ชื่อ-นามสกุล"
-                    value={writer.name}
-                    onChange={(value) => updateWriter(index, 'name', value)}
-                    placeholder="กรอกชื่อ-นามสกุล"
-                    required
-                  />
-                  <FormInput
-                    label="อีเมล"
-                    type="email"
-                    value={writer.email}
-                    onChange={(value) => updateWriter(index, 'email', value)}
-                    placeholder="กรอกอีเมล"
-                  />
-                  <FormInput
-                    label="สังกัด"
-                    value={writer.affiliation}
-                    onChange={(value) => updateWriter(index, 'affiliation', value)}
-                    placeholder="กรอกสังกัด"
-                  />
-                </div>
-              </div>
-            ))}
-            
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addWriter}
-              className="w-full"
-            >
-              + เพิ่มผู้แต่ง
-            </Button>
-          </div>
-        </FormSection>
+        <div className='p-4 rounded-md border shadow border-gray-200/70'>
+          <FormSection title="* ผู้ร่วมวิจัย">
+            <EditableResearchTeamSection project={formData.__projectObj} />
+          </FormSection>
+        </div>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">
