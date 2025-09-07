@@ -20,17 +20,38 @@ export default function FileUploadField({
     setError('')
     setUploading(true)
     try {
-      // Mock upload without API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      const mockAttachments = filesArray.map((file, index) => ({
-        id: Date.now() + index,
+      // Real upload to Strapi
+      const formData = new FormData()
+      filesArray.forEach((file) => {
+        formData.append('files', file)
+      })
+
+      const token = localStorage.getItem('jwt')
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:1337'}/api/upload`, {
+        method: 'POST',
+        headers: {
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        body: formData,
+      })
+
+      if (!response.ok) {
+        throw new Error(`Upload failed: ${response.statusText}`)
+      }
+
+      const uploadedFiles = await response.json()
+      // Strapi returns array of uploaded files with id, name, url, etc.
+      const attachments = uploadedFiles.map(file => ({
+        id: file.id,
         name: file.name,
-        url: URL.createObjectURL(file),
-        size: file.size
+        url: file.url,
+        size: file.size,
+        documentId: file.documentId,
       }))
-      onFilesChange && onFilesChange(mockAttachments)
+      
+      onFilesChange && onFilesChange(attachments)
     } catch (err) {
-      setError('อัปโหลดไฟล์ไม่สำเร็จ')
+      setError('อัปโหลดไฟล์ไม่สำเร็จ: ' + err.message)
     } finally {
       setUploading(false)
     }

@@ -106,6 +106,22 @@ export default function CreateResearchForm() {
     const fetchData = async () => {
       const me = await authAPI.me()
       setMeData(me)
+      
+      // Auto-add current user เป็น partner หัวหน้าโครงการ
+      if (me && !formData.partnersLocal) {
+        const mePartner = {
+          isInternal: true,
+          userID: me.id,
+          fullname: (me.profile ? `${me.profile.firstNameTH || me.profile.firstName || ''} ${me.profile.lastNameTH || me.profile.lastName || ''}` : 
+                    me.Profile ? `${me.Profile.firstNameTH || me.Profile.firstName || ''} ${me.Profile.lastNameTH || me.Profile.lastName || ''}` : 
+                    me.email) || '',
+          orgName: me.faculty?.name || me.department?.name || me.organization?.name || '',
+          partnerType: 'หัวหน้าโครงการ',
+          partnerComment: '',
+          partnerProportion: '1.00',
+        }
+        setFormData(prev => ({ ...prev, partnersLocal: [mePartner] }))
+      }
     }
     fetchData()
   }, [])
@@ -204,38 +220,32 @@ export default function CreateResearchForm() {
         console.warn('Unable to fetch current user; proceeding without explicit leader user', e)
       }
 
+      // สร้าง partner สำหรับผู้กรอกฟอร์ม (current user) เป็น หัวหน้าโครงการ
       const mePartner = meObj ? {
         isInternal: true,
         userId: meObj.id || meObj?.data?.id,
-        fullname: (meObj.Profile ? `${meObj.Profile.firstName || ''} ${meObj.Profile.lastName || ''}` : meObj.email) || '',
-        orgName: meObj.Faculty?.name || meObj.Department?.name || '',
+        fullname: (meObj.profile ? `${meObj.profile.firstNameTH || meObj.profile.firstName || ''} ${meObj.profile.lastNameTH || meObj.profile.lastName || ''}` : 
+                  meObj.Profile ? `${meObj.Profile.firstNameTH || meObj.Profile.firstName || ''} ${meObj.Profile.lastNameTH || meObj.Profile.lastName || ''}` : 
+                  meObj.email) || '',
+        orgName: meObj.faculty?.name || meObj.department?.name || meObj.organization?.name || '',
         partnerType: 'หัวหน้าโครงการ',
         partnerComment: '',
+        partnerProportion: undefined,
       } : null      
 
-      // ผู้ร่วมจากแบบฟอร์ม (ถ้าผู้ใช้กรอกเพิ่ม)
-      const hasExtraInternal = formData.isInternal === true && formData.userId
-      const hasExtraExternal = formData.isInternal === false && (formData.partnerFullName || formData.fullname)
-      const extraPartner = (hasExtraInternal || hasExtraExternal) ? {
-        isInternal: formData.isInternal === true,
-        userId: formData.userId ? parseInt(formData.userId) : undefined,
-        fullname: (formData.partnerFullName || formData.fullname) || undefined,
-        orgName: formData.orgName || undefined,
-        partnerType: formData.partnerType || undefined,
-        partnerComment: formData.partnerComment || undefined,
-      } : null
-
-      // prefer partners provided by ResearchTeamTable if present, otherwise construct from me + extraPartner
+      // prefer partners provided by ResearchTeamTable if present, otherwise construct from me
       let partnersArray = []
       if (Array.isArray(formData.partnersLocal) && formData.partnersLocal.length > 0) {
+        // ใช้ partners จาก ResearchTeamTable
         partnersArray = formData.partnersLocal.map(p => ({ ...p }))
-      } else {
-        if (mePartner) partnersArray.push(mePartner)
-        if (extraPartner) {
-          const sameUser = mePartner && extraPartner.userId && mePartner.userId === extraPartner.userId
-          const emptyExternal = !extraPartner.userId && !extraPartner.fullname
-          if (!sameUser && !emptyExternal) partnersArray.push(extraPartner)
+        // ถ้าไม่มี current user ใน partners แล้วให้เพิ่มเข้าไป
+        const hasMe = partnersArray.some(p => p.userId === meObj?.id || p.userID === meObj?.id)
+        if (mePartner && !hasMe) {
+          partnersArray.unshift(mePartner) // เพิ่มที่ตำแหน่งแรก
         }
+      } else {
+        // ถ้าไม่มี partners จาก ResearchTeamTable ให้ใช้แค่ current user
+        if (mePartner) partnersArray.push(mePartner)
       }
 
       // Map to API payload matching Strapi content-type `project-research`
@@ -245,7 +255,7 @@ export default function CreateResearchForm() {
         projectType: formData.projectType || 0,
         projectMode: formData.projectMode || 0,
         subProjectCount: formData.subProjectCount ? parseInt(formData.subProjectCount) : undefined,
-        nameTH: formData.nameTH || undefined,
+        nameTE: formData.nameTE || undefined,
         nameEN: formData.nameEN || undefined,
         durationStart: formData.durationStart || undefined,
         durationEnd: formData.durationEnd || undefined,
@@ -254,10 +264,11 @@ export default function CreateResearchForm() {
         fundName: formData.fundName || undefined,
         budget: formData.budget ? String(formData.budget) : undefined,
         keywords: formData.keywords || undefined,
-        // attachments handled separately via upload API (ids or file refs)
-      }
-
-      // Create project on backend
+        // Include attachments if any files were uploaded
+        attachments: Array.isArray(formData.attachments) && formData.attachments.length > 0 
+          ? formData.attachments.map(att => att.id || att.documentId).filter(Boolean) 
+          : undefined,
+      }      // Create project on backend
       const resp = await projectAPI.createProject(payload)
       // parse created id from Strapi response shape
       const createdProjectId = resp?.data?.id || resp?.id || (resp?.data && resp.data.documentId) || null
@@ -628,8 +639,8 @@ export default function CreateResearchForm() {
           <FileUploadField
             label="อัปโหลดไฟล์"
             onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
-            accept=".pdf,.doc,.docx"
-            multiple
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            multiple={true}
           />
         </FormSection>
 

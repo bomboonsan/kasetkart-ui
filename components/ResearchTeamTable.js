@@ -111,19 +111,45 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     setSaveError('')
     setSaving(true)
     try {
-      // เตรียม payload สำหรับ API (รองรับคีย์ฝั่ง FE ตามที่ backend รองรับ)
-      const payloadPartners = (partnersList || []).map(p => ({
-        isInternal: !!p.isInternal,
-        userID: p.userID,
-        fullname: p.fullname,
-        orgName: p.orgName,
-        partnerType: p.partnerType,
-        partnerComment: p.partnerComment || p.comment,
-        partnerProportion: p.partnerProportion !== undefined ? parseFloat(p.partnerProportion) : undefined,
-      }))
-      // Mock API call
-      console.log('Would save team:', payloadPartners)
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // เตรียม payload สำหรับ API 
+      const partnerTypeMap = {
+        'หัวหน้าโครงการ': 1,
+        'ที่ปรึกษาโครงการ': 2,
+        'ผู้ประสานงาน': 3,
+        'นักวิจัยร่วม': 4,
+        'อื่นๆ': 99,
+      }
+
+      // ลบ partners เก่าที่เชื่อมโยงกับ project นี้
+      try {
+        const existingPartners = await api.get(`/project-partners?filters[project_researches][id][$eq]=${projectId}`)
+        const partnersToDelete = existingPartners?.data || []
+        for (const partner of partnersToDelete) {
+          await api.delete(`/project-partners/${partner.id}`)
+        }
+      } catch (err) {
+        console.warn('Failed to delete existing partners:', err)
+      }
+
+      // สร้าง partners ใหม่
+      for (const p of partnersList || []) {
+        const partnerData = {
+          fullname: p.fullname || undefined,
+          orgName: p.orgName || undefined,
+          participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
+          participant_type: partnerTypeMap[p.partnerType] || undefined,
+          isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
+          isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
+          users_permissions_user: p.userID || undefined,
+          project_researches: [projectId]
+        }
+
+        // Remove undefined keys
+        Object.keys(partnerData).forEach(k => partnerData[k] === undefined && delete partnerData[k])
+
+        await api.post('/project-partners', { data: partnerData })
+      }
+
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกทีมสำเร็จ', timer: 1000, showConfirmButton: false })
     } catch (err) {
       setSaveError(err.message || 'บันทึกผู้ร่วมโครงการไม่สำเร็จ')
