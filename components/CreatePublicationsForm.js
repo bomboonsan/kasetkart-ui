@@ -22,34 +22,38 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
   const [swalProps, setSwalProps] = useState({})
   // Align form keys to PublicationDetail model in schema.prisma
   const [formData, setFormData] = useState({
-    titleTh: "", // PublicationDetail.titleTh
-    titleEn: "", // PublicationDetail.titleEn
-    isEnvironmentallySustainable: undefined, // PublicationDetail.isEnvironmentallySustainable
-
-    journalName: "", // PublicationDetail.journalName
-    projectId: "", // For linking ResearchWork.projectId
-    doi: "", // PublicationDetail.doi
-    issn: "", // PublicationDetail.issn
-
-    durationYearStart: "", // PublicationDetail.durationYearStart
-    durationYearEnd: "", // PublicationDetail.durationYearEnd
-    // durationMonthStart/End could be added later if needed
-
-    level: "", // PublicationDetail.level (NATIONAL/INTERNATIONAL)
-    isJournalDatabase: undefined, // PublicationDetail.isJournalDatabase (Boolean)
-
-    // Database flags
-    scopus: false,
-    aci: false,
-    tci1: false,
-    tci2: false,
-    abdc: false,
-    ajg: false,
-    social_science_research_network: false,
-    web_of_science: false,
-
-    standardScopus: "",
-
+    project_research: '', // relation to project-research
+    __projectObj: undefined, // สำหรับเก็บ object โครงการวิจัยที่เลือก
+    titleTH: "", // ชื่อผลงาน (ไทย)
+    titleEN: "", // ชื่อผลงาน (อังกฤษ)
+    isEnvironmentallySustainable: 0, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
+    journalName: "", // ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)
+    doi: "", // DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI
+    isbn: "", // ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)
+    volume: 0, // ปีที่ (Volume) (Int)
+    issue: 0, // ฉบับที่ (Issue) (Int)
+    durationStart: "", // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
+    durationEnd: "", // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
+    pageStart: 0, // หน้าเริ่มต้น (Int)
+    pageEnd: 0, // หน้าสิ้นสุด (Int)
+    level: 0, // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
+    isJournalDatabase: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูลหรือไม่
+    isScopus: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล Scopus หรือไม่
+    scopusType: 0, // Scopus (ถ้าเลือก) (Int) Value จาก select
+    scopusValue: 0, // Scopus (ถ้าเลือก) (Int) Value จาก select
+    isACI: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล ACI หรือไม่
+    isTCI1: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล TCI1 หรือไม่
+    isTCI2: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล TCI2 หรือไม่
+    isAJG: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล isAJG หรือไม่
+    ajgType: 0, // AJG (ถ้าเลือก) (Int) Value จาก select
+    isSSRN: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล Social Science Research Network หรือไม่
+    isWOS: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล Web of Science หรือไม่
+    wosType: 0, // Web of Science (ถ้าเลือก) (Int) Value จาก select
+    fundName: "", // ชื่อแหล่งทุน (ถ้ามี)
+    keywords: "", // คำสำคัญ (ถ้ามี) คั่นด้วย ,
+    abstractTH: "", // บทคัดย่อ (ไทย)
+    abstractEN: "", // บทคัดย่อ (อังกฤษ)
+    attachments: [],
 
     // #listsStandard
 
@@ -435,21 +439,6 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
       },
     ],
 
-    fundName: "", // PublicationDetail.fundName
-    keywords: "", // PublicationDetail.keywords
-    abstractTh: "", // PublicationDetail.abstractTh
-    abstractEn: "", // PublicationDetail.abstractEn
-
-    attachments: [],
-    // team-like (for ResearchTeamTable)
-    isInternal: undefined,
-    fullname: "",
-    orgName: "",
-    partnerType: "",
-    partnerComment: "",
-    partnerFullName: "",
-    userId: undefined,
-    __userObj: undefined,
   });
 
   console.log('formData.listsStandardScopus', formData.listsStandardScopus)
