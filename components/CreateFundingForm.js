@@ -5,20 +5,13 @@
 import { useState, useEffect } from 'react'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
-import FormField from './FormField'
 import FormInput from "./FormInput";
-import FormRadio from "./FormRadio";
-import FormCheckbox from './FormCheckbox'
 import FormTextarea from './FormTextarea'
-import FormDateSelect from './FormDateSelect'
-import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import { api } from '@/lib/api'
 import SweetAlert2 from 'react-sweetalert2'
-import ProjectPicker from './ProjectPicker'
-import UserPicker from './UserPicker'
 
 export default function CreateFundingForm({ mode = 'create', workId, initialData }) {
   const [swalProps, setSwalProps] = useState({})
@@ -46,7 +39,18 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
     if (!initialData) return
     setFormData(prev => ({
       ...prev,
-      ...initialData,
+      fundType: initialData?.fundType ?? prev.fundType,
+      fundTypeText: initialData?.fundTypeText ?? prev.fundTypeText,
+      contentDesc: initialData?.contentDesc ?? initialData?.detail?.contentDesc ?? prev.contentDesc,
+      pastPublications: initialData?.pastPublications ?? initialData?.detail?.pastPublications ?? prev.pastPublications,
+      purposes: initialData?.purposes ?? initialData?.detail?.purposes ?? prev.purposes,
+      targetGroups: initialData?.targetGroups ?? initialData?.detail?.targetGroups ?? prev.targetGroups,
+      chapterDetails: initialData?.chapterDetails ?? initialData?.detail?.chapterDetails ?? prev.chapterDetails,
+      pages: initialData?.pages ?? initialData?.detail?.pages ?? prev.pages,
+      duration: initialData?.duration ?? initialData?.detail?.duration ?? prev.duration,
+      references: initialData?.references ?? initialData?.detail?.references ?? prev.references,
+      attachments: initialData?.attachments ?? initialData?.detail?.attachments ?? prev.attachments,
+      writers: initialData?.writers ?? initialData?.detail?.writers ?? prev.writers,
       projectId: initialData?.Project?.id ? String(initialData.Project.id) : (prev.projectId || ''),
     }))
   }, [initialData])
@@ -57,22 +61,26 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
     setSubmitting(true)
     try {
       const detail = {
-        fullName: formData.fullName,
-        position: formData.position,
-        faculty: formData.faculty,
-        kind: formData.kind || undefined,
+        fundType: formData.fundType ?? undefined,
+        fundTypeText: formData.fundTypeText || undefined,
         contentDesc: formData.contentDesc || undefined,
-        priorWorks: formData.priorWorks || undefined,
-        objectives: formData.objectives || undefined,
-        targetAudience: formData.targetAudience || undefined,
-        chaptersOutline: formData.chaptersOutline || undefined,
-        approxPages: formData.approxPages || undefined,
-        approxTimeline: formData.approxTimeline || undefined,
-        bibliography: formData.bibliography || undefined,
+        pastPublications: formData.pastPublications || undefined,
+        purposes: formData.purposes || undefined,
+        targetGroups: formData.targetGroups || undefined,
+        chapterDetails: formData.chapterDetails || undefined,
+        pages: formData.pages ? parseInt(formData.pages) : undefined,
+        duration: formData.duration || undefined,
+        references: formData.references || undefined,
       }
       const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
-      const authors = formData.userId ? [{ userId: parseInt(formData.userId), isCorresponding: true }] : []
-      const payload = { type: 'FUNDING', status: 'DRAFT', detail, authors, attachments }
+      const writers = (formData.writers || []).map(w => ({
+        fullName: w.fullName || '',
+        department: w.department || '',
+        faculty: w.faculty || '',
+        phone: w.phone || '',
+        email: w.email || '',
+      }))
+      const payload = { type: 'FUNDING', status: 'DRAFT', detail, writers: writers.length ? writers : undefined, attachments }
       if (mode === 'edit' && workId) {
         await api.put(`/works/${workId}`, payload)
         setSwalProps({ show: true, icon: 'success', title: 'อัปเดตคำขอรับทุนเขียนตำราสำเร็จ', timer: 1600, showConfirmButton: false })
@@ -107,6 +115,23 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  // Writers helpers
+  const addWriter = () => {
+    setFormData(prev => ({ ...prev, writers: [...(prev.writers || []), { fullName: '', department: '', faculty: '', phone: '', email: '' }] }))
+  }
+
+  const removeWriter = (index) => {
+    setFormData(prev => ({ ...prev, writers: (prev.writers || []).filter((_, i) => i !== index) }))
+  }
+
+  const updateWriterField = (index, field, value) => {
+    setFormData(prev => {
+      const writers = [...(prev.writers || [])]
+      writers[index] = { ...(writers[index] || {}), [field]: value }
+      return { ...prev, writers }
+    })
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
@@ -114,84 +139,67 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
         )}
-        <FormSection >
-          <FormFieldBlock>
-
-            <FormInput
-              mini={false}
-              label="ชื่อ-นามสกุล"
-              type="text"
-              value={formData.fullName}
-              onChange={(value) => handleInputChange("fullName", value)}
-              placeholder=""
-            />
-            <FormInput
-              mini={false}
-              label="ภาควิชา"
-              type="text"
-              placeholder=""
-            />
-            <FormInput
-              mini={false}
-              label="โทรศัพท์"
-              type="text"
-              placeholder=""
-            />
-            <FormInput
-              mini={false}
-              label="อีเมล"
-              type="text"
-              placeholder=""
-            />
-            <FormInput
-              mini={false}
-              label="สังกัดคณะ/สถาบัน"
-              type="text"
-              value={formData.faculty}
-              onChange={(value) => handleInputChange("faculty", value)}
-              placeholder=""
-            />
-          </FormFieldBlock>
-        </FormSection>
         <FormSection title=" รายละเอียดของผู้แต่งร่วม (ถ้ามี)">
           <FormFieldBlock>
-            <FormInput
-              mini={false}
-              label="ชื่อ-นามสกุล"
-              type="text"
-              value={formData.fullName}
-              onChange={(value) => handleInputChange("fullName", value)}
-              placeholder=""
-            />
-            <FormInput
-              mini={false}
-              label="ภาควิชา"
-              type="text"
-              placeholder=""
-            />
-            <FormInput
-              mini={false}
-              label="โทรศัพท์"
-              type="text"
-              placeholder=""
-            />
-            <FormInput
-              mini={false}
-              label="อีเมล"
-              type="text"
-              placeholder=""
-            />
-            <FormInput
-              mini={false}
-              label="สังกัดคณะ/สถาบัน"
-              type="text"
-              value={formData.faculty}
-              onChange={(value) => handleInputChange("faculty", value)}
-              placeholder=""
-            />
+            {/* Display existing writers */}
+            {(formData.writers || []).map((writer, index) => (
+              <div key={index} className="rounded p-3 mb-3 bg-gray-50/5 space-y-3">
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-sm font-medium text-gray-700">ผู้แต่งคนที่ {index + 1}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeWriter(index)}
+                    className="text-red-600 text-sm hover:text-red-800"
+                  >
+                    ลบ
+                  </button>
+                </div>
+                <FormInput
+                  mini={false}
+                  label="ชื่อ-นามสกุล"
+                  type="text"
+                  value={writer.fullName}
+                  onChange={(value) => updateWriterField(index, "fullName", value)}
+                  placeholder=""
+                />
+                <FormInput
+                  mini={false}
+                  label="ภาควิชา"
+                  type="text"
+                  value={writer.department}
+                  onChange={(value) => updateWriterField(index, "department", value)}
+                  placeholder=""
+                />
+                <FormInput
+                  mini={false}
+                  label="โทรศัพท์"
+                  type="text"
+                  value={writer.phone}
+                  onChange={(value) => updateWriterField(index, "phone", value)}
+                  placeholder=""
+                />
+                <FormInput
+                  mini={false}
+                  label="อีเมล"
+                  type="text"
+                  value={writer.email}
+                  onChange={(value) => updateWriterField(index, "email", value)}
+                  placeholder=""
+                />
+                <FormInput
+                  mini={false}
+                  label="สังกัดคณะ/สถาบัน"
+                  type="text"
+                  value={writer.faculty}
+                  onChange={(value) => updateWriterField(index, "faculty", value)}
+                  placeholder=""
+                />
+              </div>
+            ))}
             <div>
                 <button
                   type="button"
+                  onClick={addWriter}
                   className={`
                     font-medium py-2 px-4 rounded-md transition-colors duration-200
                     focus:outline-none focus:ring-2 focus:ring-offset-2
@@ -216,8 +224,10 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
                 <div className='flex gap-4 items-center'>
                   <input
                     type="radio"
-                    placeholder="0"
-                    required
+                    name="fundType"
+                    value="0"
+                    checked={formData.fundType === 0}
+                    onChange={() => handleInputChange("fundType", 0)}
                     className={`
                   w-auto inline-block
           text-zinc-700
@@ -230,7 +240,8 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
                   <span className='text-gray-700 inline-block w-96'>ตำรา ใช้สอนในรายวิชา</span>
                   <input
                     type="text"
-                    required
+                    value={formData.fundType === 0 ? formData.fundTypeText : ''}
+                    onChange={(e) => handleInputChange("fundTypeText", e.target.value)}
                     className={`
                   w-full inline-block
           text-zinc-700
@@ -244,8 +255,10 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
                 <div className='flex gap-4 items-center'>
                   <input
                     type="radio"
-                    placeholder="0"
-                    required
+                    name="fundType"
+                    value="1"
+                    checked={formData.fundType === 1}
+                    onChange={() => handleInputChange("fundType", 1)}
                     className={`
                   w-auto inline-block
           text-zinc-700
@@ -258,7 +271,8 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
                   <span className='text-gray-700 inline-block w-96'>หนังสือ(ชื่อไทย และชื่อภาษาอังกฤษ)</span>
                   <input
                     type="text"
-                    required
+                    value={formData.fundType === 1 ? formData.fundTypeText : ''}
+                    onChange={(e) => handleInputChange("fundTypeText", e.target.value)}
                     className={`
                   w-full inline-block
           text-zinc-700
@@ -281,24 +295,24 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
           <FormFieldBlock>
             <FormTextarea
               label="เอกสารทางวิชาการ ตำรา หรือ หนังสือ <br/> ที่ผู้ขอทุนเคยมีประสบการณ์แต่งมาแล้ว (ถ้ามีโปรดระบุ)"
-              value={formData.priorWorks}
-              onChange={(value) => handleInputChange("priorWorks", value)}
+              value={formData.pastPublications}
+              onChange={(value) => handleInputChange("pastPublications", value)}
               placeholder=""
             />
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
               label="วัตถุประสงค์ของตำราหรือหนังสือ"
-              value={formData.objectives}
-              onChange={(value) => handleInputChange("objectives", value)}
+              value={formData.purposes}
+              onChange={(value) => handleInputChange("purposes", value)}
               placeholder=""
             />
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
               label="กลุ่มเป้าหมายของตำราหรือหนังสือ"
-              value={formData.targetAudience}
-              onChange={(value) => handleInputChange("targetAudience", value)}
+              value={formData.targetGroups}
+              onChange={(value) => handleInputChange("targetGroups", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -311,8 +325,8 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
                 • ระบุหัวข้อในแต่ละบท พร้อมอธิบายเนื้อหาโดยสรุปเกี่ยวกับหัวข้อในบท
                 </span>
                 `}
-              value={formData.chaptersOutline}
-              onChange={(value) => handleInputChange("chaptersOutline", value)}
+              value={formData.chapterDetails}
+              onChange={(value) => handleInputChange("chapterDetails", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -320,9 +334,9 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
             <FormInput
               mini={true}
               label="ตำรา หรือ หนังสือ มีจำนวนประมาณ"
-              type="text"
-              value={formData.approxPages}
-              onChange={(value) => handleInputChange("approxPages", value)}
+              type="number"
+              value={formData.pages}
+              onChange={(value) => handleInputChange("pages", parseInt(value))}
               placeholder=""
               after="หน้า"
             />
@@ -331,9 +345,9 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
             <FormInput
               mini={true}
               label="ระยะเวลา (ปี หรือ เดือน) ที่จะใช้ในการเขียนประมาณ"
-              type="text"
-              value={formData.approxTimeline}
-              onChange={(value) => handleInputChange("approxTimeline", value)}
+              type="date"
+              value={formData.duration}
+              onChange={(value) => handleInputChange("duration", value)}
               placeholder=""
               after="(ระบุเป็นช่วงเวลาได้)"
             />
@@ -346,8 +360,8 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
                 เพิ่มเติมความเหมาะสมได้
                 </span>
                 `}
-              value={formData.bibliography}
-              onChange={(value) => handleInputChange("bibliography", value)}
+              value={formData.references}
+              onChange={(value) => handleInputChange("references", value)}
               placeholder=""
             />
           </FormFieldBlock>
