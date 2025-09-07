@@ -15,6 +15,16 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
   const [departments, setDepartments] = useState([])
   const [currentStats, setCurrentStats] = useState({ icTypes: [], impacts: [], sdgs: [] })
   const [loading, setLoading] = useState(false)
+  const [selectedItems, setSelectedItems] = useState([])
+
+  const handleCheckboxChange = (e) => {
+    const value = parseInt(e.target.value)
+    if (e.target.checked) {
+      setSelectedItems([...selectedItems, value])
+    } else {
+      setSelectedItems(selectedItems.filter(i => i !== value))
+    }
+  }
 
   // console.log('departments:', departments)
 
@@ -60,6 +70,15 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
   }
   const activeData = currentStats[activeType] || []
 
+  // Default: mark all items checked whenever activeData changes
+  useEffect(() => {
+    if (Array.isArray(activeData) && activeData.length) {
+      setSelectedItems(activeData.map((_, i) => i))
+    } else {
+      setSelectedItems([])
+    }
+  }, [activeData])
+
   // Calculate counts for tabs
   const counts = {
     icTypes: (currentStats.icTypes || []).reduce((sum, item) => sum + (item.count || 0), 0),
@@ -69,6 +88,12 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
 
   // Calculate total for percentage
   const totalCount = counts[activeType] || 1
+
+  // Sum only checked items for summary
+  const selectedSum = (selectedItems || []).reduce((sum, idx) => {
+    const item = activeData[idx]
+    return sum + (item && item.count ? item.count : 0)
+  }, 0)
 
   // if (scholarshipErr) {
   //   return (
@@ -166,7 +191,8 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
                   return (
                     <tr key={item.name || index} className="border-b hover:bg-gray-50">
                       <td className="py-3 px-4">
-                        <div className="text-sm font-medium text-gray-900">
+                        <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
+                          <input type="checkbox" value={index} checked={selectedItems.includes(index)} onChange={handleCheckboxChange} />
                           {item.name}
                         </div>
                       </td>
@@ -208,13 +234,13 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
         {/* Summary */}
         {activeData.length > 0 && (
           <div className="mt-4 pt-4 border-t">
-            <div className="text-sm text-gray-600">
-              รวม {activeType === 'icTypes' ? 'IC Types' : activeType === 'impact' ? 'Impact' : 'SDG'}: 
-              <span className="font-semibold text-gray-900 ml-1">
-                {totalCount.toLocaleString()} โครงการ
-              </span>
+              <div className="text-sm text-gray-600">
+                รวม {activeType === 'icTypes' ? 'IC Types' : activeType === 'impacts' ? 'Impact' : 'SDG'}: 
+                <span className="font-semibold text-gray-900 ml-1">
+                  {selectedSum.toLocaleString()} โครงการ
+                </span>
+              </div>
             </div>
-          </div>
         )}
       </div>
     </div>
