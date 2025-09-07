@@ -243,8 +243,21 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     const tmp = arr[idx - 1]
     arr[idx - 1] = arr[idx]
     arr[idx] = tmp
-    // Now derive new localPartners: remove any mePartner placeholder and keep others
-    const newLocal = arr.filter(p => !p.isMe)
+    // Convert any me entries into normal partner objects so they are persisted
+    const newLocal = arr
+      .filter(p => true)
+      .map(p => p.isMe ? ({
+        isInternal: true,
+        userID: p.userID,
+        fullname: p.fullname,
+        orgName: p.orgName,
+        partnerType: p.partnerType || '',
+        partnerComment: p.partnerComment || '',
+        partnerProportion: p.partnerProportion,
+        User: p.User
+      }) : p)
+      .filter(p => true)
+
     setLocalPartners(() => {
       const next = recomputeProportions(newLocal)
       syncToServer(next)
@@ -261,7 +274,18 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     const tmp = arr[idx + 1]
     arr[idx + 1] = arr[idx]
     arr[idx] = tmp
-    const newLocal = arr.filter(p => !p.isMe)
+    const newLocal = arr
+      .map(p => p.isMe ? ({
+        isInternal: true,
+        userID: p.userID,
+        fullname: p.fullname,
+        orgName: p.orgName,
+        partnerType: p.partnerType || '',
+        partnerComment: p.partnerComment || '',
+        partnerProportion: p.partnerProportion,
+        User: p.User
+      }) : p)
+
     setLocalPartners(() => {
       const next = recomputeProportions(newLocal)
       syncToServer(next)
@@ -318,31 +342,10 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   const hasCorresponding = useMemo(() => (localPartners || []).some(p => ((p.partnerComment || p.comment || '')).includes('Corresponding Author')), [localPartners])
 
   // สร้างแถวผู้ใช้ปัจจุบันและคำนวณสัดส่วนรวมเพื่อใช้แสดงผล
-  const mePartner = useMemo(() => {
-    if (!me) return null;
-    const prof = Array.isArray(me.profile) ? me.profile[0] : me.profile;
-    const display = (prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : me?.email) || me?.email || '-';
-    const org = [me?.department?.name, me?.faculty?.name, me?.organization?.name].filter(Boolean).join(' ') || '-';
-    // mark with isMe so we can detect and move the creator into localPartners when reordered
-    return { 
-      isInternal: true, 
-      isMe: true,
-      userID: me?.id, 
-      fullname: display, 
-      orgName: org, 
-      partnerType: '-', 
-      partnerComment: '', 
-      partnerProportion: undefined, 
-      User: { email: me?.email } 
-    };
-  }, [me]);
-
+  // display only the local partners in the table (hide the creator/me row)
   const displayRows = useMemo(() => {
-    // If localPartners already contains the current user, don't prepend mePartner
-    const hasMeInLocal = me && (localPartners || []).some(p => p.userID && p.userID === me.id)
-    const list = hasMeInLocal ? ([...(localPartners || [])]) : (mePartner ? [mePartner, ...(localPartners || [])] : ([...(localPartners || [])]));
-    return recomputeProportions(list);
-  }, [mePartner, localPartners]);
+    return recomputeProportions(localPartners || [])
+  }, [localPartners])
 
   return (
     <>
@@ -580,12 +583,22 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                         >
                           {i + 1}
                         </div>
-                        {i > 0 && (
+                        {(displayRows.length >= 2) && (
                           <div className='text-gray-700 flex items-center gap-2 ml-3'>
-                            <button type="button" onClick={() => moveUp(i)} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => moveUp(i)}
+                              disabled={i === 0}
+                              className={`px-2 py-1 rounded bg-gray-100 text-xs ${i === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+                            >
                               <ChevronUp />
                             </button>
-                            <button type="button" onClick={() => moveDown(i)} className="px-2 py-1 rounded bg-gray-100 hover:bg-gray-200 text-xs">
+                            <button
+                              type="button"
+                              onClick={() => moveDown(i)}
+                              disabled={i === displayRows.length - 1}
+                              className={`px-2 py-1 rounded bg-gray-100 text-xs ${i === displayRows.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+                            >
                               <ChevronDown />
                             </button>
                           </div>
@@ -621,12 +634,12 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       )}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      {i > 0 && (
+                      {(displayRows.length >= 2) && (
                         <div className="flex items-center gap-3 justify-end">
-                          <button type="button" onClick={() => handleEditPartner(i - 1)} className="text-blue-600 hover:text-blue-900">
+                          <button type="button" onClick={() => handleEditPartner(i)} className="text-blue-600 hover:text-blue-900">
                             แก้ไข
                           </button>
-                          <button type="button" onClick={() => handleRemovePartner(i - 1)} className="text-red-600 hover:text-red-900">
+                          <button type="button" onClick={() => handleRemovePartner(i)} className="text-red-600 hover:text-red-900">
                             ลบ
                           </button>
                         </div>
