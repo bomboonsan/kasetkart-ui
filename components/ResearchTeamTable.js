@@ -148,8 +148,9 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         console.warn('Failed to delete existing partners:', err)
       }
 
-      // สร้าง partners ใหม่
-      for (const p of partnersList || []) {
+      // สร้าง partners ใหม่ (รวม order เพื่อให้สามารถจัดลำดับได้ใน Strapi)
+      for (let i = 0; i < (partnersList || []).length; i++) {
+        const p = partnersList[i]
         const partnerData = {
           fullname: p.fullname || undefined,
           orgName: p.orgName || undefined,
@@ -158,7 +159,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
           isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
           isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
           users_permissions_user: p.userID || undefined,
-          project_researches: [projectId] // ใช้ documentId
+          project_researches: [projectId], // ใช้ documentId
+          order: i
         }
 
         // Remove undefined keys
@@ -235,12 +237,16 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   // ย้ายลำดับขึ้น
   function moveUp(idx) {
     if (idx <= 0) return
-    setLocalPartners(prev => {
-      const arr = [...(prev || [])]
-      const tmp = arr[idx - 1]
-      arr[idx - 1] = arr[idx]
-      arr[idx] = tmp
-      const next = recomputeProportions(arr)
+    // work on displayRows to allow moving `me` as well
+    const current = displayRows
+    const arr = current.slice()
+    const tmp = arr[idx - 1]
+    arr[idx - 1] = arr[idx]
+    arr[idx] = tmp
+    // Now derive new localPartners: remove any mePartner placeholder and keep others
+    const newLocal = arr.filter(p => !p.isMe)
+    setLocalPartners(() => {
+      const next = recomputeProportions(newLocal)
       syncToServer(next)
       return next
     })
@@ -248,24 +254,31 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
 
   // ย้ายลำดับลง
   function moveDown(idx) {
-    setLocalPartners(prev => {
-      const arr = [...(prev || [])]
-      if (idx >= arr.length - 1) return prev
-      const tmp = arr[idx + 1]
-      arr[idx + 1] = arr[idx]
-      arr[idx] = tmp
-      const next = recomputeProportions(arr)
+    // operate on displayRows
+    const current = displayRows
+    const arr = current.slice()
+    if (idx >= arr.length - 1) return
+    const tmp = arr[idx + 1]
+    arr[idx + 1] = arr[idx]
+    arr[idx] = tmp
+    const newLocal = arr.filter(p => !p.isMe)
+    setLocalPartners(() => {
+      const next = recomputeProportions(newLocal)
       syncToServer(next)
       return next
     })
   }
 
   function handleRemovePartner(idx) {
-    setLocalPartners(prev => {
-      const next = recomputeProportions(prev.filter((_, i) => i !== idx))
-      syncToServer(next)
-      return next
-    })
+  // idx refers to displayRows; map to localPartners by filtering out me
+  const current = displayRows
+  const target = current[idx]
+  // if the target is me, we can't remove the creator; ignore
+  if (target && target.isMe) return
+  const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
+  const next = recomputeProportions(newLocal)
+  setLocalPartners(next)
+  syncToServer(next)
     // รีเซ็ตฟอร์มใน dialog
     setFormData(prev => ({
       ...prev,
@@ -280,9 +293,13 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   }
 
   function handleEditPartner(idx) {
-    const p = localPartners[idx]
-    if (!p) return
-    setEditingIndex(idx)
+  // idx is display index; map to localPartners entry
+  const current = displayRows
+  const p = current[idx]
+  if (!p) return
+  // find index in localPartners
+  const lpIdx = (localPartners || []).findIndex(x => (x.userID && x.userID === p.userID) || x.fullname === p.fullname)
+  setEditingIndex(lpIdx >= 0 ? lpIdx : null)
     setFormData(prev => ({
       ...prev,
       isInternal: !!p.isInternal,
@@ -306,8 +323,10 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     const prof = Array.isArray(me.profile) ? me.profile[0] : me.profile;
     const display = (prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : me?.email) || me?.email || '-';
     const org = [me?.department?.name, me?.faculty?.name, me?.organization?.name].filter(Boolean).join(' ') || '-';
+    // mark with isMe so we can detect and move the creator into localPartners when reordered
     return { 
       isInternal: true, 
+      isMe: true,
       userID: me?.id, 
       fullname: display, 
       orgName: org, 
@@ -319,7 +338,9 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   }, [me]);
 
   const displayRows = useMemo(() => {
-    const list = mePartner ? [mePartner, ...(localPartners || [])] : (localPartners || []);
+    // If localPartners already contains the current user, don't prepend mePartner
+    const hasMeInLocal = me && (localPartners || []).some(p => p.userID && p.userID === me.id)
+    const list = hasMeInLocal ? ([...(localPartners || [])]) : (mePartner ? [mePartner, ...(localPartners || [])] : ([...(localPartners || [])]));
     return recomputeProportions(list);
   }, [mePartner, localPartners]);
 
