@@ -15,10 +15,12 @@ import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import Link from 'next/link'
 import SweetAlert2 from 'react-sweetalert2'
+import { projectAPI, api, authAPI } from '../lib/api'
 import { use } from 'react'
 
 export default function CreateResearchForm() {
   const [swalProps, setSwalProps] = useState({})
+  
   // Align form keys to Project model in schema.prisma
   const [formData, setFormData] = useState({
     fiscalYear: "2568", // Project.fiscalYear (Int)
@@ -145,27 +147,23 @@ export default function CreateResearchForm() {
         setSubmitting(false)
         return
       }
-      // เตรียมผู้ใช้ปัจจุบันให้เป็นหัวหน้าโครงการอัตโนมัติ (Mock data)
-      const mockMe = {
-        id: 1,
-        email: 'user@example.com',
-        Profile: {
-          firstName: 'สมชาย',
-          lastName: 'ใจดี'
-        },
-        Faculty: {
-          name: 'คณะเศรษฐศาสตร์'
-        }
+      // Load current authenticated user to be project leader
+      let meObj = null
+      try {
+        const meResp = await authAPI.me()
+        meObj = meResp?.data || meResp || null
+      } catch (e) {
+        console.warn('Unable to fetch current user; proceeding without explicit leader user', e)
       }
 
-      const mePartner = {
+      const mePartner = meObj ? {
         isInternal: true,
-        userId: mockMe.id,
-        fullname: `${mockMe.Profile.firstName} ${mockMe.Profile.lastName}`,
-        orgName: mockMe.Faculty?.name || '',
+        userId: meObj.id || meObj?.data?.id,
+        fullname: (meObj.Profile ? `${meObj.Profile.firstName || ''} ${meObj.Profile.lastName || ''}` : meObj.email) || '',
+        orgName: meObj.Faculty?.name || meObj.Department?.name || '',
         partnerType: 'หัวหน้าโครงการ',
         partnerComment: '',
-      }
+      } : null
 
       // ผู้ร่วมจากแบบฟอร์ม (ถ้าผู้ใช้กรอกเพิ่ม)
       const hasExtraInternal = formData.isInternal === true && formData.userId
@@ -179,40 +177,92 @@ export default function CreateResearchForm() {
         partnerComment: formData.partnerComment || undefined,
       } : null
 
-      const partnersArray = []
-      if (mePartner) partnersArray.push(mePartner)
-      if (extraPartner) {
-        const sameUser = mePartner && extraPartner.userId && mePartner.userId === extraPartner.userId
-        const emptyExternal = !extraPartner.userId && !extraPartner.fullname
-        if (!sameUser && !emptyExternal) partnersArray.push(extraPartner)
+      // prefer partners provided by ResearchTeamTable if present, otherwise construct from me + extraPartner
+      let partnersArray = []
+      if (Array.isArray(formData.partnersLocal) && formData.partnersLocal.length > 0) {
+        partnersArray = formData.partnersLocal.map(p => ({ ...p }))
+      } else {
+        if (mePartner) partnersArray.push(mePartner)
+        if (extraPartner) {
+          const sameUser = mePartner && extraPartner.userId && mePartner.userId === extraPartner.userId
+          const emptyExternal = !extraPartner.userId && !extraPartner.fullname
+          if (!sameUser && !emptyExternal) partnersArray.push(extraPartner)
+        }
       }
 
-      // Map to API payload
+      // Map to API payload matching Strapi content-type `project-research`
+      // Note: backend schema uses `nameTE`/`nameEN` and expects `data: { ... }` for Strapi v5
       const payload = {
         fiscalYear: parseInt(formData.fiscalYear) || undefined,
         projectType: formData.projectType || undefined,
         projectMode: formData.projectMode || undefined,
         subProjectCount: formData.subProjectCount ? parseInt(formData.subProjectCount) : undefined,
-        nameTh: formData.nameTh || undefined,
-        nameEn: formData.nameEn || undefined,
+        nameTE: formData.nameTh || undefined,
+        nameEN: formData.nameEn || undefined,
         isEnvironmentallySustainable: formData.isEnvironmentallySustainable,
         durationStart: formData.durationStart || undefined,
         durationEnd: formData.durationEnd || undefined,
         researchKind: formData.researchKind || undefined,
-        fundType: formData.fundType || undefined,
+        fundType: formData.fundType ? parseInt(formData.fundType) : undefined,
+        fundSubType: formData.fundSubType ? parseInt(formData.fundSubType) : undefined,
         fundName: formData.fundName || undefined,
-        budget: formData.budget ? parseInt(formData.budget) : undefined,
+        budget: formData.budget ? String(formData.budget) : undefined,
         keywords: formData.keywords || undefined,
         icTypes: formData.icTypes || undefined,
         impact: formData.impact || undefined,
         sdg: formData.sdg || undefined,
-        partners: partnersArray,
+        // attachments handled separately via upload API (ids or file refs)
       }
-      
-      // Mock API call
-      console.log('Would submit project:', payload)
-      await new Promise(resolve => setTimeout(resolve, 1000)) // Simulate API delay
-      
+
+      // Create project on backend
+      const resp = await projectAPI.createProject(payload)
+      // parse created id from Strapi response shape
+      const createdProjectId = resp?.data?.id || resp?.id || (resp?.data && resp.data.documentId) || null
+
+      if (!createdProjectId) {
+        throw new Error('ไม่สามารถสร้างโครงการได้ (no id returned)')
+      }
+
+      // Helper: map partnerType label -> integer for backend `participant_type`
+      const partnerTypeMap = {
+        'หัวหน้าโครงการ': 1,
+        'ที่ปรึกษาโครงการ': 2,
+        'ผู้ประสานงาน': 3,
+        'นักวิจัยร่วม': 4,
+        'อื่นๆ': 99,
+      }
+
+      // Create project-partner records for each partner
+      for (const p of partnersArray) {
+        // Normalize keys that ResearchTeamTable may use (userID vs userId, partnerComment vs comment)
+        const userIdField = p.userId || p.userID || p.User?.id || undefined
+        const commentField = p.partnerComment || p.comment || ''
+        const fullnameField = p.fullname || p.partnerFullName || ''
+        const orgField = p.orgName || p.org || p.orgFullName || ''
+        const proportionField = p.partnerProportion !== undefined && p.partnerProportion !== null ? parseFloat(p.partnerProportion) : undefined
+
+        const partnerData = {
+          fullname: fullnameField || undefined,
+          orgName: orgField || undefined,
+          participation_percentage: proportionField,
+          participant_type: partnerTypeMap[p.partnerType] || undefined,
+          isFirstAuthor: String(commentField).includes('First Author') || false,
+          isCoreespondingAuthor: String(commentField).includes('Corresponding Author') || false,
+          users_permissions_user: userIdField,
+          project_researches: [createdProjectId]
+        }
+
+        // Remove undefined keys to keep payload clean
+        Object.keys(partnerData).forEach(k => partnerData[k] === undefined && delete partnerData[k])
+
+        try {
+          await api.post('/project-partners', { data: partnerData })
+        } catch (err) {
+          // don't fail whole submission for partner creation; collect/log instead
+          console.error('Failed creating partner', partnerData, err)
+        }
+      }
+
       setSwalProps({ show: true, icon: 'success', title: 'สร้างโครงการสำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (err) {
       setError(err.message || 'บันทึกโครงการไม่สำเร็จ')

@@ -9,30 +9,14 @@ import {
   ChevronUp,
   ChevronDown
 } from "lucide-react";
+import { projectAPI, api, authAPI } from '../lib/api'
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const [swalProps, setSwalProps] = useState({})
   
-  // Mock data แทน API calls
-  const mockProject = {
-    ProjectPartner: [
-      {
-        id: 1,
-        fullname: 'สมชาย ใจดี',
-        orgName: 'คณะเศรษฐศาสตร์',
-        partnerType: 'หัวหน้าโครงการ',
-        isInternal: true
-      }
-    ]
-  }
-  
-  const mockMe = {
-    id: 1,
-    email: 'user@example.com'
-  }
-  
-  const project = mockProject
-  const me = mockMe
+  // Real data from API
+  const [project, setProject] = useState(null)
+  const [me, setMe] = useState(null)
   const [localPartners, setLocalPartners] = useState([])
   const [editingIndex, setEditingIndex] = useState(null)
   const [saving, setSaving] = useState(false)
@@ -59,8 +43,68 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   }
 
   useEffect(() => {
-    if (project?.ProjectPartner) setLocalPartners(recomputeProportions(project.ProjectPartner))
+    // When project (from API) has research_partners, normalize into localPartners
+    if (!project) return
+    // project may be returned in different shapes: { data: { id, attributes: { research_partners: { data: [...] }}}} or plain object
+    let partners = []
+    if (project.data && project.data.attributes) {
+      partners = project.data.attributes.research_partners?.data || []
+    } else if (project.research_partners) {
+      partners = project.research_partners.data || project.research_partners
+    }
+
+    // Normalize Strapi partner entries to the UI shape
+    const norm = (partners || []).map(item => {
+      const p = item?.attributes ? item.attributes : item
+      return {
+        id: item?.id || p.id,
+        fullname: p.fullname || p.name || '',
+        orgName: p.orgName || p.org || '',
+        partnerType: p.participant_type || p.partnerType || '',
+        isInternal: !!p.users_permissions_user || !!p.userID || false,
+        userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
+        partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
+        partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
+      }
+    })
+
+    if (norm.length > 0) setLocalPartners(recomputeProportions(norm))
   }, [project])
+
+  // Fetch project data when projectId provided
+  useEffect(() => {
+    async function loadProject() {
+      if (!projectId) return
+      try {
+        const resp = await projectAPI.getProject(projectId)
+        setProject(resp)
+      } catch (err) {
+        console.error('Failed to load project', err)
+      }
+    }
+    loadProject()
+  }, [projectId])
+
+  // Load current user
+  useEffect(() => {
+    async function loadMe() {
+      try {
+        const u = await authAPI.me()
+        setMe(u?.data || u || null)
+      } catch (err) {
+        console.error('Failed to load current user', err)
+      }
+    }
+    loadMe()
+  }, [])
+
+  // Keep parent formData in sync with local partners (so CreateResearchForm can read them)
+  useEffect(() => {
+    if (typeof setFormData === 'function') {
+      setFormData(prev => ({ ...prev, partnersLocal: localPartners }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [localPartners])
 
   async function syncToServer(partnersList) {
     if (!projectId) return; // ไม่มี project ให้ซิงค์
