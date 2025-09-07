@@ -140,7 +140,15 @@ export default function GeneralInfoTab() {
 
   const addEducation = () => {
     // คอมเมนต์ (ไทย): เพิ่มรายการการศึกษาใหม่แบบว่าง ตรงตาม schema ของ Strapi v5 (ใช้ documentId)
-    setEducations(prev => [...prev, { documentId: undefined, education_level: '', name: '', faculty: '', year: '' }])
+    const tempId = `temp_${Date.now()}_${Math.random()}`
+    setEducations(prev => [...prev, {
+      documentId: undefined,
+      education_level: '',
+      name: '',
+      faculty: '',
+      year: '',
+      _tempId: tempId
+    }])
   }
 
   // Load profile and populate form fields
@@ -180,15 +188,23 @@ export default function GeneralInfoTab() {
     }))
 
     // ดึงวุฒิการศึกษาที่ populate มาด้วย (Strapi v5: ใช้ documentId สำหรับแสดงผล, id สำหรับบันทึก)
+    // แก้ไข: ป้องกันการ duplicate โดยเช็คว่า educations ที่มีอยู่แล้วต่างจาก response หรือไม่
     const eduArr = res?.educations || []
-    const normalized = (eduArr || []).map(e => ({
+    const normalized = (eduArr || []).map((e, index) => ({
       documentId: e?.documentId || undefined,
       education_level: e?.education_level?.documentId || '',
       name: e?.name || '',
       faculty: e?.faculty || '',
       year: e?.year || '',
+      _tempId: `edu_${Date.now()}_${index}` // เพิ่ม temp ID สำหรับ key ที่เสถียร
     }))
-    setEducations(normalized)
+
+    // อัพเดตเฉพาะเมื่อข้อมูลเปลี่ยนแปลงจริงๆ เพื่อป้องกัน duplicate
+    setEducations(prev => {
+      const prevString = JSON.stringify(prev.map(e => ({ documentId: e.documentId, education_level: e.education_level, name: e.name, faculty: e.faculty, year: e.year })))
+      const newString = JSON.stringify(normalized.map(e => ({ documentId: e.documentId, education_level: e.education_level, name: e.name, faculty: e.faculty, year: e.year })))
+      return prevString !== newString ? normalized : prev
+    })
     setOriginalEducations(normalized)
     setRemovedEducationIds([])
   }, [profileRes])
@@ -234,6 +250,7 @@ export default function GeneralInfoTab() {
   }, [departmentsRaw, academicTypesRaw, participationTypesRaw, facultiesRes, organizationsRes])
 
   const updateEducation = (index, field, value) => {
+
     setEducations(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e))
   }
 
@@ -241,10 +258,14 @@ export default function GeneralInfoTab() {
     // คอมเมนต์ (ไทย): ถ้ามี documentId แสดงว่าเป็นข้อมูลเดิม ให้จำ documentId ไว้เพื่อลบที่ backend ด้วย (Strapi v5)
     setEducations(prev => {
       const target = prev[index]
-      if (target?.documentId) setRemovedEducationIds(ids => [...ids, target.documentId])
+      if (target?.documentId) {
+        setRemovedEducationIds(ids => [...ids, target.documentId])
+      }
       return prev.filter((_, i) => i !== index)
     })
   }
+
+  console.log('educations:', educations, 'removedEducationIds:', removedEducationIds)
 
   return (
     <>
@@ -385,7 +406,7 @@ export default function GeneralInfoTab() {
 
           <div className="space-y-4">
             {educations.map((edu, idx) => (
-              <div key={idx} className="grid grid-cols-12 gap-4 items-end pb-4 border-b last:border-b-0">
+              <div key={edu.documentId || edu._tempId || `edu-${idx}`} className="grid grid-cols-12 gap-4 items-end pb-4 border-b last:border-b-0">
                 <div className="col-span-12 md:col-span-3">
                   <label className="block text-sm text-gray-600 mb-1">ระดับวุฒิการศึกษา</label>
                   <select

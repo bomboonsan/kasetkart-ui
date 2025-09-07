@@ -15,13 +15,19 @@ function initials(name, fallback) {
   return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '') || s[0]).toUpperCase()
 }
 
-export default function ProfileHeader() {
+export default function ProfileHeader({ profileData }) {
   const [error, setError] = useState('')
 
-  const { data: profileRes, error: swrError } = useSWR('profile', () => profileAPI.getMyProfile())
+  // ใช้ข้อมูลจาก props หรือ fallback ไป SWR
+  const { data: profileRes, error: swrError } = useSWR(
+    profileData ? null : 'profile', 
+    () => profileAPI.getMyProfile()
+  )
+  
+  const actualProfileData = profileData || profileRes
   if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
 
-  const res = profileRes?.data || profileRes || {}
+  const res = actualProfileData?.data || actualProfileData || {}
   const profObj = res.profile || res.Profile?.[0] || res
 
   const firstName = profObj?.firstName || profObj?.firstNameTH || profObj?.firstname || profObj?.name || ''
