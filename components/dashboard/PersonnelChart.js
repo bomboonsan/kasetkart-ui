@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo, useRef, useTransition } from 'react'
+import useSWR from 'swr'
 import dynamic from 'next/dynamic'
 import { valueFromAPI, dashboardAPI } from '@/lib/api'
 
@@ -15,9 +16,7 @@ export default function PersonnelChart({
 }) {
   const [departments, setDepartments] = useState([])
   const [selectedDeptId, setSelectedDeptId] = useState('')
-  const [computedData, setComputedData] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [isFetching, setIsFetching] = useState(false) // subtle fetching state (keep UI)
   const [error, setError] = useState('')
   const debounceRef = useRef(null)
   const [isPending, startTransition] = useTransition()
@@ -26,14 +25,6 @@ export default function PersonnelChart({
   useEffect(() => {
     loadDepartments()
   }, [])
-
-  // Load personnel data when department changes
-  useEffect(() => {
-    if (selectedDeptId !== '') {
-      loadPersonnelData()
-    }
-  }, [selectedDeptId])
-
   const loadDepartments = async () => {
     try {
       const response = await valueFromAPI.getDepartments()
@@ -60,38 +51,26 @@ export default function PersonnelChart({
     }
   }
 
-  const loadPersonnelData = async () => {
-    try {
-      // If we already have data, mark as fetching so we keep showing previous data
-      if (computedData && Array.isArray(computedData) && computedData.length) {
-        setIsFetching(true)
-      } else {
-        setLoading(true)
-      }
-      setError('')
-      
-      const personnel = await dashboardAPI.getPersonnelByAcademicType(selectedDeptId === 'all' ? null : selectedDeptId)
-      
-      // Convert to chart format
-      const total = Object.values(personnel).reduce((sum, count) => sum + count, 0) || 1
-      const chartData = Object.entries(personnel).map(([academicType, count]) => ({
-        category: academicType,
-        personnel: count,
-        percentage: ((count / total) * 100).toFixed(1)
-      }))
-      
-      setComputedData(chartData)
-    } catch (err) {
-      console.error('Error loading personnel data:', err)
-      setError('ไม่สามารถโหลดสถิติบุคลากรได้')
-      setComputedData([])
-    } finally {
-  setIsFetching(false)
-  setLoading(false)
-    }
-  }
+  // Use SWR to fetch personnel stats per-department and keep previous data
+  const personnelKey = selectedDeptId === '' ? null : ['personnel', selectedDeptId === 'all' ? 'all' : selectedDeptId]
+  const { data: personnelRaw, isLoading: swrLoading, isValidating: isValidatingPersonnel } = useSWR(
+    personnelKey,
+    () => dashboardAPI.getPersonnelByAcademicType(selectedDeptId === 'all' ? null : selectedDeptId),
+    { revalidateOnFocus: false, dedupingInterval: 60000, keepPreviousData: true }
+  )
 
-  const displayData = computedData && computedData.length ? computedData : data || []
+  // Map SWR response to chart-ready data
+  const swrChartData = useMemo(() => {
+    const personnel = personnelRaw || {}
+    const total = Object.values(personnel).reduce((sum, count) => sum + (Number(count) || 0), 0) || 1
+    return Object.entries(personnel).map(([academicType, count]) => ({
+      category: academicType,
+      personnel: Number(count) || 0,
+      percentage: (((Number(count) || 0) / total) * 100).toFixed(1)
+    }))
+  }, [personnelRaw])
+
+  const displayData = (swrChartData && swrChartData.length) ? swrChartData : (data || [])
 
   // Create series data for stacked bar
   const seriesData = displayData.map((item) => ({
@@ -208,7 +187,7 @@ export default function PersonnelChart({
                 </option>
               ))}
           </select>
-            {(isFetching || isPending) && (
+            {(isPending) && (
               <div className="ml-2 flex items-center text-xs text-gray-500">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2" />
                 <span>กำลังอัปเดต...</span>
@@ -247,7 +226,7 @@ export default function PersonnelChart({
           />
 
           {/* subtle overlay while fetching new data */}
-          {(isFetching || isPending) && (
+          {(isPending) && (
             <div className="mt-3 text-xs text-gray-500">อัปเดตข้อมูลล่าสุด...</div>
           )}
           

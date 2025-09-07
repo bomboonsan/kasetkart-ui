@@ -1,6 +1,7 @@
  'use client'
 
-import { useState, useEffect, useRef, useTransition } from 'react'
+import { useState, useEffect, useRef, useTransition, useMemo } from 'react'
+import useSWR from 'swr'
 import { valueFromAPI, dashboardAPI } from '@/lib/api'
 
 const TYPE_TABS = [
@@ -33,13 +34,13 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
 
   // Load departments on mount
   useEffect(() => {
-    loadDepartments()
+  loadDepartments()
   }, [])
 
   // Load research stats when department changes
   useEffect(() => {
     if (selectedDeptId !== '') {
-  loadResearchStats()
+  // loadResearchStats()
     }
   }, [selectedDeptId])
 
@@ -59,26 +60,20 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
       console.error('Error loading departments:', err)
     }
   }
+  // Use SWR for research stats per-department
+  const researchKey = selectedDeptId === '' ? null : ['researchStats', selectedDeptId === 'all' ? 'all' : selectedDeptId]
+  const { data: researchRaw, isLoading: swrLoading, isValidating: isValidatingResearch } = useSWR(
+    researchKey,
+    () => dashboardAPI.getResearchStatsByTypes(selectedDeptId === 'all' ? null : selectedDeptId),
+    { revalidateOnFocus: false, dedupingInterval: 60000, keepPreviousData: true }
+  )
 
-  const loadResearchStats = async () => {
-    try {
-      // keep old data visible while fetching
-      if (currentStats && (currentStats.icTypes || currentStats.impacts || currentStats.sdgs) && (
-        (currentStats.icTypes || []).length || (currentStats.impacts || []).length || (currentStats.sdgs || []).length
-      )) {
-        setIsFetching(true)
-      } else {
-        setLoading(true)
-      }
-      const stats = await dashboardAPI.getResearchStatsByTypes(selectedDeptId === 'all' ? null : selectedDeptId)
-      setCurrentStats(stats)
-    } catch (err) {
-      console.error('Error loading research stats:', err)
-    } finally {
-      setIsFetching(false)
-      setLoading(false)
+  // map swr data to expected shape
+  useEffect(() => {
+    if (researchRaw && Object.keys(researchRaw).length > 0) {
+      setCurrentStats(researchRaw)
     }
-  }
+  }, [researchRaw])
   const activeData = currentStats[activeType] || []
 
   // Default: mark all items checked whenever activeData changes

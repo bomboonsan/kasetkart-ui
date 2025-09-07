@@ -1,6 +1,7 @@
-'use client'
+ 'use client'
 
 import { useState, useEffect } from 'react'
+import useSWR from 'swr'
 // คอมโพเนนต์ UI ของ Dashboard
 import StatsCard from '@/components/dashboard/StatsCard'
 import DonutChart from '@/components/dashboard/DonutChart'
@@ -21,49 +22,40 @@ export default function DashboardHome() {
   const [researchStats, setResearchStats] = useState({ icTypes: [], impacts: [], sdgs: [] })
 
   useEffect(() => {
-    loadDashboardData()
+    // initial data comes from SWR; we'll map it into state below
   }, [])
 
   useEffect(() => {
-    // When selectedDept changes, reload personnel-by-department
-  loadPersonnelForDepartment(selectedDept)
-  // also reload research stats for the selected department
-  loadResearchStatsForDepartment(selectedDept)
+    // When selectedDept changes, reload personnel-by-department and research stats
+    loadPersonnelForDepartment(selectedDept)
+    loadResearchStatsForDepartment(selectedDept)
   }, [selectedDept])
 
-  const loadDashboardData = async () => {
-    try {
-      setLoading(true)
-      setError('')
+  // Use SWR to load initial dashboard data (departments, counts, faculty personnel, overall research stats)
+  const { data: deptsRes, error: deptError, isLoading: loadingDepts } = useSWR('departments', () => valueFromAPI.getDepartments(), { revalidateOnFocus: false, dedupingInterval: 60000 })
+  const { data: statsRes, error: statsError, isLoading: loadingStats } = useSWR('dashboardStats', () => dashboardAPI.getStats(), { revalidateOnFocus: false, dedupingInterval: 60000 })
+  const { data: facultyPersonnelRes, error: facultyError, isLoading: loadingFaculty } = useSWR('facultyPersonnel', () => dashboardAPI.getPersonnelByAcademicType(), { revalidateOnFocus: false, dedupingInterval: 60000 })
+  const { data: researchStatsRes, error: researchError, isLoading: loadingResearch } = useSWR('researchStats', () => dashboardAPI.getResearchStatsByTypes(), { revalidateOnFocus: false, dedupingInterval: 60000 })
 
-      // Load departments first so we can request department-specific stats
-      const [
-        departmentsRes,
-        [projectsRes, fundingsRes, publicationsRes, conferencesRes, booksRes],
-        facultyPersonnel,
-        researchStatsData
-      ] = await Promise.all([
-        valueFromAPI.getDepartments(),
-        dashboardAPI.getStats(),
-        dashboardAPI.getPersonnelByAcademicType(),
-        dashboardAPI.getResearchStatsByTypes()
-      ])
-
-      // Departments list (set selected to first if any)
-      const deptList = (departmentsRes?.data || departmentsRes || []).map(d => {
+  // When SWR data becomes available map into local state
+  useEffect(() => {
+    // departments
+    if (deptsRes) {
+      const departmentsData = (deptsRes?.data || deptsRes || []).map(d => {
         const rawId = d?.id ?? d?.attributes?.id ?? null
         const rawDoc = d?.documentId ?? d?.attributes?.documentId ?? null
         const name = d?.attributes?.name || d?.name || d?.title || d?.attributes?.displayName || d?.displayName || d
         return { id: rawId, documentId: rawDoc, name }
       })
-      setDepartments(deptList)
-      if (deptList.length && selectedDept === 'all') {
-        // choose first department by documentId if available, else id
-        console.log('Defaulting selectedDept to first department:', deptList[0])
-        setSelectedDept(deptList[0].documentId || deptList[0].id || 'all')
+      setDepartments(departmentsData)
+      if (departmentsData.length && selectedDept === 'all') {
+        setSelectedDept(departmentsData[0].documentId || departmentsData[0].id || 'all')
       }
+    }
 
-      // Process stats data
+    // stats (projects, fundings, publications, conferences, books)
+    if (statsRes) {
+      const [projectsRes, fundingsRes, publicationsRes, conferencesRes, booksRes] = statsRes
       const projectsCount = projectsRes?.meta?.pagination?.total || projectsRes?.data?.length || 0
       const fundingsCount = fundingsRes?.meta?.pagination?.total || fundingsRes?.data?.length || 0
       const publicationsCount = publicationsRes?.meta?.pagination?.total || publicationsRes?.data?.length || 0
@@ -78,21 +70,22 @@ export default function DashboardHome() {
         { value: String(booksCount), label: 'หนังสือและตำรา', icon: () => <BookOpen className='size-8 text-gray-600' /> },
       ]
 
-      // Normalize personnel counts to ensure keys SA, PA, SP, IP, A
+      setStats(statsData)
+    }
+
+    // faculty personnel (donut)
+    if (facultyPersonnelRes) {
       const normalizePersonnelCounts = (raw = {}) => {
         const keys = ['SA', 'PA', 'SP', 'IP', 'A']
         const out = {}
         keys.forEach(k => {
-          // accept case-insensitive keys if present
           const foundKey = Object.keys(raw || {}).find(rk => String(rk).toUpperCase() === k)
           out[k] = Number(foundKey ? raw[foundKey] : 0)
         })
         return out
       }
 
-      const normalizedFaculty = normalizePersonnelCounts(facultyPersonnel)
-
-      // Process faculty personnel data for donut chart
+      const normalizedFaculty = normalizePersonnelCounts(facultyPersonnelRes)
       const totalPersonnel = Object.values(normalizedFaculty).reduce((sum, count) => sum + count, 0) || 1
       const facultyChartData = Object.entries(normalizedFaculty).map(([type, count]) => ({
         label: type,
@@ -100,36 +93,27 @@ export default function DashboardHome() {
         raw: count
       }))
 
-      // Default department chart uses faculty data until a department is selected
       const departmentChartData = Object.entries(normalizedFaculty).map(([type, count]) => ({
         category: type,
         personnel: count,
         percentage: ((count / totalPersonnel) * 100).toFixed(1)
       }))
 
-      setStats(statsData)
       setFacultyPersonnelData(facultyChartData)
       setDepartmentPersonnelData(departmentChartData)
-      setResearchStats(researchStatsData)
-
-      // If we have a selected department (set above) load its data
-      if (deptList && deptList.length) {
-        
-        const deptToLoad = selectedDept || deptList[0].documentId || deptList[0].id
-        // console.log('Loading data for department:', deptToLoad)
-        await Promise.all([
-          loadPersonnelForDepartment(deptToLoad),
-          loadResearchStatsForDepartment(deptToLoad)
-        ])
-      }
-
-    } catch (err) {
-      console.error('Error loading dashboard data:', err)
-      setError('ไม่สามารถโหลดข้อมูล Dashboard ได้')
-    } finally {
-      setLoading(false)
     }
-  }
+
+    // overall research stats
+    if (researchStatsRes) {
+      setResearchStats(researchStatsRes)
+    }
+
+    // set loading & error states from SWR
+    setLoading(Boolean(loadingDepts || loadingStats || loadingFaculty || loadingResearch))
+    if (deptError || statsError || facultyError || researchError) {
+      setError('ไม่สามารถโหลดข้อมูล Dashboard ได้')
+    }
+  }, [deptsRes, statsRes, facultyPersonnelRes, researchStatsRes, loadingDepts, loadingStats, loadingFaculty, loadingResearch, deptError, statsError, facultyError, researchError])
 
   const loadResearchStatsForDepartment = async (departmentId) => {
     try {
