@@ -2,10 +2,9 @@
 
 import { useEffect, useState, useMemo } from 'react'
 import dynamic from 'next/dynamic'
+import { valueFromAPI, dashboardAPI } from '@/lib/api'
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
-
-const JOB_TYPES = ['SA','PA','SP','IP','A']
 
 export default function PersonnelChart({ 
   title,
@@ -17,37 +16,59 @@ export default function PersonnelChart({
   const [departments, setDepartments] = useState([])
   const [selectedDeptId, setSelectedDeptId] = useState('')
   const [computedData, setComputedData] = useState(null)
+  const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  // Mock departments data
+  // Load departments
   useEffect(() => {
-    const deps = [
-      { id: 1, name: 'ภาควิชาบัญชีและการเงิน' },
-      { id: 2, name: 'ภาควิชาการจัดการ' },
-      { id: 3, name: 'ภาควิชาเศรษฐศาสตร์' }
-    ]
-    setDepartments(deps)
-    if (!selectedDeptId && deps.length > 0) setSelectedDeptId(String(deps[0].id))
-  }, [selectedDeptId])
+    loadDepartments()
+  }, [])
 
-  // Mock statistics data
+  // Load personnel data when department changes
   useEffect(() => {
-    if (!selectedDeptId) return
-    try {
-      // Mock data based on selected department
-      const mockCounts = { SA: 10, PA: 15, SP: 8, IP: 5, A: 12 }
-      const total = JOB_TYPES.reduce((s, jt) => s + (mockCounts[jt] || 0), 0) || 1
-      const list = JOB_TYPES.map((jt) => ({
-        category: jt,
-        personnel: mockCounts[jt] || 0,
-        percentage: ((mockCounts[jt] || 0) / total * 100).toFixed(1)
-      }))
-      setComputedData(list)
-    } catch (e) {
-      setError('ไม่สามารถโหลดสถิติบุคลากรตามภาควิชา')
-      setComputedData(null)
+    if (selectedDeptId !== '') {
+      loadPersonnelData()
     }
   }, [selectedDeptId])
+
+  const loadDepartments = async () => {
+    try {
+      const response = await valueFromAPI.getDepartments()
+      const depts = response?.data || response || []
+      setDepartments(depts)
+      if (depts.length > 0 && !selectedDeptId) {
+        setSelectedDeptId(String(depts[0].id || depts[0].documentId))
+      }
+    } catch (err) {
+      console.error('Error loading departments:', err)
+      setError('ไม่สามารถโหลดข้อมูลภาควิชาได้')
+    }
+  }
+
+  const loadPersonnelData = async () => {
+    try {
+      setLoading(true)
+      setError('')
+      
+      const personnel = await dashboardAPI.getPersonnelByAcademicType(selectedDeptId === 'all' ? null : selectedDeptId)
+      
+      // Convert to chart format
+      const total = Object.values(personnel).reduce((sum, count) => sum + count, 0) || 1
+      const chartData = Object.entries(personnel).map(([academicType, count]) => ({
+        category: academicType,
+        personnel: count,
+        percentage: ((count / total) * 100).toFixed(1)
+      }))
+      
+      setComputedData(chartData)
+    } catch (err) {
+      console.error('Error loading personnel data:', err)
+      setError('ไม่สามารถโหลดสถิติบุคลากรได้')
+      setComputedData([])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const displayData = computedData || data
 
@@ -145,59 +166,72 @@ export default function PersonnelChart({
           {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
         </div>
         <div className="flex items-center gap-2">
-          <label className="text-xs text-gray-500">Dropdown ภาควิชา (Department)</label>
+          <label className="text-xs text-gray-500">เลือกภาควิชา</label>
           <select
             value={selectedDeptId}
             onChange={(e) => setSelectedDeptId(e.target.value)}
             className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md text-gray-900"
+            disabled={loading}
           >
-            {departments.map((d) => (
-              <option key={d.id} value={String(d.id)}>{d.name}</option>
+            <option value="all">ทั้งหมด</option>
+            {departments.map((dept) => (
+              <option key={dept.id || dept.documentId} value={String(dept.id || dept.documentId)}>
+                {dept.name}
+              </option>
             ))}
           </select>
         </div>
       </div>
       {error && <div className="text-xs text-red-600 mb-2">{error}</div>}
       
-      {/* Custom legend with percentages */}
-      <div className="flex flex-wrap gap-4 mb-0 hidden">
-        {data.map((item, index) => (
-          <div key={index} className="flex items-center space-x-2">
-            <div 
-              className="w-3 h-3 rounded"
-              style={{ backgroundColor: colors[index] }}
-            />
-            <span className="text-xs text-gray-600">{item.category}</span>
-            <span className="text-xs font-medium text-gray-900">{item.percentage}%</span>
+      {loading ? (
+        <div className="flex justify-center items-center h-32">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <p className="ml-2 text-gray-600">กำลังโหลดข้อมูล...</p>
+        </div>
+      ) : (
+        <>
+          {/* Custom legend with percentages */}
+          <div className="flex flex-wrap gap-4 mb-4">
+            {displayData.map((item, index) => (
+              <div key={index} className="flex items-center space-x-2">
+                <div 
+                  className="w-3 h-3 rounded"
+                  style={{ backgroundColor: colors[index % colors.length] }}
+                />
+                <span className="text-xs text-gray-600">{item.category}</span>
+                <span className="text-xs font-medium text-gray-900">{item.percentage}%</span>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
-      
-      <Chart
-        options={options}
-        series={seriesData}
-        type="bar"
-        height={height}
-      />
-      
-      {/* Personnel details table */}
-      <div className="mt-6 space-y-2">
-        {displayData.map((item, index) => (
-          <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-            <div className="flex items-center space-x-3">
-              <div 
-                className="w-2 h-2 rounded-full"
-                style={{ backgroundColor: colors[index] }}
-              />
-              <span className="text-sm text-gray-600">{item.category.replace('SA', 'Scholarly Academic (SA)').replace('PA', 'Practice Academic (PA)').replace('SP', 'Scholarly Practitioner (SP)').replace('IP', 'Instructional Practitioner (IP)')}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-900">{item.personnel} คน</span>
-              <span className="text-sm text-gray-500">{item.percentage}%</span>
-            </div>
+          
+          <Chart
+            options={options}
+            series={seriesData}
+            type="bar"
+            height={height}
+          />
+          
+          {/* Personnel details table */}
+          <div className="mt-6 space-y-2">
+            {displayData.map((item, index) => (
+              <div key={index} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                <div className="flex items-center space-x-3">
+                  <div 
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: colors[index % colors.length] }}
+                  />
+                  <span className="text-sm text-gray-600">{item.category}</span>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <span className="text-sm font-medium text-gray-900">{item.personnel} คน</span>
+                  <span className="text-sm text-gray-500">{item.percentage}%</span>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </>
+      )}
     </div>
   )
 }

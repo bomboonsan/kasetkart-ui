@@ -1,53 +1,68 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { valueFromAPI, dashboardAPI } from '@/lib/api'
 
 const TYPE_TABS = [
   { key: 'icTypes', label: 'IC Type' },
-  { key: 'impact', label: 'Impact' },
-  { key: 'sdg', label: 'SDG' },
+  { key: 'impacts', label: 'Impact' },
+  { key: 'sdgs', label: 'SDG' },
 ]
 
-export default function ScholarshipTable({ title, subtitle }) {
+export default function ScholarshipTable({ title, subtitle, researchStats = {} }) {
   const [activeType, setActiveType] = useState('icTypes')
   const [selectedDeptId, setSelectedDeptId] = useState('all')
+  const [departments, setDepartments] = useState([])
+  const [currentStats, setCurrentStats] = useState({ icTypes: [], impacts: [], sdgs: [] })
+  const [loading, setLoading] = useState(false)
 
-  // Mock data แทน API calls
-  const mockScholarshipData = {
-    icTypes: [
-      { category: 'Technology', count: 15 },
-      { category: 'Healthcare', count: 12 },
-      { category: 'Education', count: 8 }
-    ],
-    impact: [
-      { category: 'High', count: 20 },
-      { category: 'Medium', count: 10 },
-      { category: 'Low', count: 5 }
-    ],
-    sdg: [
-      { category: 'SDG 1', count: 7 },
-      { category: 'SDG 3', count: 12 },
-      { category: 'SDG 4', count: 16 }
-    ]
+  // Load departments on mount
+  useEffect(() => {
+    loadDepartments()
+  }, [])
+
+  // Load research stats when department changes
+  useEffect(() => {
+    if (selectedDeptId !== '') {
+      loadResearchStats()
+    }
+  }, [selectedDeptId])
+
+  // Use passed stats initially
+  useEffect(() => {
+    if (researchStats && Object.keys(researchStats).length > 0) {
+      setCurrentStats(researchStats)
+    }
+  }, [researchStats])
+
+  const loadDepartments = async () => {
+    try {
+      const response = await valueFromAPI.getDepartments()
+      const depts = response?.data || response || []
+      setDepartments(depts)
+    } catch (err) {
+      console.error('Error loading departments:', err)
+    }
   }
-  
-  const mockDepartments = [
-    { id: 1, name: 'ภาควิชาเศรษฐศาสตร์' },
-    { id: 2, name: 'ภาควิชาการบัญชี' }
-  ]
-  
-  const departments = mockDepartments
 
-  const scholarshipData = mockScholarshipData
-  const activeData = scholarshipData[activeType] || []
-
-  console.log('activeData', activeData);
+  const loadResearchStats = async () => {
+    try {
+      setLoading(true)
+      const stats = await dashboardAPI.getResearchStatsByTypes(selectedDeptId === 'all' ? null : selectedDeptId)
+      setCurrentStats(stats)
+    } catch (err) {
+      console.error('Error loading research stats:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+  const activeData = currentStats[activeType] || []
 
   // Calculate counts for tabs
   const counts = {
-    icTypes: (scholarshipData.icTypes || []).reduce((sum, item) => sum + (item.count || 0), 0),
-    impact: (scholarshipData.impact || []).reduce((sum, item) => sum + (item.count || 0), 0),
-    sdg: (scholarshipData.sdg || []).reduce((sum, item) => sum + (item.count || 0), 0),
+    icTypes: (currentStats.icTypes || []).reduce((sum, item) => sum + (item.count || 0), 0),
+    impacts: (currentStats.impacts || []).reduce((sum, item) => sum + (item.count || 0), 0),
+    sdgs: (currentStats.sdgs || []).reduce((sum, item) => sum + (item.count || 0), 0),
   }
 
   // Calculate total for percentage
@@ -70,16 +85,19 @@ export default function ScholarshipTable({ title, subtitle }) {
           <h2 className='text-lg text-gray-900 font-medium'>{title}</h2>
           {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
         </div>
-        <div className="px-3 py-1 bg-purple-100 text-purple-600 text-xs rounded-full">
-          <label className="text-xs text-gray-500 mr-2">ภาควิชา:</label>
+        <div className="flex items-center gap-2">
+          <label className="text-xs text-gray-500">เลือกภาควิชา</label>
           <select
             value={selectedDeptId}
             onChange={(e) => setSelectedDeptId(e.target.value)}
             className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md text-gray-900"
+            disabled={loading}
           >
             <option value="all">ทั้งหมด</option>
-            {departments.map((d) => (
-              <option key={d.id} value={String(d.id)}>{d.name}</option>
+            {departments.map((dept) => (
+              <option key={dept.id || dept.documentId} value={String(dept.id || dept.documentId)}>
+                {dept.name}
+              </option>
             ))}
           </select>
         </div>
@@ -115,15 +133,22 @@ export default function ScholarshipTable({ title, subtitle }) {
               </tr>
             </thead>
             <tbody>
-              {activeData.length === 0 ? (
+              {loading ? (
                 <tr>
                   <td colSpan={4} className="text-center py-8 text-gray-500">
-                    {!scholarshipRes ? 'กำลังโหลดข้อมูล...' : 'ไม่พบข้อมูล'}
+                    กำลังโหลดข้อมูล...
+                  </td>
+                </tr>
+              ) : activeData.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="text-center py-8 text-gray-500">
+                    ไม่พบข้อมูล
                   </td>
                 </tr>
               ) : (
                 activeData.map((item, index) => {
                   const count = item.count || 0
+                  const totalCount = counts[activeType] || 1
                   const percentage = totalCount > 0 ? ((count / totalCount) * 100).toFixed(1) : '0.0'
                   
                   // Color mapping for different types
@@ -137,10 +162,10 @@ export default function ScholarshipTable({ title, subtitle }) {
                   const color = colors[index % 5] || '#6b7280'
                   
                   return (
-                    <tr key={item.value} className="border-b hover:bg-gray-50">
+                    <tr key={item.name || index} className="border-b hover:bg-gray-50">
                       <td className="py-3 px-4">
                         <div className="text-sm font-medium text-gray-900">
-                          {item.label}
+                          {item.name}
                         </div>
                       </td>
               <td className="py-3 px-4 text-right">

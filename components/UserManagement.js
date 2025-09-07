@@ -6,7 +6,7 @@ import useSWR, { mutate } from 'swr'
 import UserTable from "./UserTable";
 import UserFilters from "./UserFilters";
 import UserModal from "./UserModal";
-import { userAPI, api } from "@/lib/api";
+// import { userAPI, api } from "@/lib/api";
 
 const mapRoleToLabel = (role) => {
   switch (role) {
