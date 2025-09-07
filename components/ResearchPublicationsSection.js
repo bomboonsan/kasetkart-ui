@@ -13,7 +13,7 @@ const TYPE_TABS = [
   { key: 'BOOK', label: 'หนังสือและตำรา' },
 ]
 
-export default function ResearchPublicationsSection() {
+export default function ResearchPublicationsSection({ profileData = null }) {
   const [activeType, setActiveType] = useState('PROJECT')
 
   const projectsErr = null
@@ -51,8 +51,38 @@ export default function ResearchPublicationsSection() {
     }
   ]
   
-  const works = mockWorks
-  const myProjects = mockProjects
+  // Try to extract real works/projects from profileData (Strapi v5 shapes)
+  let works = mockWorks
+  let myProjects = mockProjects
+  try {
+    const res = profileData?.data || profileData || {}
+    // works could be under res.works, res.worksPermissions, or top-level relations; try common names
+    const rawWorks = res?.works || res?.works_permissions || res?.works || res?.publications || []
+    const rawProjects = res?.projects || res?.project_researches || res?.myProjects || []
+
+    if (Array.isArray(rawWorks) && rawWorks.length > 0) {
+      works = rawWorks.map(w => {
+        // Normalize to expected shape used by toItem
+        const type = w.type || w.workType || w.category || (w.PublicationDetail ? 'PUBLICATION' : (w.ConferenceDetail ? 'CONFERENCE' : 'PUBLICATION'))
+        return {
+          id: w.id || w.documentId || w._id || Math.random(),
+          type,
+          status: w.status || w.publishState || null,
+          Project: w.Project || w.project || null,
+          ConferenceDetail: w.ConferenceDetail || w.conferenceDetail || w.conference_detail || w.Conference || null,
+          PublicationDetail: w.PublicationDetail || w.publicationDetail || w.publication_detail || w.Publication || w.detail || {},
+          FundingDetail: w.FundingDetail || w.fundingDetail || w.funding_detail || w.Funding || {},
+          BookDetail: w.BookDetail || w.bookDetail || w.book_detail || w.Book || {},
+        }
+      })
+    }
+
+    if (Array.isArray(rawProjects) && rawProjects.length > 0) {
+      myProjects = rawProjects.map(p => ({ id: p.id || p.documentId || Math.random(), nameTh: p.nameTh || p.title || p.name || p.nameTh, nameEn: p.nameEn || p.titleEn || p.nameEn, fiscalYear: p.fiscalYear || p.year || '' }))
+    }
+  } catch (e) {
+    console.warn('ResearchPublicationsSection: failed to normalize profileData', e)
+  }
 
   const counts = useMemo(() => {
     const c = { PROJECT: 0, CONFERENCE: 0, PUBLICATION: 0, FUNDING: 0, BOOK: 0 }

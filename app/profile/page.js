@@ -4,7 +4,7 @@ import { useState } from 'react'
 import useSWR from 'swr'
 import ProfileHeader from '@/components/profile/ProfileHeader'
 import EducationSection from '@/components/profile/EducationSection'
-import ResearchPublicationsSection from '@/components/ResearchPublicationsSection'
+import ResearchPublicationsSection from '@/components/profile/ResearchPublicationsSection'
 import { profileAPI } from '@/lib/api'
 
 export default function Profile() {
@@ -22,9 +22,9 @@ export default function Profile() {
       {error && (
         <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
       )}
-      <ProfileHeader profileData={profileRes} />
-      <EducationSection educations={educations} />
-      <ResearchPublicationsSection />
+  <ProfileHeader profileData={profileRes} />
+  <EducationSection educations={educations} />
+  <ResearchPublicationsSection profileData={profileRes} />
     </div>
   );
 }

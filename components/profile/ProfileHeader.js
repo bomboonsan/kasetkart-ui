@@ -1,7 +1,7 @@
 "use client"
 
 import Button from '@/components/Button'
-import ProfileStats from "@/components/ProfileStats";
+import ProfileStats from "@/components/profile/ProfileStats";
 import Link from 'next/link';
 import { useState } from 'react'
 import useSWR from 'swr'
@@ -39,29 +39,37 @@ export default function ProfileHeader({ profileData }) {
   const jobType = profObj?.jobType || ''
   const highDegree = profObj?.highDegree || ''
 
-  // Resolve avatar URL from common Strapi shapes
+  // Resolve avatar URL from several common Strapi response shapes
   let avatarUrl = ''
-  const tryPaths = [
-    // profObj?.avatar?.data?.attributes?.url,
-    // profObj?.avatar?.url,
-    // profObj?.profileImage?.data?.attributes?.url,
-    // profObj?.profile_image?.data?.attributes?.url,
-    // profObj?.picture?.data?.attributes?.url,
-    // profObj?.image?.data?.attributes?.url,
-    // profObj?.avatarUrl,
-    // profObj?.avatar_url,
+  try {
+    const candidates = []
+    // // nested "data -> attributes -> url"
+    // if (profObj?.avatar?.data?.url) candidates.push(profObj.avatar.data.attributes.url)
+    // if (profObj?.profileImage?.data?.url) candidates.push(profObj.profileImage.data.attributes.url)
+    // if (profObj?.profile_image?.data?.url) candidates.push(profObj.profile_image.data.attributes.url)
+    // if (profObj?.picture?.data?.url) candidates.push(profObj.picture.data.attributes.url)
+    // if (profObj?.image?.data?.url) candidates.push(profObj.image.data.attributes.url)
 
-    profObj?.avatarUrl?.url,
-  ]
-  for (const p of tryPaths) {
-    if (p) { avatarUrl = p; break }
-  }
-  if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
-    const mediaBase = API_BASE.replace(/\/api\/?$/, '')
-    avatarUrl = `${mediaBase}${avatarUrl}`
-  }
+    // // direct attribute shapes
+    // if (profObj?.avatar?.url) candidates.push(profObj.avatar.url)
+    // if (profObj?.avatarUrl) candidates.push(profObj.avatarUrl)
+    if (profObj?.avatarUrl?.url) candidates.push(profObj.avatarUrl.url)
+    // if (profObj?.avatar_url) candidates.push(profObj.avatar_url)
+    
 
-  console.log('avatarUrl', avatarUrl)
+    // some UIs store a full path or a partial path under profile.avatarUrl.url
+    for (const c of candidates) {
+      if (c) { avatarUrl = c; break }
+    }
+
+    if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
+      const mediaBase = API_BASE.replace(/\/api\/?$/, '')
+      avatarUrl = `${mediaBase}${avatarUrl}`
+    }
+    console.log('Resolved avatar URL:', avatarUrl)
+  } catch (e) {
+    console.warn('avatar resolution failed', e)
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
