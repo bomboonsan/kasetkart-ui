@@ -609,26 +609,6 @@ export default function CreateResearchForm() {
               value={formData.sdg}
               onChange={(value) => handleInputChange("sdg", value)}
               className="max-w-lg"
-              // options={[
-              //   { value: '', label: 'เลือกข้อมูล' },
-              //   { value: '1', label: 'SDG 1 - No Poverty' },
-              //   { value: '2', label: 'SDG 2 - Zero Hunger' },
-              //   { value: '3', label: 'SDG 3 - Good Health and Well-Being' },
-              //   { value: '4', label: 'SDG 4 - Quality Education' },
-              //   { value: '5', label: 'SDG 5 - Gender Equality' },
-              //   { value: '6', label: 'SDG 6 - Clean Water and Sanitation' },
-              //   { value: '7', label: 'SDG 7 - Affordable and Clean Energy' },
-              //   { value: '8', label: 'SDG 8 - Decent Work and Economic Growth' },
-              //   { value: '9', label: 'SDG 9 - Industry, Innovation and Infrastructure' },
-              //   { value: '10', label: 'SDG 10 - Reduced Inequalities' },
-              //   { value: '11', label: 'SDG 11 - Sustainble Cities and Communities' },
-              //   { value: '12', label: 'SDG 12 - Responsible Consumption and Production' },
-              //   { value: '13', label: 'SDG 13 - Climate Action' },
-              //   { value: '14', label: 'SDG 14 - Life Below Water' },
-              //   { value: '15', label: 'SDG 15 - Life on Land' },
-              //   { value: '16', label: 'SDG 16 - Peace, Justice and Strong Institutions' },
-              //   { value: '17', label: 'SDG 17 - Partnerships for The Goals' },
-              // ]}
               options={[{ value: '', label: 'เลือกข้อมูล' }, ...sdgLists.map(ic => ({ value: String(ic.id), label: ic.name }))]}
             />
           </FormFieldBlock>
