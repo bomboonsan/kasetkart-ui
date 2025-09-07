@@ -491,6 +491,19 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               />
             </div>
             <div>
+              <FormInput
+                mini={false}
+                label="สัดส่วนการมีส่วนร่วม (%)"
+                type="number"
+                step="0.001"
+                min="0"
+                max="100"
+                value={formData.partnerProportion_percentage_custom || ''}
+                readOnly
+                placeholder="ระบบคำนวณสัดส่วนให้อัตโนมัติ"
+              />
+            </div>
+            <div>
               <FormCheckbox
                 label="หมายเหตุ"
                 inline={true}
@@ -564,6 +577,9 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     หมายเหตุ
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    สัดส่วนการวิจัย Custom (%)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     สัดส่วนการวิจัย (%)
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -625,6 +641,13 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">{p.partnerComment || '-'}</div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {p.partnerProportion_percentage_custom && (
+                        <div className="text-sm text-gray-900">
+                          {(parseFloat(p.partnerProportion_percentage_custom))}%
+                        </div>
+                      )}
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">
                       {p.partnerProportion && (
