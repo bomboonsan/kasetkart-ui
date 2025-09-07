@@ -64,37 +64,14 @@ export default function GeneralInfoTab() {
       }
 
       // เตรียมข้อมูลสำหรับ user (relations + email)
-      // Strapi v5: ต้องแปลง documentId กลับเป็น id สำหรับบันทึก
+      // Strapi v5: ใช้ documentId สำหรับ relations
       const userBody = {}
-      const setIf = (key, val) => {
-        if (val !== undefined && val !== null && val !== '') {
-          // หา realId จาก documentId ที่เลือกไว้
-          let realId = val
-          if (key === 'department') {
-            const dept = departments.find(d => d.id === val)
-            realId = dept?.realId || val
-          } else if (key === 'faculty') {
-            const fac = faculties.find(f => f.id === val)
-            realId = fac?.realId || val
-          } else if (key === 'organization') {
-            const org = organizations.find(o => o.id === val)
-            realId = org?.realId || val
-          } else if (key === 'academic_type') {
-            const at = academicTypes.find(a => a.id === val)
-            realId = at?.realId || val
-          } else if (key === 'participation_type') {
-            const pt = participationTypes.find(p => p.id === val)
-            realId = pt?.realId || val
-          }
-          userBody[key] = realId
-        }
-      }
-      setIf('department', formData.department)
-      setIf('faculty', formData.faculty)
-      setIf('organization', formData.organization)
-      setIf('academic_type', formData.academic_type)
-      setIf('participation_type', formData.participation_type)
-      if (formData.email) setIf('email', formData.email)
+      if (formData.email) userBody.email = formData.email
+      if (formData.department) userBody.department = formData.department
+      if (formData.faculty) userBody.faculty = formData.faculty
+      if (formData.organization) userBody.organization = formData.organization
+      if (formData.academic_type) userBody.academic_type = formData.academic_type
+      if (formData.participation_type) userBody.participation_type = formData.participation_type
 
       // Find existing profile หรือสร้างใหม่ - ใช้ documentId ใน Strapi v5
       let profileDocumentId = res?.profile?.documentId || res?.profile?.data?.documentId || res?.Profile?.[0]?.documentId || res?.Profile?.[0]?.data?.documentId

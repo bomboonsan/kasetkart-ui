@@ -24,6 +24,12 @@ import SweetAlert2 from 'react-sweetalert2'
 
 export default function CreatePublicationsForm({ mode = 'create', workId, initialData }) {
   const [swalProps, setSwalProps] = useState({})
+
+  // Fetch existing work-publication when editing
+  const { data: existingWorkPublication } = useSWR(
+    mode === 'edit' && workId ? ['work-publication', workId] : null,
+    () => worksAPI.getPublication(workId)
+  )
   // Align form keys to PublicationDetail model in schema.prisma
   const [formData, setFormData] = useState({
     project_research: '', // relation to project-research (documentId expected by Strapi v5)
@@ -458,15 +464,56 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
 
   // Prefill when editing
   useEffect(() => {
-    if (!initialData) return
-    setFormData(prev => ({
-      ...prev,
-      ...initialData,
-      // If initial data contains project_research relation, map to documentId
-      project_research: initialData?.project_research?.documentId || initialData?.project_research?.id || prev.project_research || '',
-      __projectObj: initialData?.project_research || prev.__projectObj,
-    }))
-  }, [initialData])
+    if (existingWorkPublication?.data) {
+      const data = existingWorkPublication.data
+      setFormData(prev => ({
+        ...prev,
+        project_research: data.project_research?.documentId || null,
+        __projectObj: data.project_research || undefined,
+        titleTH: data.titleTH || '',
+        titleEN: data.titleEN || '',
+        isEnvironmentallySustainable: data.isEnvironmentallySustainable || 0,
+        journalName: data.journalName || '',
+        doi: data.doi || '',
+        isbn: data.isbn || '',
+        volume: data.volume || 0,
+        issue: data.issue || 0,
+        durationStart: data.durationStart ? String(data.durationStart).slice(0,10) : '',
+        durationEnd: data.durationEnd ? String(data.durationEnd).slice(0,10) : '',
+        pageStart: data.pageStart || 0,
+        pageEnd: data.pageEnd || 0,
+        level: data.level || 0,
+        isJournalDatabase: data.isJournalDatabase || false,
+        isScopus: data.isScopus || false,
+        scopusType: data.scopusType || 0,
+        scopusValue: data.scopusValue || 0,
+        isACI: data.isACI || false,
+        isTCI1: data.isTCI1 || false,
+        isTCI2: data.isTCI2 || false,
+        isABDC: data.isABDC || false,
+        isAJG: data.isAJG || false,
+        isSSRN: data.isSSRN || false,
+        isWos: data.isWos || false,
+        isDifferent: data.isDifferent || false,
+        differentDetail: data.differentDetail || '',
+        isReceiveAward: data.isReceiveAward || false,
+        awardName: data.awardName || '',
+        isCorrespondingAuthor: data.isCorrespondingAuthor || false,
+        scopusGrade: data.scopusGrade || 0,
+        impactFactor: data.impactFactor || 0,
+        attachments: data.attachments || [],
+        team: data.team || [],
+      }))
+    } else if (initialData) {
+      setFormData(prev => ({
+        ...prev,
+        ...initialData,
+        // If initial data contains project_research relation, map to documentId
+        project_research: initialData?.project_research?.documentId || initialData?.project_research?.id || prev.project_research || '',
+        __projectObj: initialData?.project_research || prev.__projectObj,
+      }))
+    }
+  }, [existingWorkPublication, initialData])
 
   const router = useRouter()
 

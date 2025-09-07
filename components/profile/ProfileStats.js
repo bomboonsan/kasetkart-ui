@@ -51,25 +51,41 @@ export default function ProfileStats() {
           pubCount = pubRes?.meta?.pagination?.total ?? (pubRes?.data?.length ?? 0)
         }
 
-        // 3) Fundings: find project-fundings where current user is a partner (funding_partners.users_permissions_user)
-        // Need user id
+        // 3) Get user ID for funding-related queries
         let userId = null
         try {
           const me = await api.get('/users/me')
           userId = me?.data?.id || me?.id || null
         } catch (e) {
-          // ignore
+          console.warn('Could not fetch user ID:', e)
         }
 
         if (userId) {
-          const fundRes = await fundingAPI.getFundings({ ['filters[funding_partners][users_permissions_user][id][$eq]']: userId, publicationState: 'preview', ['pagination[pageSize]']: 1 })
-          fundingCount = fundRes?.meta?.pagination?.total ?? (fundRes?.data?.length ?? 0)
+          // Get funding-partners where this user is involved
+          const fundingPartnersRes = await api.get('/funding-partners', {
+            ['filters[users_permissions_user][id][$eq]']: userId,
+            publicationState: 'preview',
+            populate: 'project_fundings'
+          })
+          const fundingPartners = fundingPartnersRes?.data || []
+          
+          // Extract unique project-funding IDs
+          const fundingIds = new Set()
+          fundingPartners.forEach(partner => {
+            const fundings = partner.project_fundings || []
+            fundings.forEach(funding => {
+              if (funding.documentId || funding.id) {
+                fundingIds.add(funding.documentId || funding.id)
+              }
+            })
+          })
+
+          fundingCount = fundingIds.size
 
           // For books: count work-books that are linked to those fundings
-          const fundingIds = (fundRes?.data || fundRes || []).map(f => f.documentId || f.id).filter(Boolean)
-          if (fundingIds.length > 0) {
+          if (fundingIds.size > 0) {
             const bookParams = { publicationState: 'preview', ['pagination[pageSize]']: 1 }
-            fundingIds.forEach((id, idx) => {
+            Array.from(fundingIds).forEach((id, idx) => {
               bookParams[`filters[project_funding][documentId][$in][${idx}]`] = id
             })
             const fbRes = await worksAPI.getBooks(bookParams)

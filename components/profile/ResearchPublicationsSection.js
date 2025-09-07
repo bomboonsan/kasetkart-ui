@@ -90,12 +90,37 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 					}
 				}
 
-				// 3) fundings and books: find fundings where user is a partner then fetch books linked to those fundings
+				// 3) Get fundings where user is a partner and books linked to those fundings
 				let fundingArr = []
 				try {
 					if (userId) {
-						const fundRes = await fundingAPI.getFundings({ ['filters[funding_partners][users_permissions_user][id][$eq]']: userId, publicationState: 'preview', ['pagination[pageSize]']: 1000 })
-						fundingArr = fundRes?.data || fundRes || []
+						// Get funding-partners where this user is involved
+						const fundingPartnersRes = await api.get('/funding-partners', {
+							['filters[users_permissions_user][id][$eq]']: userId,
+							publicationState: 'preview',
+							populate: 'project_fundings',
+							['pagination[pageSize]']: 1000
+						})
+						const fundingPartners = fundingPartnersRes?.data || []
+						
+						// Extract unique project-fundings
+						const fundingIds = new Set()
+						const fundingMap = new Map()
+						
+						fundingPartners.forEach(partner => {
+							const fundings = partner.project_fundings || []
+							fundings.forEach(funding => {
+								if (funding.documentId || funding.id) {
+									const id = funding.documentId || funding.id
+									if (!fundingIds.has(id)) {
+										fundingIds.add(id)
+										fundingMap.set(id, funding)
+									}
+								}
+							})
+						})
+
+						fundingArr = Array.from(fundingMap.values())
 					}
 				} catch (e) {
 					console.warn('getFundings failed', e)
