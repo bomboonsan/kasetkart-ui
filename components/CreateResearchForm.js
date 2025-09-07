@@ -16,6 +16,7 @@ import Button from './Button'
 import Link from 'next/link'
 import SweetAlert2 from 'react-sweetalert2'
 import { projectAPI, api, authAPI, valueFromAPI } from '../lib/api'
+import { formatDateDMY } from '../lib/helper'
 import { use } from 'react'
 import useSWR, { mutate } from 'swr'
 
@@ -49,9 +50,9 @@ export default function CreateResearchForm() {
       setSdgLists(sdgRes.data || [])
     }
   }, [sdgRes])
-  console.log('icTypesLists', icTypesLists)
-  console.log('impactLists', impactLists)
-  console.log('sdgLists', sdgLists)
+  // console.log('icTypesLists', icTypesLists)
+  // console.log('impactLists', impactLists)
+  // console.log('sdgLists', sdgLists)
   ////////////////////////////////////////////////////////
   // End setup form fields
   ////////////////////////////////////////////////////////
@@ -99,8 +100,18 @@ export default function CreateResearchForm() {
   const [deptOptions, setDeptOptions] = useState([])
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [meData, setMeData] = useState(null);
 
-  console.log('formData', formData)
+  useEffect(() => {
+    const fetchData = async () => {
+      const me = await authAPI.me()
+      setMeData(me)
+    }
+    fetchData()
+  }, [])
+  console.log('meData', meData)
+
+  // console.log('formData', formData)
 
   const [subFundType, setSubFundType] = useState([])
   const subFundType1 = [
@@ -202,7 +213,7 @@ export default function CreateResearchForm() {
         orgName: meObj.Faculty?.name || meObj.Department?.name || '',
         partnerType: 'หัวหน้าโครงการ',
         partnerComment: '',
-      } : null
+      } : null      
 
       // ผู้ร่วมจากแบบฟอร์ม (ถ้าผู้ใช้กรอกเพิ่ม)
       const hasExtraInternal = formData.isInternal === true && formData.userId
@@ -232,9 +243,9 @@ export default function CreateResearchForm() {
       // Map to API payload matching Strapi content-type `project-research`
       // Note: backend schema uses `nameTE`/`nameEN` and expects `data: { ... }` for Strapi v5
       const payload = {
-        fiscalYear: parseInt(formData.fiscalYear) || undefined,
-        projectType: formData.projectType || undefined,
-        projectMode: formData.projectMode || undefined,
+        fiscalYear: parseInt(formData.fiscalYear) || 2568,
+        projectType: formData.projectType || 0,
+        projectMode: formData.projectMode || 0,
         subProjectCount: formData.subProjectCount ? parseInt(formData.subProjectCount) : undefined,
         nameTE: formData.nameTh || undefined,
         nameEN: formData.nameEn || undefined,
@@ -330,7 +341,7 @@ export default function CreateResearchForm() {
               label="ปีงบประมาณ"
               type="number"
               value={formData.fiscalYear}
-              onChange={(value) => handleInputChange("fiscalYear", value)}
+              onChange={(value) => handleInputChange("fiscalYear", parseInt(value))}
               placeholder="2568"
             />
           </FormFieldBlock>
@@ -340,14 +351,14 @@ export default function CreateResearchForm() {
               required
               label="ประเภทโครงการ"
               options={[
-                { label: "โครงการวิจัย", value: "โครงการวิจัย" },
+                { label: "โครงการวิจัย", value: 0 },
                 {
                   label: "โครงการพัฒนาวิชาการประเภทงานวิจัย",
-                  value: "โครงการพัฒนาวิชาการประเภทงานวิจัย",
-                },                
+                  value: 1,
+                },
               ]}
               value={formData.projectType}
-              onChange={(value) => handleInputChange("projectType", value)}
+              onChange={(value) => handleInputChange("projectType", parseInt(value))}
             />
           </FormFieldBlock>
           <FormFieldBlock>
@@ -356,14 +367,14 @@ export default function CreateResearchForm() {
               required
               label="ลักษณะโครงการวิจัย"
               options={[
-                { label: "โครงการวิจัยเดี่ยว", value: "โครงการวิจัยเดี่ยว" },
+                { label: "โครงการวิจัยเดี่ยว", value: 0 },
                 {
                   label: "แผนงานวิจัย หรือชุดโครงการวิจัย",
-                  value: "แผนงานวิจัย หรือชุดโครงการวิจัย",
+                  value: 1,
                 },
               ]}
               value={formData.projectMode}
-              onChange={(value) => handleInputChange("projectMode", value)}
+              onChange={(value) => handleInputChange("projectMode", parseInt(value))}
             />
           </FormFieldBlock>
 
@@ -372,11 +383,11 @@ export default function CreateResearchForm() {
               mini={true}
               label="จำนวนโครงการย่อย"
               type="number"
-              value={formData.projectMode !== "แผนงานวิจัย หรือชุดโครงการวิจัย" ? 0 :formData.subProjectCount}
-              onChange={(value) => handleInputChange("subProjectCount", value)}
+              value={formData.projectMode !== 1 ? 0 :formData.subProjectCount}
+              onChange={(value) => handleInputChange("subProjectCount", parseInt(value))}
               placeholder="0"
-              disabled={formData.projectMode === "แผนงานวิจัย หรือชุดโครงการวิจัย" ? false : true}
-              className={`border border-gray-300 rounded-md p-2 ${formData.projectMode === "แผนงานวิจัย หรือชุดโครงการวิจัย" ? '' : 'bg-gray-100 cursor-not-allowed'}`}
+              disabled={formData.projectMode === 1 ? false : true}
+              className={`border border-gray-300 rounded-md p-2 ${formData.projectMode === 1 ? '' : 'bg-gray-100 cursor-not-allowed'}`}
             />
           </FormFieldBlock>
 
@@ -406,8 +417,8 @@ export default function CreateResearchForm() {
                 <input
                   type="radio"
                   value="true"
-                  checked={formData.isEnvironmentallySustainable === true}
-                  onChange={() => handleInputChange("isEnvironmentallySustainable", true)}
+                  checked={formData.isEnvironmentallySustainable === 1}
+                  onChange={() => handleInputChange("isEnvironmentallySustainable", 1)}
                   className={`
                     text-zinc-700
                     px-3 py-2 border border-gray-300 rounded-md
@@ -422,8 +433,8 @@ export default function CreateResearchForm() {
                 <input
                   type="radio"
                   value="false"
-                  checked={formData.isEnvironmentallySustainable === false}
-                  onChange={() => handleInputChange("isEnvironmentallySustainable", false)}
+                  checked={formData.isEnvironmentallySustainable === 0}
+                  onChange={() => handleInputChange("isEnvironmentallySustainable", 0)}
                   className={`
                     text-zinc-700
                     px-3 py-2 border border-gray-300 rounded-md
@@ -466,8 +477,8 @@ export default function CreateResearchForm() {
             <FormTextarea
               label="หน่วยงานหลักที่รับผิดชอบโครงการวิจัย (หน่วยงานที่ขอทุน)"
               required
-              value={"ชื่อภาค คณะ มหาลัยจาก ข้อมูลผู้ใช้"}
-              // onChange={(value) => handleInputChange("orgName", value)}
+              className='bg-gray-100 cursor-not-allowed'
+              value={`${meData?.department?.name || ''}  ${meData?.faculty?.name} ${meData?.organization?.name || ''}`}
             />
           </FormFieldBlock>
 
