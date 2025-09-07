@@ -24,6 +24,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
   const [swalProps, setSwalProps] = useState({})
   // Align to FundingDetail fields
   const [formData, setFormData] = useState({
+    writers: [], // ผู้แต่งร่วม // json array of { fullName, department, faculty , phone, email }
     fundType: 0, // ลักษณะของผลงานวิชาการที่จะขอรับทุน (Int) 0=ตำรา ใช้สอนในรายวิชา, 1=หนังสือ(ชื่อไทย และชื่อภาษาอังกฤษ)
     fundTypeText: '', // ข้อความจาก radio button ลักษณะของผลงานวิชาการที่จะขอรับทุน
     contentDesc: '', // คำอธิบายเนื้อหาของตำราหรือหนังสือ
