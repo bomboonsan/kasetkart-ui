@@ -190,14 +190,37 @@ export default function GeneralInfoTab() {
     // ดึงวุฒิการศึกษาที่ populate มาด้วย (Strapi v5: ใช้ documentId สำหรับแสดงผล, id สำหรับบันทึก)
     // แก้ไข: ป้องกันการ duplicate โดยเช็คว่า educations ที่มีอยู่แล้วต่างจาก response หรือไม่
     const eduArr = res?.educations || []
-    const normalized = (eduArr || []).map((e, index) => ({
-      documentId: e?.documentId || undefined,
-      education_level: e?.education_level?.documentId || '',
-      name: e?.name || '',
-      faculty: e?.faculty || '',
-      year: e?.year || '',
-      _tempId: `edu_${Date.now()}_${index}` // เพิ่ม temp ID สำหรับ key ที่เสถียร
-    }))
+
+    // Normalize and dedupe educations from various Strapi shapes
+    const normalizeAndDedupe = (arr) => {
+      const mapped = (arr || []).map((e, index) => {
+        const documentId = e?.documentId || e?.id || undefined
+        // education_level may be an object or a documentId string
+        const education_level = typeof e?.education_level === 'object'
+          ? (e.education_level.documentId || e.education_level.id || '')
+          : (e?.education_level || '')
+        const education_level_name = typeof e?.education_level === 'object' ? (e.education_level.name || '') : ''
+        return {
+          documentId,
+          education_level,
+          education_level_name,
+          name: e?.name || '',
+          faculty: e?.faculty || '',
+          year: e?.year || '',
+          _tempId: documentId ? `edu_${documentId}` : `edu_temp_${Date.now()}_${index}`
+        }
+      })
+
+      // dedupe by documentId when present, otherwise by composite key
+      const map = new Map()
+      for (const item of mapped) {
+        const key = item.documentId || `${item.education_level}||${item.name}||${item.year}`
+        if (!map.has(key)) map.set(key, item)
+      }
+      return Array.from(map.values())
+    }
+
+    const normalized = normalizeAndDedupe(eduArr)
 
     // อัพเดตเฉพาะเมื่อข้อมูลเปลี่ยนแปลงจริงๆ เพื่อป้องกัน duplicate
     setEducations(prev => {

@@ -11,14 +11,25 @@ export default function EducationSection({ educations = [] }) {
   // แปลงข้อมูล educations จาก Strapi เป็นรูปแบบที่ EducationItem ต้องการ
   useEffect(() => {
     try {
-      const transformedItems = educations.map(edu => ({
-        degree: edu?.education_level?.name || edu.name || 'ไม่ระบุวุฒิการศึกษา',
-        school: edu?.name || 'ไม่ระบุสถาบันการศึกษา',
-        period: edu?.year ? `ปี ${edu.year}` : '',
-        faculty: edu?.faculty || '',
-        documentId: edu?.documentId
-      }))
-      setItems(transformedItems)
+      // Normalize and dedupe incoming educations array
+      const mapped = (educations || []).map((edu, idx) => {
+        const documentId = edu?.documentId || edu?.id || undefined
+        const degree = edu?.education_level?.name || (typeof edu?.education_level === 'string' ? edu.education_level : '') || edu?.name || 'ไม่ระบุวุฒิการศึกษา'
+        return {
+          degree,
+          school: edu?.name || 'ไม่ระบุสถาบันการศึกษา',
+          period: edu?.year ? `ปี ${edu.year}` : '',
+          faculty: edu?.faculty || '',
+          documentId,
+          _key: documentId || `${degree}||${edu?.name || ''}||${edu?.year || ''}||${idx}`
+        }
+      })
+
+      const dedupedMap = new Map()
+      for (const it of mapped) {
+        if (!dedupedMap.has(it.documentId || it._key)) dedupedMap.set(it.documentId || it._key, it)
+      }
+      setItems(Array.from(dedupedMap.values()))
     } catch (e) {
       setError('ไม่สามารถโหลดประวัติการศึกษา')
       console.error('Education section error:', e)

@@ -230,6 +230,7 @@ export default function Sidebar() {
               width={32}
               height={32}
               className="rounded"
+              unoptimized
             />
             <span className="font-bold text-2xl text-gray-800">Kasetsart</span>
           </div>
