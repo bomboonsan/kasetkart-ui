@@ -67,7 +67,7 @@ export default function CreateResearchForm() {
     projectType: 0, // ประเภทโครงการ (Int)
     projectMode: 0, // ลักษณะโครงการวิจัย (Int)
     subProjectCount: 0, // จำนวนโครงการย่อย (Int)
-    nameTH: "", // ชื่อโครงการ (ภาษาไทย) (String)
+    nameTH: "", // ชื่อโครงการ (ภาษาไทย) (String) - fixed field name
     nameEN: "", // ชื่อโครงการ (ภาษาอังกฤษ) (String)
 
     isEnvironmentallySustainable: 0, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
@@ -185,9 +185,7 @@ export default function CreateResearchForm() {
         ['durationEnd', 'วันที่สิ้นสุด'],
         ['budget', 'งบวิจัย'],
         ['keywords', 'คำสำคัญ'],
-        ['icTypes', 'IC Types'],
-        ['impact', 'Impact'],
-        ['sdg', 'SDG']
+        // NOTE: icTypes, impact, sdg removed - not in project-research schema
       ]
       const missing = required.filter(([k]) => !formData[k] || String(formData[k]).trim() === '')
       if (missing.length > 0) {
@@ -241,26 +239,21 @@ export default function CreateResearchForm() {
       }
 
       // Map to API payload matching Strapi content-type `project-research`
-      // Note: backend schema uses `nameTE`/`nameEN` and expects `data: { ... }` for Strapi v5
+      // Only include fields that exist in the schema
       const payload = {
         fiscalYear: parseInt(formData.fiscalYear) || 2568,
         projectType: formData.projectType || 0,
         projectMode: formData.projectMode || 0,
         subProjectCount: formData.subProjectCount ? parseInt(formData.subProjectCount) : undefined,
-        nameTE: formData.nameTh || undefined,
-        nameEN: formData.nameEn || undefined,
-        isEnvironmentallySustainable: formData.isEnvironmentallySustainable,
+        nameTH: formData.nameTH || undefined,
+        nameEN: formData.nameEN || undefined,
         durationStart: formData.durationStart || undefined,
         durationEnd: formData.durationEnd || undefined,
-        researchKind: formData.researchKind || undefined,
         fundType: formData.fundType ? parseInt(formData.fundType) : undefined,
         fundSubType: formData.fundSubType ? parseInt(formData.fundSubType) : undefined,
         fundName: formData.fundName || undefined,
         budget: formData.budget ? String(formData.budget) : undefined,
         keywords: formData.keywords || undefined,
-        icTypes: formData.icTypes || undefined,
-        impact: formData.impact || undefined,
-        sdg: formData.sdg || undefined,
         // attachments handled separately via upload API (ids or file refs)
       }
 
