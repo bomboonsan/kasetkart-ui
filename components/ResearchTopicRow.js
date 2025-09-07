@@ -2,7 +2,7 @@ import Link from 'next/link'
 
 export default function ResearchTopicRow({ research, index }) {
   const handleEdit = () => {
-    console.log('Edit research:', research.id)
+    // edit handler placeholder
   }
 
   const formatBudget = (amount) => {

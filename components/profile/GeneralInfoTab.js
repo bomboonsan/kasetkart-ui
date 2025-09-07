@@ -207,7 +207,6 @@ export default function GeneralInfoTab() {
     setOriginalEducations(normalized)
     setRemovedEducationIds([])
   }, [profileRes])
-  console.log('formData', formData)
 
   useEffect(() => {
     // คอมเมนต์ (ไทย): แปลงรูปแบบ response ของ Strapi v5
@@ -264,7 +263,7 @@ export default function GeneralInfoTab() {
     })
   }
 
-  console.log('educations:', educations, 'removedEducationIds:', removedEducationIds)
+  // debug logs removed
 
   return (
     <>
@@ -530,7 +529,7 @@ export default function GeneralInfoTab() {
             >
               บันทึก
             </Button>
-            <Button variant="outline" onClick={() => { console.log('Cancel educations edit') }}>
+            <Button variant="outline" onClick={() => { /* cancel edit */ }}>
               ยกเลิก
             </Button>
           </div>

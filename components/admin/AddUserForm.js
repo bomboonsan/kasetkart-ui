@@ -88,7 +88,7 @@ export default function AddUserForm() {
         participation_type: convertToId(form.participation_type, participationTypes),
       }
 
-      console.log('Debug: Creating user with payload:', payload)
+  // creating user with payload
 
       const user = await userAPI.createUser(payload)
       
@@ -98,7 +98,7 @@ export default function AddUserForm() {
         throw new Error('ไม่สามารถดึง user ID จากการสร้าง user ได้')
       }
 
-      console.log('Debug: Created user with ID:', userId)
+  // created user with ID
       
       // Create profile data
       const profileData = {

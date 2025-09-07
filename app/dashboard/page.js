@@ -123,7 +123,7 @@ export default function DashboardHome() {
         setResearchStats(stats)
         return
       }
-      console.log('Loading research stats for department:', departmentId)
+  // loading research stats for department
       const stats = await dashboardAPI.getResearchStatsByTypes(departmentId)
       setResearchStats(stats)
     } catch (err) {
