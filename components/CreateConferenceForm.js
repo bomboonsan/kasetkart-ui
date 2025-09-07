@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) เพื่อให้ import สั้นและชัดเจน
 import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
+import { stripUndefined, getDocumentId } from '@/utils/strapi'
+import { createHandleChange } from '@/utils/form'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
@@ -72,7 +74,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
     const work = workRes.data
     setFormData(prev => ({
       ...prev,
-      project_research: work.project_research?.documentId || work.project_research?.id || '',
+    project_research: getDocumentId(work.project_research) || '',
       titleTH: work.titleTH || '',
       titleEN: work.titleEN || '',
       isEnvironmentallySustainable: work.isEnvironmentallySustainable || 0,
@@ -134,16 +136,12 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
         attachments: (formData.attachments || []).map(a => ({ id: a.id })),
       }
 
-      // Remove undefined values
-      Object.keys(payload).forEach(key => {
-        if (payload[key] === undefined) {
-          delete payload[key]
-        }
-      })
+  // Clean payload
+  const cleanPayload = stripUndefined(payload)
 
       let result
       if (mode === 'edit' && workId) {
-        result = await worksAPI.updateConference(workId, payload)
+  result = await worksAPI.updateConference(workId, cleanPayload)
         setSwalProps({ 
           show: true, 
           icon: 'success', 
@@ -152,7 +150,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           showConfirmButton: false 
         })
       } else {
-        result = await worksAPI.createConference(payload)
+  result = await worksAPI.createConference(cleanPayload)
         setSwalProps({ 
           show: true, 
           icon: 'success', 
@@ -183,9 +181,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
     }
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleInputChange = createHandleChange(setFormData)
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -201,7 +197,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
               required
               selectedProject={formData.__projectObj}
               onSelect={(project) => {
-                handleInputChange('project_research', project.documentId || project.id)
+                handleInputChange('project_research', getDocumentId(project))
                 handleInputChange('__projectObj', project)
               }}
             />

@@ -17,10 +17,13 @@ import Link from 'next/link'
 import SweetAlert2 from 'react-sweetalert2'
 // ใช้ path alias (@/) เพื่อให้ import ชัดเจนและลดความซ้ำซ้อนของ path
 import { projectAPI, api, authAPI, valueFromAPI } from '@/lib/api'
+// ยูทิลิตี้สำหรับจัดการ payload ให้สะอาด
+import { stripUndefined } from '@/utils/strapi'
 // ใช้ path alias (@/) สำหรับ helper
 import { formatDateDMY } from '@/lib/helper'
 import { use } from 'react'
 import useSWR, { mutate } from 'swr'
+import { createHandleChange } from '@/utils/form'
 
 export default function CreateResearchForm() {
 
@@ -127,7 +130,7 @@ export default function CreateResearchForm() {
     }
     fetchData()
   }, [])
-  console.log('meData', meData)
+  // หมายเหตุ: ตัด log debug ออกเพื่อความสะอาดของโค้ด
 
   // console.log('formData', formData)
 
@@ -288,17 +291,17 @@ export default function CreateResearchForm() {
         'อื่นๆ': 99,
       }
 
-      // Create project-partner records for each partner
+      // สร้างข้อมูล project-partner สำหรับสมาชิกแต่ละคน
       for (const p of partnersArray) {
-        // Normalize keys that ResearchTeamTable may use (userID vs userId, partnerComment vs comment)
+        // หมายเหตุ: Normalize ชื่อคีย์จากตาราง (userID vs userId, partnerComment vs comment)
         const userIdField = p.userId || p.userID || p.User?.id || undefined
         const commentField = p.partnerComment || p.comment || ''
         const fullnameField = p.fullname || p.partnerFullName || ''
         const orgField = p.orgName || p.org || p.orgFullName || ''
-  const proportionField = p.partnerProportion !== undefined && p.partnerProportion !== null ? parseFloat(p.partnerProportion) : undefined
-  const proportionCustomField = p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '' ? parseFloat(p.partnerProportion_percentage_custom) : undefined
+        const proportionField = p.partnerProportion !== undefined && p.partnerProportion !== null ? parseFloat(p.partnerProportion) : undefined
+        const proportionCustomField = p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '' ? parseFloat(p.partnerProportion_percentage_custom) : undefined
 
-        const partnerData = {
+  const partnerData = stripUndefined({
           fullname: fullnameField || undefined,
           orgName: orgField || undefined,
           participation_percentage: proportionField,
@@ -308,10 +311,8 @@ export default function CreateResearchForm() {
           isCoreespondingAuthor: String(commentField).includes('Corresponding Author') || false,
           users_permissions_user: userIdField,
           project_researches: [createdProjectId]
-        }
+  })
 
-        // Remove undefined keys to keep payload clean
-        Object.keys(partnerData).forEach(k => partnerData[k] === undefined && delete partnerData[k])
 
         try {
           await api.post('/project-partners', { data: partnerData })
@@ -330,9 +331,8 @@ export default function CreateResearchForm() {
     }
   }
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  // ใช้ helper มาตรฐานสำหรับอัปเดตค่าในฟอร์ม (ลดโค้ดซ้ำ)
+  const handleInputChange = createHandleChange(setFormData)
 
   return (
     <div className="bg-white rounded-lg shadow-sm">

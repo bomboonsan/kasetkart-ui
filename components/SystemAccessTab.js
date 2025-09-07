@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createHandleChange } from '@/utils/form'
 import SelectField from './SelectField'
 import Button from './Button'
 
@@ -15,9 +16,7 @@ export default function SystemAccessTab() {
     status: 'active'
   })
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  const handleInputChange = createHandleChange(setFormData)
 
   const handlePermissionChange = (permission, value) => {
     setFormData(prev => ({
@@ -27,7 +26,7 @@ export default function SystemAccessTab() {
   }
 
   const handleSave = () => {
-    console.log('Saving system access:', formData)
+    // no-op save handler placeholder
   }
 
   const roleOptions = [

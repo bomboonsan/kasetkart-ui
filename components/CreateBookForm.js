@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) สำหรับ API ทั้งหมด
 import { worksAPI, projectAPI, profileAPI, api } from '@/lib/api'
+import { getDocumentId } from '@/utils/strapi'
+import { createHandleChange } from '@/utils/form'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
@@ -52,7 +54,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
       const data = existingWorkBook.data
       setFormData(prev => ({
         ...prev,
-        project_funding: data.project_funding?.documentId || null,
+    project_funding: getDocumentId(data.project_funding) || null,
         bookType: data.bookType || 0,
         titleTH: data.titleTH || '',
         titleEN: data.titleEN || '',
@@ -68,7 +70,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
         ...prev,
         ...initialData,
         publicationDate: initialData.publicationDate ? String(initialData.publicationDate).slice(0,10) : '',
-        project_funding: initialData?.project_funding?.documentId || null,
+  project_funding: getDocumentId(initialData?.project_funding) || null,
         __projectFundingObj: initialData?.project_funding || undefined,
       }))
     }
@@ -144,9 +146,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
     }
   }
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-  }
+  const handleInputChange = createHandleChange(setFormData)
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -160,7 +160,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
               selectedProject={formData.__projectFundingObj}
                       onSelect={(p) => setFormData(prev => ({ 
                         ...prev, 
-                        project_funding: p.documentId || p.id, 
+                        project_funding: getDocumentId(p), 
                         __projectFundingObj: p,
                         __projectObj: p,
                       }))}

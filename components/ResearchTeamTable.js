@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 // ใช้ path alias (@/) เพื่อลด relative path และทำให้แก้ไขได้ง่ายขึ้น
 import { projectAPI, api, authAPI } from '@/lib/api'
+import { stripUndefined } from '@/utils/strapi'
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const [swalProps, setSwalProps] = useState({})
@@ -160,7 +161,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       for (let i = 0; i < (partnersList || []).length; i++) {
         const p = partnersList[i]
   // หมายเหตุ: map ค่าจาก state UI -> ชื่อฟิลด์ของ Strapi
-        const partnerData = {
+  const partnerData = stripUndefined({
           fullname: p.fullname || undefined,
           orgName: p.orgName || undefined,
           participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
@@ -171,10 +172,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
           users_permissions_user: p.userID || undefined,
           project_researches: [projectId], // ใช้ documentId
           order: i
-        }
-
-        // Remove undefined keys
-        Object.keys(partnerData).forEach(k => partnerData[k] === undefined && delete partnerData[k])
+  })
 
         await api.post('/project-partners', { data: partnerData })
       }

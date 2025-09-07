@@ -10,6 +10,7 @@ import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
 import { Trash2 } from 'lucide-react'
 import SweetAlert2 from 'react-sweetalert2'
+import { createHandleChange } from '@/utils/form'
 
 export default function GeneralInfoTab() {
   const [swalProps, setSwalProps] = useState({})
@@ -38,9 +39,7 @@ export default function GeneralInfoTab() {
   const [faculties, setFaculties] = useState([])
   const [organizations, setOrganizations] = useState([])
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  const handleInputChange = createHandleChange(setFormData)
 
   const handleSave = async () => {
     try {
@@ -107,7 +106,7 @@ export default function GeneralInfoTab() {
 
   const handleCancel = () => {
     // TODO: Implement cancel logic or navigate back
-    console.log('Cancel edit')
+  // no-op cancel for now
   }
 
   // คอมเมนต์ (ไทย): โครงสร้าง state สำหรับวุฒิการศึกษาจริง (Strapi: education)

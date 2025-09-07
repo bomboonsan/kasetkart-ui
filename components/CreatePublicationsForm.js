@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) สำหรับ API
 import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
+import { stripUndefined, getDocumentId } from '@/utils/strapi'
+import { createHandleChange } from '@/utils/form'
 import FormSection from "./FormSection";
 import FormFieldBlock from "./FormFieldBlock";
 import FormField from "./FormField";
@@ -458,7 +460,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
 
   });
 
-  console.log('formData.listsStandardScopus', formData.listsStandardScopus)
+  // ตัด log debug ออกเพื่อความเรียบร้อยของโค้ด
 
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -493,8 +495,9 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         isTCI2: data.isTCI2 || false,
         isABDC: data.isABDC || false,
         isAJG: data.isAJG || false,
-        isSSRN: data.isSSRN || false,
-        isWos: data.isWos || false,
+  isSSRN: data.isSSRN || false,
+  // Strapi schema uses `isWOS` (upper-case WOS) — keep state consistent
+  isWOS: data.isWOS || false,
         isDifferent: data.isDifferent || false,
         differentDetail: data.differentDetail || '',
         isReceiveAward: data.isReceiveAward || false,
@@ -510,7 +513,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         ...prev,
         ...initialData,
         // If initial data contains project_research relation, map to documentId
-        project_research: initialData?.project_research?.documentId || initialData?.project_research?.id || prev.project_research || '',
+    project_research: getDocumentId(initialData?.project_research) || prev.project_research || '',
         __projectObj: initialData?.project_research || prev.__projectObj,
       }))
     }
@@ -566,15 +569,14 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         // attachments as media relations
         attachments: (formData.attachments || []).map(a => ({ id: a.id })),
       }
-
-      // Remove undefined values from payload (Strapi expects only provided fields)
-      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k])
+  // Clean payload using shared helper (removes undefined keys)
+  const cleanPayload = stripUndefined(payload)
 
       if (mode === 'edit' && workId) {
-        await worksAPI.updatePublication(workId, payload)
+  await worksAPI.updatePublication(workId, cleanPayload)
         setSwalProps({ show: true, icon: 'success', title: 'อัปเดตผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
-        await worksAPI.createPublication(payload)
+  await worksAPI.createPublication(cleanPayload)
         setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
       }
 
@@ -588,12 +590,9 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
     }
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
-  const handleCheckboxChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  // standard input handler from utils/form
+  const handleInputChange = createHandleChange(setFormData)
+  const handleCheckboxChange = handleInputChange
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -665,14 +664,14 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
               onChange={(value) => handleInputChange("journalName", value)}
               placeholder=""
             />
-            <ProjectPicker
+    <ProjectPicker
               label="โครงการวิจัย"
               required
               selectedProject={formData.__projectObj}
               onSelect={(p) => {
                 setFormData(prev => ({
-                  ...prev,
-                  project_research: p.documentId || p.id,
+      ...prev,
+      project_research: getDocumentId(p),
                   __projectObj: p,
                   isEnvironmentallySustainable: p.isEnvironmentallySustainable ?? prev.isEnvironmentallySustainable,
                   fundName: p.fundName || prev.fundName,

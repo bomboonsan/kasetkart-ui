@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { createHandleChange } from '@/utils/form'
 import FormSection from './FormSection'
 import FormField from './FormField'
 import SelectField from './SelectField'
@@ -36,12 +37,10 @@ export default function PublicationForm() {
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    console.log('Publication form submitted:', formData)
+    // submission not implemented here — keep behavior unchanged
   }
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  const handleInputChange = createHandleChange(setFormData)
 
   return (
     <div className="bg-white rounded-lg shadow-sm">

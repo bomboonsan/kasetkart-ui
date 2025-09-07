@@ -6,6 +6,8 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 // ใช้ path alias (@/) สำหรับ API (คงพฤติกรรมเดิม)
 import { projectAPI, api } from '@/lib/api'
+import { stripUndefined } from '@/utils/strapi'
+import { createHandleChange } from '@/utils/form'
 import useSWR, { mutate } from 'swr'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
@@ -87,21 +89,17 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
         attachments: (formData.attachments || []).map(a => a.id).filter(Boolean),
       }
 
-      // Remove undefined values to keep payload clean
-      Object.keys(payload).forEach(key => {
-        if (payload[key] === undefined) {
-          delete payload[key]
-        }
-      })
+  // Clean payload using shared helper
+  const cleanPayload = stripUndefined(payload)
 
       let result;
       if (mode === 'edit' && workId) {
         // Using api.put with { data: payload } wrapper, similar to project-partner creation
-        result = await api.put(`/project-fundings/${workId}`, { data: payload })
+  result = await api.put(`/project-fundings/${workId}`, { data: cleanPayload })
         setSwalProps({ show: true, icon: 'success', title: 'แก้ไขข้อมูลสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
         // Using api.post with { data: payload } wrapper
-        result = await api.post('/project-fundings', { data: payload })
+  result = await api.post('/project-fundings', { data: cleanPayload })
         setSwalProps({ show: true, icon: 'success', title: 'สร้างข้อมูลสำเร็จ', timer: 1600, showConfirmButton: false })
       }
 
@@ -128,9 +126,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
     }
   };
 
-  const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+  const handleInputChange = createHandleChange(setFormData)
 
   // Writers helpers
   const addWriter = () => {

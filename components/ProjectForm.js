@@ -9,6 +9,7 @@ import ResearchTeamSection from './ResearchTeamSection'
 import FileUploadSection from './FileUploadSection'
 import Button from './Button'
 import { projectAPI } from '@/lib/api'
+import { createHandleChange } from '@/utils/form'
 
 export default function ProjectForm({ projectId, readonly = true }) {
   const [loading, setLoading] = useState(false)
@@ -67,9 +68,7 @@ export default function ProjectForm({ projectId, readonly = true }) {
     }
   }
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  const handleInputChange = createHandleChange(setFormData)
 
   const handleSubmit = async () => {
     try {

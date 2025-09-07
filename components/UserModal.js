@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import FormField from './FormField'
 import SelectField from './SelectField'
 import Button from './Button'
+import { createHandleChange } from '@/utils/form'
 
 export default function UserModal({ user, mode, onClose, onSave }) {
   const [formData, setFormData] = useState({
@@ -40,9 +41,7 @@ export default function UserModal({ user, mode, onClose, onSave }) {
     }
   }, [user])
 
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
-  }
+  const handleInputChange = createHandleChange(setFormData)
 
   const handleSubmit = (e) => {
     e.preventDefault()
