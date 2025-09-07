@@ -193,7 +193,7 @@ const UserManagement = forwardRef((props, ref) => {
           window.confirm("Are you sure you want to delete this user?")
         ) {
           try {
-            await userAPI.deleteUser(user.documentId || user.id);
+            await userAPI.deleteUser(user.id || user.documentId);
             mutate('users-all'); // รีเฟรชรายการ
           } catch (err) {
             console.error('Delete user error:', err);
@@ -205,7 +205,7 @@ const UserManagement = forwardRef((props, ref) => {
       case "activate":
         if (user) {
           try {
-            await userAPI.updateUserStatus(user.documentId || user.id, false, true); // unblock and confirm
+            await userAPI.updateUserStatus(user.id || user.documentId, false, true); // unblock and confirm
             mutate('users-all'); // รีเฟรชรายการ
           } catch (err) {
             console.error('Approve user error:', err);
@@ -217,7 +217,7 @@ const UserManagement = forwardRef((props, ref) => {
       case "deactivate":
         if (user) {
           try {
-            await userAPI.updateUserStatus(user.documentId || user.id, true, true); // block user
+            await userAPI.updateUserStatus(user.id || user.documentId, true, true); // block user
             mutate('users-all'); // รีเฟรชรายการ
           } catch (err) {
             console.error('Disable user error:', err);
@@ -240,13 +240,32 @@ const UserManagement = forwardRef((props, ref) => {
         };
         await userAPI.createUser(payload);
       } else if (modalMode === "edit" && selectedUser) {
+        // Resolve role code/name to numeric role id that Strapi expects
+        let roleId = undefined;
+        try {
+          const rolesRes = await api.get('/users-permissions/roles');
+          // roles may be at rolesRes.roles or rolesRes.data or rolesRes
+          const rolesList = rolesRes?.roles || rolesRes?.data || rolesRes || [];
+          const match = rolesList.find(r => {
+            const code = (r.code || '').toString();
+            const name = (r.name || '').toString().toUpperCase();
+            return code === userData.role || name === userData.role;
+          });
+          if (match) roleId = match.id;
+        } catch (err) {
+          console.warn('Could not fetch roles list to resolve role id:', err);
+        }
+
         const payload = {
           email: userData.email,
           username: userData.username,
+          // if we resolved a numeric role id, send it; otherwise try sending raw value
+          ...(roleId ? { role: roleId } : { role: userData.role }),
           blocked: userData.status === 'Inactive',
           confirmed: userData.status !== 'Pending'
         };
-        await userAPI.updateUser(selectedUser.documentId || selectedUser.id, payload);
+
+        await userAPI.updateUser(selectedUser.id || selectedUser.documentId, payload);
       }
       mutate('users-all'); // Reload data with SWR
       setIsModalOpen(false);

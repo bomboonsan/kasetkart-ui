@@ -10,7 +10,7 @@ export default function UserModal({ user, mode, onClose, onSave }) {
     name: '',
     email: '',
     username: '',
-    role: 'User',
+  role: 'USER',
     department: '',
     status: 'Active',
     password: ''
@@ -127,9 +127,9 @@ export default function UserModal({ user, mode, onClose, onSave }) {
             value={formData.role}
             onChange={(value) => handleInputChange('role', value)}
             options={[
-              { value: 'User', label: 'ผู้ใช้' },
-              { value: 'Moderator', label: 'ผู้ดูแล' },
-              { value: 'Admin', label: 'ผู้ดูแลระบบ' }
+              { value: 'USER', label: 'ผู้ใช้' },
+              { value: 'ADMIN', label: 'ผู้ดูแล' },
+              { value: 'SUPERADMIN', label: 'ผู้ดูแลระบบ' }
             ]}
             className={isViewMode ? 'bg-gray-50' : ''}
             disabled={isViewMode}
