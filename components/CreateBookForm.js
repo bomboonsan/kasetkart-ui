@@ -1,11 +1,14 @@
+// This is Book Work Form - relates to Project Funding
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import useSWR, { mutate } from 'swr'
+import { worksAPI, projectAPI, profileAPI, api } from '../lib/api'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormField from './FormField'
-import ProjectPicker from './ProjectPicker'
-import UserPicker from './UserPicker'
+import ProjectFundingPicker from './ProjectFundingPicker'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from './FormCheckbox'
@@ -13,186 +16,218 @@ import FormTextarea from './FormTextarea'
 import FormDateSelect from './FormDateSelect'
 import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
-import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import SweetAlert2 from 'react-sweetalert2'
 
 export default function CreateBookForm({ mode = 'create', workId, initialData }) {
+  const router = useRouter()
   const [swalProps, setSwalProps] = useState({})
-  // Align to BookDetail fields
+  
+  // Align state to work-book schema
   const [formData, setFormData] = useState({
-    kind: "", // BookDetail.kind (หนังสือ/ตำรา)
-    titleTh: "", // BookDetail.titleTh
-    titleEn: "", // BookDetail.titleEn
-    detail: "", // BookDetail.detail
-    level: "", // BookDetail.level (NATIONAL/INTERNATIONAL)
-    occurredAt: "", // BookDetail.occurredAt (Date)
-
-    // team-like (for ResearchTeamTable)
-    isInternal: undefined,
-    fullname: "",
-    orgName: "",
-    partnerType: "",
-    partnerComment: "",
-    partnerFullName: "",
-    userId: undefined,
-    __userObj: undefined,
-    projectId: "",
+    project_funding: null, // relation to project-funding (documentId)
+    bookType: 0, // ประเภทผลงาน (0=หนังสือ,1=ตำรา)
+    titleTH: "", // ชื่อผลงาน (ไทย)
+    titleEN: "", // ชื่อผลงาน (อังกฤษ)
+    detail: "", // รายละเอียดเบื้องต้นของหนังสือ หรือ ตำรา
+    level: 0, // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
+    publicationDate: "", // วันที่เกิดผลงาน (Date)
     attachments: [],
-  });
+    writers: [], // Writers array for dynamic management
+    __projectFundingObj: undefined, // สำหรับเก็บ object โครงการขอทุนที่เลือก
+  })
+  const [isLoading, setIsLoading] = useState(false)
 
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
+  // Fetch existing work-book when editing
+  const { data: existingWorkBook } = useSWR(
+    mode === 'edit' && workId ? ['work-book', workId] : null,
+    () => api.get(`/work-books/${workId}?populate=*`)
+  )
 
   // Prefill when editing
   useEffect(() => {
-    if (!initialData) return
+    if (existingWorkBook?.data) {
+      const data = existingWorkBook.data
+      setFormData(prev => ({
+        ...prev,
+        project_funding: data.project_funding?.documentId || null,
+        bookType: data.bookType || 0,
+        titleTH: data.titleTH || '',
+        titleEN: data.titleEN || '',
+        detail: data.detail || '',
+        level: data.level || 0,
+        publicationDate: data.publicationDate ? String(data.publicationDate).slice(0,10) : '',
+        attachments: data.attachments || [],
+        writers: data.writers || [],
+        __projectFundingObj: data.project_funding || undefined,
+      }))
+    } else if (initialData) {
+      setFormData(prev => ({
+        ...prev,
+        ...initialData,
+        publicationDate: initialData.publicationDate ? String(initialData.publicationDate).slice(0,10) : '',
+        project_funding: initialData?.project_funding?.documentId || null,
+        __projectFundingObj: initialData?.project_funding || undefined,
+      }))
+    }
+  }, [existingWorkBook, initialData])
+
+  // Writers management helpers (like in CreateFundingForm)
+  const addWriter = () => {
     setFormData(prev => ({
       ...prev,
-      ...initialData,
-      occurredAt: initialData.occurredAt ? String(initialData.occurredAt).slice(0,10) : '',
-      projectId: initialData?.Project?.id ? String(initialData.Project.id) : (prev.projectId || ''),
+      writers: [...prev.writers, { name: '', email: '', affiliation: '' }]
     }))
-  }, [initialData])
+  }
+
+  const updateWriter = (index, field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      writers: prev.writers.map((writer, i) => 
+        i === index ? { ...writer, [field]: value } : writer
+      )
+    }))
+  }
+
+  const removeWriter = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      writers: prev.writers.filter((_, i) => i !== index)
+    }))
+  }
 
   const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError('')
-    setSubmitting(true)
+    e.preventDefault()
+    setIsLoading(true)
+    
     try {
-      const detail = {
-        kind: formData.kind || undefined,
-        titleTh: formData.titleTh,
-        titleEn: formData.titleEn || undefined,
-        detail: formData.detail || undefined,
-        level: formData.level || undefined,
-        occurredAt: formData.occurredAt || undefined,
+      // Construct payload based on work-book schema
+      const payload = {
+        project_funding: formData.project_funding,
+        bookType: formData.bookType,
+        titleTH: formData.titleTH,
+        titleEN: formData.titleEN,
+        detail: formData.detail,
+        level: formData.level,
+        publicationDate: formData.publicationDate,
+        attachments: formData.attachments?.map(att => att.id || att.documentId).filter(Boolean) || [],
+        writers: formData.writers // Store writers as JSON
       }
+
+      let result
       if (mode === 'edit' && workId) {
-        // Mock API call
-        console.log('Would update book:', { type: 'BOOK', status: 'DRAFT', detail, authors: [], attachments: [] })
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        result = await api.put(`/work-books/${workId}`, { data: payload })
         setSwalProps({ show: true, icon: 'success', title: 'อัปเดตหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
-      const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
-      const authors = formData.userId ? [{ userId: parseInt(formData.userId), isCorresponding: true }] : []
-      const payload = { type: 'BOOK', status: 'DRAFT', detail, authors, attachments }
-      if (mode === 'edit' && workId) {
-        // Mock API call
-        console.log('Would update book:', payload)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
-      } else if (formData.projectId) {
-        // Mock API call
-        console.log('Would create book for project:', payload)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        setSwalProps({ show: true, icon: 'success', title: 'บันทึกหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
-      } else {
-        // Mock API call
-        console.log('Would create book:', payload)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        result = await api.post('/work-books', { data: payload })
         setSwalProps({ show: true, icon: 'success', title: 'บันทึกหนังสือ/ตำราสำเร็จ', timer: 1600, showConfirmButton: false })
       }
-      }
-    } catch (err) {
-      setError(err.message || 'บันทึกไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'บันทึกไม่สำเร็จ', text: err.message || '', timer: 2200 })
+
+      mutate('work-books') // SWR key to revalidate
+      
+      setTimeout(() => {
+        router.push('/works') // Navigate back to works list
+      }, 1700)
+      
+    } catch (error) {
+      console.error('Submit error:', error)
+      setSwalProps({ 
+        show: true, 
+        icon: 'error', 
+        title: 'บันทึกไม่สำเร็จ', 
+        text: error?.response?.data?.error?.message || error?.message || 'เกิดข้อผิดพลาด'
+      })
     } finally {
-      setSubmitting(false)
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-  };
+    setFormData((prev) => ({ ...prev, [field]: value }))
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
-        {error && (
-          <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
-        )}
+        
         <FormSection>
           <FormFieldBlock>
-            <ProjectPicker
-              label="โครงการวิจัย"
-              selectedProject={formData.__projectObj}
-              onSelect={(p) => setFormData(prev => ({ ...prev, projectId: String(p.id), __projectObj: p }))}
+            <ProjectFundingPicker
+              label="โครงการขอทุน"
+              selectedProject={formData.__projectFundingObj}
+              onSelect={(p) => setFormData(prev => ({ 
+                ...prev, 
+                project_funding: p.documentId || p.id, 
+                __projectFundingObj: p 
+              }))}
+              required
             />
           </FormFieldBlock>
+          
           <FormFieldBlock>
             <FormRadio
               inline={true}
               required
               label="ประเภทผลงาน"
               options={[
-                {
-                  label: "หนังสือ",
-                  value: "หนังสือ",
-                },
-                {
-                  label: "ตำรา",
-                  value: "ตำรา",
-                },
+                { label: "หนังสือ", value: 0 },
+                { label: "ตำรา", value: 1 },
               ]}
-              value={formData.kind}
-              onChange={(value) => handleInputChange("kind", value)}
+              value={formData.bookType}
+              onChange={(value) => handleInputChange("bookType", parseInt(value))}
             />
           </FormFieldBlock>
+          
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
               required
-              value={formData.titleTh}
-              onChange={(value) => handleInputChange("titleTh", value)}
-              placeholder=""
+              value={formData.titleTH}
+              onChange={(value) => handleInputChange("titleTH", value)}
+              placeholder="กรอกชื่อผลงานภาษาไทย"
             />
 
             <FormTextarea
               label="ชื่อผลงาน (อังกฤษ)"
-              required
-              value={formData.titleEn}
-              onChange={(value) => handleInputChange("titleEn", value)}
-              placeholder=""
+              value={formData.titleEN}
+              onChange={(value) => handleInputChange("titleEN", value)}
+              placeholder="กรอกชื่อผลงานภาษาอังกฤษ"
             />
           </FormFieldBlock>
+          
           <FormFieldBlock>
             <FormTextarea
-              label="รายละเอียดเบื่องต้นของหนังสือ หรือ ตำรา"
+              label="รายละเอียดเบื้องต้นของหนังสือ หรือ ตำรา"
               required
               value={formData.detail}
               onChange={(value) => handleInputChange("detail", value)}
-              placeholder=""
+              placeholder="กรอกรายละเอียดของหนังสือหรือตำรา"
             />
           </FormFieldBlock>
+          
           <FormFieldBlock>
             <FormRadio
               inline={true}
               required
               label="ระดับของผลงาน"
               options={[
-                {
-                  label: "ระดับชาติ",
-                  value: "NATIONAL",
-                },
-                {
-                  label: "ระดับนานาชาติ",
-                  value: "INTERNATIONAL",
-                },
+                { label: "ระดับชาติ", value: 0 },
+                { label: "ระดับนานาชาติ", value: 1 },
               ]}
               value={formData.level}
-              onChange={(value) => handleInputChange("level", value)}
+              onChange={(value) => handleInputChange("level", parseInt(value))}
             />
+            
             <FormInput
-              mini={false}
               label="วันที่เกิดผลงาน"
               type="date"
-              value={formData.occurredAt}
-              onChange={(value) => handleInputChange("occurredAt", value)}
-              placeholder=""
+              required
+              value={formData.publicationDate}
+              onChange={(value) => handleInputChange("publicationDate", value)}
             />
           </FormFieldBlock>
+          
           <FormFieldBlock>
             <FileUploadField
               label="อัปโหลดไฟล์"
@@ -203,22 +238,71 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
           </FormFieldBlock>
         </FormSection>
 
-        <div className='p-4 rounded-md border shadow border-gray-200/70'>
-                          <FormSection title="* ผู้แต่งร่วม">
-                            <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-                          </FormSection>
-                        </div>
+        {/* Writers Section */}
+        <FormSection title="ผู้แต่ง">
+          <div className="space-y-4">
+            {formData.writers.map((writer, index) => (
+              <div key={index} className="border rounded-md p-4 bg-gray-50">
+                <div className="flex justify-between items-center mb-3">
+                  <h4 className="font-medium text-gray-700">ผู้แต่งคนที่ {index + 1}</h4>
+                  <button
+                    type="button"
+                    onClick={() => removeWriter(index)}
+                    className="text-red-600 hover:text-red-800 text-sm"
+                  >
+                    ลบ
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <FormInput
+                    label="ชื่อ-นามสกุล"
+                    value={writer.name}
+                    onChange={(value) => updateWriter(index, 'name', value)}
+                    placeholder="กรอกชื่อ-นามสกุล"
+                    required
+                  />
+                  <FormInput
+                    label="อีเมล"
+                    type="email"
+                    value={writer.email}
+                    onChange={(value) => updateWriter(index, 'email', value)}
+                    placeholder="กรอกอีเมล"
+                  />
+                  <FormInput
+                    label="สังกัด"
+                    value={writer.affiliation}
+                    onChange={(value) => updateWriter(index, 'affiliation', value)}
+                    placeholder="กรอกสังกัด"
+                  />
+                </div>
+              </div>
+            ))}
+            
+            <Button
+              type="button"
+              variant="outline"
+              onClick={addWriter}
+              className="w-full"
+            >
+              + เพิ่มผู้แต่ง
+            </Button>
+          </div>
+        </FormSection>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">
-          <Button variant="outline" type="button">
-            Cancel
+          <Button variant="outline" type="button" onClick={() => router.back()}>
+            ยกเลิก
           </Button>
-          <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? 'Submitting...' : 'Submit'}
+          <Button 
+            variant="primary" 
+            type="submit" 
+            disabled={isLoading}
+          >
+            {isLoading ? 'กำลังบันทึก...' : mode === 'edit' ? 'อัปเดต' : 'บันทึก'}
           </Button>
         </div>
       </form>
     </div>
-  );
+  )
 }
