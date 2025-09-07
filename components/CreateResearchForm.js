@@ -15,34 +15,34 @@ import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import Link from 'next/link'
 import SweetAlert2 from 'react-sweetalert2'
-import { projectAPI, api, authAPI } from '../lib/api'
+import { projectAPI, api, authAPI, valueFromAPI } from '../lib/api'
 import { use } from 'react'
 
 export default function CreateResearchForm() {
   const [swalProps, setSwalProps] = useState({})
-  
+
   // Align form keys to Project model in schema.prisma
   const [formData, setFormData] = useState({
-    fiscalYear: "2568", // Project.fiscalYear (Int)
-    projectType: "", // Project.projectType (String)
-    projectMode: "", // Project.projectMode (String)
-    subProjectCount: "", // Project.subProjectCount (Int)
-    nameTh: "", // Project.nameTh (Text)
-    nameEn: "", // Project.nameEn (Text)
+    fiscalYear: "2568", // ปีงบประมาณ (Int)
+    projectType: 0, // ประเภทโครงการ (Int)
+    projectMode: 0, // ลักษณะโครงการวิจัย (Int)
+    subProjectCount: 0, // จำนวนโครงการย่อย (Int)
+    nameTH: "", // ชื่อโครงการ (ภาษาไทย) (String)
+    nameEN: "", // ชื่อโครงการ (ภาษาอังกฤษ) (String)
 
-    isEnvironmentallySustainable: undefined, // Project.isEnvironmentallySustainable (Boolean)
-    durationStart: "", // Project.durationStart (DateTime)
-    durationEnd: "", // Project.durationEnd (DateTime)
+    isEnvironmentallySustainable: 0, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
+    durationStart: "", // ระยะเวลาการทำวิจัย (Date)
+    durationEnd: "", // ระยะเวลาการทำวิจัย (Date)
 
-    researchKind: "", // Project.researchKind (String)
-    fundType: "", // Project.fundType (String)
-    fundSubType: "", // Project.fundType (String)
-    fundName: "", // Project.fundName (String)
-    budget: "", // Project.budget (Int)
-    keywords: "", // Project.keywords (Text)
-    icTypes: "", // Project.icTypes (String)
-    impact: "", // Project.impact (String)
-    sdg: "", // Project.sdg (String)
+    researchKind: "", // ประเภทงานวิจัย (Int) Value จาก select
+    fundType: "", // ประเภทแหล่งทุน (Int) Value จาก select
+    fundSubType: "", // ประเภทแหล่งทุน (Int) Value จาก select
+    fundName: "", // ชื่อแหล่งทุน (String)
+    budget: "", // งบวิจัย (Int)
+    keywords: "", // คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร) (String)
+    icTypes: "", // IC Types // Relationship (Int)
+    impact: "", // Impact // Relationship (Int)
+    sdg: "", // SDG // Relationship (Int)
 
     // ProjectPartner-like fields for the team section
     isInternal: undefined, // ProjectPartner.isInternal (Boolean)
@@ -129,8 +129,8 @@ export default function CreateResearchForm() {
       const required = [
         ['projectType', 'ประเภทโครงการ'],
         ['projectMode', 'ลักษณะโครงการวิจัย'],
-        ['nameTh', 'ชื่อโครงการ (ไทย)'],
-        ['nameEn', 'ชื่อโครงการ (อังกฤษ)'],
+        ['nameTH', 'ชื่อโครงการ (ไทย)'],
+        ['nameEN', 'ชื่อโครงการ (อังกฤษ)'],
         ['durationStart', 'วันที่เริ่มต้น'],
         ['durationEnd', 'วันที่สิ้นสุด'],
         ['budget', 'งบวิจัย'],
@@ -344,8 +344,8 @@ export default function CreateResearchForm() {
           <FormFieldBlock className="grid grid-cols-1 gap-6">
             <FormTextarea
               label="ชื่อแผนงานวิจัยหรือชุดโครงการวิจัย/โครงการวิจัย (ไทย)"
-              value={formData.nameTh}
-              onChange={(value) => handleInputChange("nameTh", value)}
+              value={formData.nameTH}
+              onChange={(value) => handleInputChange("nameTH", value)}
               placeholder=""
               required
             />
@@ -354,8 +354,8 @@ export default function CreateResearchForm() {
           <FormFieldBlock className="grid grid-cols-1 gap-6">
             <FormTextarea
               label="ชื่อแผนงานวิจัยหรือชุดโครงการวิจัย/โครงการวิจัย (อังกฤษ)"
-              value={formData.nameEn}
-              onChange={(value) => handleInputChange("nameEn", value)}
+              value={formData.nameEN}
+              onChange={(value) => handleInputChange("nameEN", value)}
               placeholder=""
               required
             />
