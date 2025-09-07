@@ -3,30 +3,33 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+import { projectAPI, api } from '../lib/api' // Use projectAPI for consistency
+import useSWR, { mutate } from 'swr'
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
 import FormInput from "./FormInput";
 import FormTextarea from './FormTextarea'
 import FileUploadField from './FileUploadField'
-import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
-import { api } from '@/lib/api'
 import SweetAlert2 from 'react-sweetalert2'
 
 export default function CreateFundingForm({ mode = 'create', workId, initialData }) {
+  const router = useRouter()
   const [swalProps, setSwalProps] = useState({})
-  // Align to FundingDetail fields
+  
+  // Align state to project-funding schema
   const [formData, setFormData] = useState({
-    writers: [], // ผู้แต่งร่วม // json array of { fullName, department, faculty , phone, email }
+    writers: [], // json array of { fullName, department, faculty , phone, email }
     fundType: 0, // ลักษณะของผลงานวิชาการที่จะขอรับทุน (Int) 0=ตำรา ใช้สอนในรายวิชา, 1=หนังสือ(ชื่อไทย และชื่อภาษาอังกฤษ)
     fundTypeText: '', // ข้อความจาก radio button ลักษณะของผลงานวิชาการที่จะขอรับทุน
     contentDesc: '', // คำอธิบายเนื้อหาของตำราหรือหนังสือ
     pastPublications: '', // เอกสารทางวิชาการ ตำรา หรือ หนังสือ
-    purposes: '', // วัตถุประสงค์ของตำราหรือหนังสือ
-    targetGroups: '', // กลุ่มเป้าหมายของตำราหรือหนังสือ
+    purpose: '', // วัตถุประสงค์ของตำราหรือหนังสือ (schema: purpose)
+    targetGroup: '', // กลุ่มเป้าหมายของตำราหรือหนังสือ (schema: targetGroup)
     chapterDetails: '', // การแบ่งบทและรายละเอียดในแต่ละบทของตำรา/หนังสือ
     pages: 0, // ตำรา หรือ หนังสือ มีจำนวนประมาณ (Int)
-    duration: '', // ระยะเวลา (ปี หรือ เดือน) ที่จะใช้ในการเขียนประมาณ
+    duration: '', // ระยะเวลา (ปี หรือ เดือน) ที่จะใช้ในการเขียนประมาณ (Date)
     references: '', // รายชื่อหนังสือและเอกสารอ้างอิง (บรรณานุกรม)
     attachments: [],
   });
@@ -34,78 +37,91 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
+  // Load existing data when editing
+  const { data: workRes, error: workError } = useSWR(
+    mode === 'edit' && workId ? ['project-funding', workId] : null,
+    () => projectAPI.getFunding(workId) // Assuming a getFunding exists
+  )
+
   // Prefill when editing
   useEffect(() => {
-    if (!initialData) return
+    if (!workRes?.data) return
+    const work = workRes.data
     setFormData(prev => ({
       ...prev,
-      fundType: initialData?.fundType ?? prev.fundType,
-      fundTypeText: initialData?.fundTypeText ?? prev.fundTypeText,
-      contentDesc: initialData?.contentDesc ?? initialData?.detail?.contentDesc ?? prev.contentDesc,
-      pastPublications: initialData?.pastPublications ?? initialData?.detail?.pastPublications ?? prev.pastPublications,
-      purposes: initialData?.purposes ?? initialData?.detail?.purposes ?? prev.purposes,
-      targetGroups: initialData?.targetGroups ?? initialData?.detail?.targetGroups ?? prev.targetGroups,
-      chapterDetails: initialData?.chapterDetails ?? initialData?.detail?.chapterDetails ?? prev.chapterDetails,
-      pages: initialData?.pages ?? initialData?.detail?.pages ?? prev.pages,
-      duration: initialData?.duration ?? initialData?.detail?.duration ?? prev.duration,
-      references: initialData?.references ?? initialData?.detail?.references ?? prev.references,
-      attachments: initialData?.attachments ?? initialData?.detail?.attachments ?? prev.attachments,
-      writers: initialData?.writers ?? initialData?.detail?.writers ?? prev.writers,
-      projectId: initialData?.Project?.id ? String(initialData.Project.id) : (prev.projectId || ''),
+      writers: work.writers || [],
+      fundType: work.fundType ?? 0,
+      fundTypeText: work.fundTypeText || '',
+      contentDesc: work.contentDesc || '',
+      pastPublications: work.pastPublications || '',
+      purpose: work.purpose || '',
+      targetGroup: work.targetGroup || '',
+      chapterDetails: work.chapterDetails || '',
+      pages: work.pages || 0,
+      duration: work.duration ? String(work.duration).slice(0,10) : '',
+      references: work.references || '',
+      attachments: work.attachments || [],
     }))
-  }, [initialData])
+  }, [workRes])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('')
     setSubmitting(true)
+    
     try {
-      const detail = {
-        fundType: formData.fundType ?? undefined,
+      // Construct payload based on project-funding schema
+      const payload = {
+        writers: formData.writers.length > 0 ? formData.writers : undefined,
+        fundType: formData.fundType,
         fundTypeText: formData.fundTypeText || undefined,
         contentDesc: formData.contentDesc || undefined,
         pastPublications: formData.pastPublications || undefined,
-        purposes: formData.purposes || undefined,
-        targetGroups: formData.targetGroups || undefined,
+        purpose: formData.purpose || undefined,
+        targetGroup: formData.targetGroup || undefined,
         chapterDetails: formData.chapterDetails || undefined,
         pages: formData.pages ? parseInt(formData.pages) : undefined,
         duration: formData.duration || undefined,
         references: formData.references || undefined,
+        attachments: (formData.attachments || []).map(a => a.id).filter(Boolean),
       }
-      const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
-      const writers = (formData.writers || []).map(w => ({
-        fullName: w.fullName || '',
-        department: w.department || '',
-        faculty: w.faculty || '',
-        phone: w.phone || '',
-        email: w.email || '',
-      }))
-      const payload = { type: 'FUNDING', status: 'DRAFT', detail, writers: writers.length ? writers : undefined, attachments }
-      if (mode === 'edit' && workId) {
-        await api.put(`/works/${workId}`, payload)
-        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตคำขอรับทุนเขียนตำราสำเร็จ', timer: 1600, showConfirmButton: false })
-      } else if (formData.projectId) {
-        // create under project context when projectId selected
-        const base = process.env.NEXT_PUBLIC_API_BASE_URL || '/api/v1'
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null
-        const res = await fetch(`${base}/projects/${formData.projectId}/works`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-          body: JSON.stringify(payload),
-          credentials: 'include'
-        })
-        if (!res.ok) {
-          const data = await res.json().catch(() => ({}))
-          throw new Error(data?.error?.message || 'บันทึกไม่สำเร็จ')
+
+      // Remove undefined values to keep payload clean
+      Object.keys(payload).forEach(key => {
+        if (payload[key] === undefined) {
+          delete payload[key]
         }
-        setSwalProps({ show: true, icon: 'success', title: 'บันทึกคำขอรับทุนเขียนตำราสำเร็จ', timer: 1600, showConfirmButton: false })
+      })
+
+      let result;
+      if (mode === 'edit' && workId) {
+        // Using api.put with { data: payload } wrapper, similar to project-partner creation
+        result = await api.put(`/project-fundings/${workId}`, { data: payload })
+        setSwalProps({ show: true, icon: 'success', title: 'แก้ไขข้อมูลสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
-        await api.post('/works', payload)
-        setSwalProps({ show: true, icon: 'success', title: 'บันทึกคำขอรับทุนเขียนตำราสำเร็จ', timer: 1600, showConfirmButton: false })
+        // Using api.post with { data: payload } wrapper
+        result = await api.post('/project-fundings', { data: payload })
+        setSwalProps({ show: true, icon: 'success', title: 'สร้างข้อมูลสำเร็จ', timer: 1600, showConfirmButton: false })
       }
+
+      // Refresh data and navigate
+      mutate('project-fundings') // SWR key to revalidate
+      setTimeout(() => {
+        // Navigate to a relevant page, e.g., a list of fundings
+        router.push('/dashboard') 
+      }, 1700)
+
     } catch (err) {
-      setError(err.message || 'บันทึกไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'บันทึกไม่สำเร็จ', text: err.message || '', timer: 2200 })
+      console.error('Submit error:', err)
+      const errorMsg = err?.response?.data?.error?.message || err?.message || 'เกิดข้อผิดพลาดในการบันทึก'
+      setError(errorMsg)
+      setSwalProps({ 
+        show: true, 
+        icon: 'error', 
+        title: 'บันทึกไม่สำเร็จ', 
+        text: errorMsg, 
+        timer: 2200 
+      })
     } finally {
       setSubmitting(false)
     }
@@ -303,16 +319,16 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
           <FormFieldBlock>
             <FormTextarea
               label="วัตถุประสงค์ของตำราหรือหนังสือ"
-              value={formData.purposes}
-              onChange={(value) => handleInputChange("purposes", value)}
+              value={formData.purpose}
+              onChange={(value) => handleInputChange("purpose", value)}
               placeholder=""
             />
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
               label="กลุ่มเป้าหมายของตำราหรือหนังสือ"
-              value={formData.targetGroups}
-              onChange={(value) => handleInputChange("targetGroups", value)}
+              value={formData.targetGroup}
+              onChange={(value) => handleInputChange("targetGroup", value)}
               placeholder=""
             />
           </FormFieldBlock>
@@ -375,19 +391,13 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
           </FormFieldBlock>
         </FormSection>
 
-        <div className='p-4 rounded-md border shadow border-gray-200/70'>
-          <FormSection title="* ผู้ร่วมวิจัย">
-            <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-          </FormSection>
-        </div>
-
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">
-          <Button variant="outline" type="button">
-            Cancel
+          <Button variant="outline" type="button" onClick={() => router.back()}>
+            ยกเลิก
           </Button>
           <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? 'Submitting...' : 'Submit'}
+            {submitting ? 'กำลังบันทึก...' : (mode === 'edit' ? 'แก้ไข' : 'บันทึก')}
           </Button>
         </div>
       </form>
