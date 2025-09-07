@@ -17,8 +17,47 @@ import Link from 'next/link'
 import SweetAlert2 from 'react-sweetalert2'
 import { projectAPI, api, authAPI, valueFromAPI } from '../lib/api'
 import { use } from 'react'
+import useSWR, { mutate } from 'swr'
 
 export default function CreateResearchForm() {
+
+  ////////////////////////////////////////////////////////
+  // Setup form fields
+  ////////////////////////////////////////////////////////
+  const [icTypesLists, setIcTypesLists] = useState([])
+  const [impactLists, setImpactLists] = useState([])
+  const [sdgLists, setSdgLists] = useState([])
+
+  const { data: icTypesRes, error: swrError } = useSWR('icTypes', () => valueFromAPI.getIcTypes())
+  const { data: impactRes } = useSWR('impacts', () => valueFromAPI.getImpacts())
+  const { data: sdgRes } = useSWR('sdgs', () => valueFromAPI.getSDGs())
+
+  useEffect(() => {
+    if (icTypesRes) {
+      setIcTypesLists(icTypesRes.data || [])
+    }
+  }, [icTypesRes])
+
+  useEffect(() => {
+    if (impactRes) {
+      setImpactLists(impactRes.data || [])
+    }
+  }, [impactRes])
+
+  useEffect(() => {
+    if (sdgRes) {
+      setSdgLists(sdgRes.data || [])
+    }
+  }, [sdgRes])
+  console.log('icTypesLists', icTypesLists)
+  console.log('impactLists', impactLists)
+  console.log('sdgLists', sdgLists)
+  ////////////////////////////////////////////////////////
+  // End setup form fields
+  ////////////////////////////////////////////////////////
+
+
+
   const [swalProps, setSwalProps] = useState({})
 
   // Align form keys to Project model in schema.prisma
@@ -552,12 +591,7 @@ export default function CreateResearchForm() {
               value={formData.icTypes}
               onChange={(value) => handleInputChange("icTypes", value)}
               className="max-w-lg"
-              options={[
-                { value: '', label: 'เลือกข้อมูล' },
-                { value: '1', label: 'Basic or Discovery Scholarship' },
-                { value: '2', label: 'Applied or Integrative / Application Scholarship' },
-                { value: '3', label: 'Teaching and Learning Scholarship' },
-              ]}
+              options={[{ value: '', label: 'เลือกข้อมูล' }, ...icTypesLists.map(ic => ({ value: String(ic.id), label: ic.name }))]}
             />
 
             <FormSelect
@@ -566,13 +600,7 @@ export default function CreateResearchForm() {
               value={formData.impact}
               onChange={(value) => handleInputChange("impact", value)}
               className="max-w-lg"
-              options={[
-                { value: '', label: 'เลือกข้อมูล' },
-                { value: '1', label: 'Teaching & Learning Imapct' },
-                { value: '2', label: 'Research & Scholarly Impact' },
-                { value: '3', label: 'Practice & Community Impact' },
-                { value: '4', label: 'Societal Impact' },
-              ]}
+              options={[{ value: '', label: 'เลือกข้อมูล' }, ...impactLists.map(ic => ({ value: String(ic.id), label: ic.name }))]}
             />
 
             <FormSelect 
@@ -581,26 +609,27 @@ export default function CreateResearchForm() {
               value={formData.sdg}
               onChange={(value) => handleInputChange("sdg", value)}
               className="max-w-lg"
-              options={[
-                { value: '', label: 'เลือกข้อมูล' },
-                { value: '1', label: 'SDG 1 - No Poverty' },
-                { value: '2', label: 'SDG 2 - Zero Hunger' },
-                { value: '3', label: 'SDG 3 - Good Health and Well-Being' },
-                { value: '4', label: 'SDG 4 - Quality Education' },
-                { value: '5', label: 'SDG 5 - Gender Equality' },
-                { value: '6', label: 'SDG 6 - Clean Water and Sanitation' },
-                { value: '7', label: 'SDG 7 - Affordable and Clean Energy' },
-                { value: '8', label: 'SDG 8 - Decent Work and Economic Growth' },
-                { value: '9', label: 'SDG 9 - Industry, Innovation and Infrastructure' },
-                { value: '10', label: 'SDG 10 - Reduced Inequalities' },
-                { value: '11', label: 'SDG 11 - Sustainble Cities and Communities' },
-                { value: '12', label: 'SDG 12 - Responsible Consumption and Production' },
-                { value: '13', label: 'SDG 13 - Climate Action' },
-                { value: '14', label: 'SDG 14 - Life Below Water' },
-                { value: '15', label: 'SDG 15 - Life on Land' },
-                { value: '16', label: 'SDG 16 - Peace, Justice and Strong Institutions' },
-                { value: '17', label: 'SDG 17 - Partnerships for The Goals' },
-              ]}
+              // options={[
+              //   { value: '', label: 'เลือกข้อมูล' },
+              //   { value: '1', label: 'SDG 1 - No Poverty' },
+              //   { value: '2', label: 'SDG 2 - Zero Hunger' },
+              //   { value: '3', label: 'SDG 3 - Good Health and Well-Being' },
+              //   { value: '4', label: 'SDG 4 - Quality Education' },
+              //   { value: '5', label: 'SDG 5 - Gender Equality' },
+              //   { value: '6', label: 'SDG 6 - Clean Water and Sanitation' },
+              //   { value: '7', label: 'SDG 7 - Affordable and Clean Energy' },
+              //   { value: '8', label: 'SDG 8 - Decent Work and Economic Growth' },
+              //   { value: '9', label: 'SDG 9 - Industry, Innovation and Infrastructure' },
+              //   { value: '10', label: 'SDG 10 - Reduced Inequalities' },
+              //   { value: '11', label: 'SDG 11 - Sustainble Cities and Communities' },
+              //   { value: '12', label: 'SDG 12 - Responsible Consumption and Production' },
+              //   { value: '13', label: 'SDG 13 - Climate Action' },
+              //   { value: '14', label: 'SDG 14 - Life Below Water' },
+              //   { value: '15', label: 'SDG 15 - Life on Land' },
+              //   { value: '16', label: 'SDG 16 - Peace, Justice and Strong Institutions' },
+              //   { value: '17', label: 'SDG 17 - Partnerships for The Goals' },
+              // ]}
+              options={[{ value: '', label: 'เลือกข้อมูล' }, ...sdgLists.map(ic => ({ value: String(ic.id), label: ic.name }))]}
             />
           </FormFieldBlock>
         </FormSection>
