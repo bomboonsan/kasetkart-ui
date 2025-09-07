@@ -1,3 +1,5 @@
+// This is Project Funding Form
+
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -22,29 +24,17 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
   const [swalProps, setSwalProps] = useState({})
   // Align to FundingDetail fields
   const [formData, setFormData] = useState({
-    fullName: "", // FundingDetail.fullName
-    position: "", // FundingDetail.position
-    faculty: "", // FundingDetail.faculty
-    kind: "", // FundingDetail.kind
-    contentDesc: "", // FundingDetail.contentDesc
-    priorWorks: "", // FundingDetail.priorWorks
-    objectives: "", // FundingDetail.objectives
-    targetAudience: "", // FundingDetail.targetAudience
-    chaptersOutline: "", // FundingDetail.chaptersOutline
-    approxPages: "", // FundingDetail.approxPages
-    approxTimeline: "", // FundingDetail.approxTimeline
-    bibliography: "", // FundingDetail.bibliography
-    projectId: "",
+    fundType: 0, // ลักษณะของผลงานวิชาการที่จะขอรับทุน (Int) 0=ตำรา ใช้สอนในรายวิชา, 1=หนังสือ(ชื่อไทย และชื่อภาษาอังกฤษ)
+    fundTypeText: '', // ข้อความจาก radio button ลักษณะของผลงานวิชาการที่จะขอรับทุน
+    contentDesc: '', // คำอธิบายเนื้อหาของตำราหรือหนังสือ
+    pastPublications: '', // เอกสารทางวิชาการ ตำรา หรือ หนังสือ
+    purposes: '', // วัตถุประสงค์ของตำราหรือหนังสือ
+    targetGroups: '', // กลุ่มเป้าหมายของตำราหรือหนังสือ
+    chapterDetails: '', // การแบ่งบทและรายละเอียดในแต่ละบทของตำรา/หนังสือ
+    pages: 0, // ตำรา หรือ หนังสือ มีจำนวนประมาณ (Int)
+    duration: '', // ระยะเวลา (ปี หรือ เดือน) ที่จะใช้ในการเขียนประมาณ
+    references: '', // รายชื่อหนังสือและเอกสารอ้างอิง (บรรณานุกรม)
     attachments: [],
-    // team-like (for ResearchTeamTable)
-    isInternal: undefined,
-    fullname: "",
-    orgName: "",
-    partnerType: "",
-    partnerComment: "",
-    partnerFullName: "",
-    userId: undefined,
-    __userObj: undefined,
   });
 
   const [submitting, setSubmitting] = useState(false)
@@ -126,11 +116,6 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
         <FormSection >
           <FormFieldBlock>
 
-            <ProjectPicker
-              label="โครงการวิจัย"
-              selectedProject={formData.__projectObj}
-              onSelect={(p) => setFormData(prev => ({ ...prev, projectId: String(p.id), __projectObj: p }))}
-            />
             <FormInput
               mini={false}
               label="ชื่อ-นามสกุล"
@@ -139,14 +124,6 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
               onChange={(value) => handleInputChange("fullName", value)}
               placeholder=""
             />
-            {/* <FormInput
-                mini={false}
-                label="ตำแหน่ง"
-                type="text"
-                value={formData.position}
-                onChange={(value) => handleInputChange("position", value)}
-                placeholder=""
-              /> */}
             <FormInput
               mini={false}
               label="ภาควิชา"
@@ -185,14 +162,6 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
               onChange={(value) => handleInputChange("fullName", value)}
               placeholder=""
             />
-            {/* <FormInput
-              mini={false}
-              label="ตำแหน่ง"
-              type="text"
-              value={formData.position}
-              onChange={(value) => handleInputChange("position", value)}
-              placeholder=""
-            /> */}
             <FormInput
               mini={false}
               label="ภาควิชา"
@@ -392,10 +361,10 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
         </FormSection>
 
         <div className='p-4 rounded-md border shadow border-gray-200/70'>
-                  <FormSection title="* ผู้ร่วมวิจัย">
-                    <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-                  </FormSection>
-                </div>
+          <FormSection title="* ผู้ร่วมวิจัย">
+            <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
+          </FormSection>
+        </div>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">

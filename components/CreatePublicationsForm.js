@@ -1,6 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter } from 'next/navigation'
+import useSWR, { mutate } from 'swr'
+import { worksAPI, projectAPI, profileAPI } from '../lib/api'
 import FormSection from "./FormSection";
 import FormFieldBlock from "./FormFieldBlock";
 import FormField from "./FormField";
@@ -15,14 +18,15 @@ import FormDateSelect from "./FormDateSelect";
 import FormSelect from "./FormSelect";
 import FileUploadField from "./FileUploadField";
 import ResearchTeamTable from "./ResearchTeamTable";
+import EditableResearchTeamSection from './EditableResearchTeamSection'
 import Button from "./Button";
 import SweetAlert2 from 'react-sweetalert2'
 
-export default function CreateAcademicForm({ mode = 'create', workId, initialData }) {
+export default function CreatePublicationsForm({ mode = 'create', workId, initialData }) {
   const [swalProps, setSwalProps] = useState({})
   // Align form keys to PublicationDetail model in schema.prisma
   const [formData, setFormData] = useState({
-    project_research: '', // relation to project-research
+    project_research: '', // relation to project-research (documentId expected by Strapi v5)
     __projectObj: undefined, // สำหรับเก็บ object โครงการวิจัยที่เลือก
     titleTH: "", // ชื่อผลงาน (ไทย)
     titleEN: "", // ชื่อผลงาน (อังกฤษ)
@@ -458,9 +462,13 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
     setFormData(prev => ({
       ...prev,
       ...initialData,
-      projectId: initialData?.Project?.id ? String(initialData.Project.id) : (prev.projectId || ''),
+      // If initial data contains project_research relation, map to documentId
+      project_research: initialData?.project_research?.documentId || initialData?.project_research?.id || prev.project_research || '',
+      __projectObj: initialData?.project_research || prev.__projectObj,
     }))
   }, [initialData])
+
+  const router = useRouter()
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -474,70 +482,57 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
       if (formData.issue < 0 || formData.issue > 9999) {
         throw new Error('ค่าฉบับที่ (issue) ต้องอยู่ระหว่าง 0 - 9999')
       }
-      const detail = {
-        titleTh: formData.titleTH,
-        titleEn: formData.titleEN || undefined,
-        isEnvironmentallySustainable: formData.isEnvironmentallySustainable,
+      // Build payload matching Strapi v5 schema (see api/src/api/work-publication/content-types/work-publication/schema.json)
+      const payload = {
+        // relation to project-research: Strapi v5 prefers documentId when searching (we store documentId)
+        ...(formData.project_research ? { project_research: formData.project_research } : {}),
+        titleTH: formData.titleTH || undefined,
+        titleEN: formData.titleEN || undefined,
+        isEnvironmentallySustainable: !!formData.isEnvironmentallySustainable,
         journalName: formData.journalName || undefined,
         doi: formData.doi || undefined,
-        issn: formData.isbn || undefined,
+        isbn: formData.isbn || undefined,
         durationStart: formData.durationStart || undefined,
         durationEnd: formData.durationEnd || undefined,
-        level: formData.level || undefined,
-        isJournalDatabase: formData.isJournalDatabase,
-        // Map boolean flags/types from formData
-        isScopus: formData.isScopus,
-  scopusType: parseInt(formData.scopusType || 0, 10) || undefined,
-  scopusValue: parseInt(formData.scopusValue || 0, 10) || undefined,
-        isACI: formData.isACI,
-        isTCI1: formData.isTCI1,
-        isTCI2: formData.isTCI2,
-        isAJG: formData.isAJG,
-  ajgType: parseInt(formData.ajgType || 0, 10) || undefined,
-        isSSRN: formData.isSSRN,
-        isWOS: formData.isWOS,
-  wosType: parseInt(formData.wosType || 0, 10) || undefined,
+        pageStart: formData.pageStart ? parseInt(formData.pageStart, 10) : undefined,
+        pageEnd: formData.pageEnd ? parseInt(formData.pageEnd, 10) : undefined,
+        volume: Number.isFinite(Number(formData.volume)) ? Number(formData.volume) : undefined,
+        issue: Number.isFinite(Number(formData.issue)) ? Number(formData.issue) : undefined,
+        level: parseInt(formData.level) || 0,
+        isJournalDatabase: !!formData.isJournalDatabase,
+        isScopus: !!formData.isScopus,
+        scopusType: formData.scopusType ? parseInt(formData.scopusType, 10) : undefined,
+        scopusValue: formData.scopusValue ? parseInt(formData.scopusValue, 10) : undefined,
+        isACI: !!formData.isACI,
+        isTCI1: !!formData.isTCI1,
+        isTCI2: !!formData.isTCI2,
+        isAJG: !!formData.isAJG,
+        ajgType: formData.ajgType ? parseInt(formData.ajgType, 10) : undefined,
+        isSSRN: !!formData.isSSRN,
+        isWOS: !!formData.isWOS,
+        wosType: formData.wosType ? parseInt(formData.wosType, 10) : undefined,
         fundName: formData.fundName || undefined,
         keywords: formData.keywords || undefined,
-        abstractTh: formData.abstractTH || undefined,
-        abstractEn: formData.abstractEN || undefined,
-  pageStart: formData.pageStart || undefined,
-  pageEnd: formData.pageEnd || undefined,
-  volume: Number.isFinite(Number(formData.volume)) ? Number(formData.volume) : undefined,
-  issue: Number.isFinite(Number(formData.issue)) ? Number(formData.issue) : undefined,
-  // standard selections as ints
-  standardScopus: parseInt(formData.standardScopus || 0, 10) || undefined,
-  standardScopusSubset: parseInt(formData.standardScopusSubset || 0, 10) || undefined,
-  standardWebOfScience: parseInt(formData.standardWebOfScience || 0, 10) || undefined,
-  standardABDC: parseInt(formData.standardABDC || 0, 10) || undefined,
-  standardAJG: parseInt(formData.standardAJG || 0, 10) || undefined,
+        abstractTH: formData.abstractTH || undefined,
+        abstractEN: formData.abstractEN || undefined,
+        // attachments as media relations
+        attachments: (formData.attachments || []).map(a => ({ id: a.id })),
       }
+
+      // Remove undefined values from payload (Strapi expects only provided fields)
+      Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k])
+
       if (mode === 'edit' && workId) {
-        // Mock API call
-        console.log('Would update publication:', { type: 'PUBLICATION', status: 'DRAFT', detail, authors: [], attachments: [] })
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await worksAPI.updatePublication(workId, payload)
         setSwalProps({ show: true, icon: 'success', title: 'อัปเดตผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
-      const attachments = (formData.attachments || []).map(a => ({ id: a.id }))
-      const authors = formData.userId ? [{ userId: parseInt(formData.userId), isCorresponding: true }] : []
-      const payload = { type: 'PUBLICATION', status: 'DRAFT', detail, authors, attachments }
-      if (mode === 'edit' && workId) {
-        // Mock API call
-        console.log('Would update publication:', payload)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
-      } else if (formData.projectId) {
-        // Mock API call
-        console.log('Would create publication for project:', payload)
-        await new Promise(resolve => setTimeout(resolve, 1000))
-        setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
-      } else {
-        // Mock API call
-        console.log('Would create publication:', payload)
-        await new Promise(resolve => setTimeout(resolve, 1000))
+        await worksAPI.createPublication(payload)
         setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
       }
-      }
+
+      // Refresh list and navigate back
+      mutate('work-publications')
+      setTimeout(() => router.push('/works/publications'), 1200)
     } catch (err) {
       setError(err.message || 'บันทึกไม่สำเร็จ')
     } finally {
@@ -629,7 +624,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               onSelect={(p) => {
                 setFormData(prev => ({
                   ...prev,
-                  projectId: String(p.id),
+                  project_research: p.documentId || p.id,
                   __projectObj: p,
                   isEnvironmentallySustainable: p.isEnvironmentallySustainable ?? prev.isEnvironmentallySustainable,
                   fundName: p.fundName || prev.fundName,
@@ -803,15 +798,15 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
               options={[
                 {
                   label: "ระดับชาติ",
-                  value: "NATIONAL",
+                  value: 0,
                 },
                 {
                   label: "ระดับนานาชาติ",
-                  value: "INTERNATIONAL",
+                  value: 1,
                 },
               ]}
               value={formData.level}
-              onChange={(value) => handleInputChange("level", value)}
+              onChange={(value) => handleInputChange("level", parseInt(value))}
             />
             <FormRadio
               // disabled={formData.level === "NATIONAL"}
@@ -892,7 +887,7 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                               </select>
                             </div>
                             }
-                            { 
+                            {
                               // SUBSET SCOPUS
                               (formData.listsStandard[idx].label === 'Scopus' && item.value && (formData.standardScopus === 1 || formData.standardScopus === 2 || formData.standardScopus === 3 || formData.standardScopus === 4)) &&
                               <div>
@@ -1019,22 +1014,68 @@ export default function CreateAcademicForm({ mode = 'create', workId, initialDat
                   />
         </FormSection>
         
-        <div className='p-4 rounded-md border shadow border-gray-200/70'>
-          <FormSection title="* ผู้ร่วมวิจัย">
-            <ResearchTeamTable projectId={formData.projectId} formData={formData} handleInputChange={handleInputChange} setFormData={setFormData} />
-          </FormSection>
-        </div>
+        {/* Research Team Section (Editable) */}
+        {formData.__projectObj && (
+          <div className='p-4 rounded-md border shadow border-gray-200/70'>
+            <EditableResearchTeamSection project={formData.__projectObj} />
+          </div>
+        )}
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">
           <Button variant="outline" type="button">
-            Cancel
+            ยกเลิก
           </Button>
           <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? 'Submitting...' : 'Submit'}
+            {submitting ? 'กำลังบันทึก...' : (mode === 'edit' ? 'แก้ไข' : 'บันทึก')}
           </Button>
         </div>
       </form>
     </div>
   );
+}
+
+
+// Component to display project partners
+function ProjectPartnersDisplay({ project }) {
+  const { data: partnersRes, error: partnersError } = useSWR(
+    project ? ['project-partners', project.documentId || project.id] : null,
+    () => projectAPI.getProjectPartners(project.documentId || project.id)
+  )
+
+  const partners = partnersRes?.data || partnersRes || []
+
+  if (partnersError) {
+    return <div className="text-sm text-gray-500">ไม่สามารถโหลดข้อมูลผู้ร่วมวิจัยได้</div>
+  }
+
+  if (!partners.length) {
+    return <div className="text-sm text-gray-500">ไม่มีผู้ร่วมวิจัยในโครงการนี้</div>
+  }
+
+  return (
+    <div className="space-y-2">
+      {partners.map((partner, idx) => (
+        <div key={partner.documentId || partner.id || idx} className="flex items-center space-x-4 p-3 bg-gray-50 rounded">
+          <div className="flex-1">
+            <div className="font-medium text-gray-900">
+              {partner.users_permissions_user ? (
+                `${partner.users_permissions_user.firstName || ''} ${partner.users_permissions_user.lastName || ''}`
+              ) : (
+                partner.fullname || 'ไม่ระบุชื่อ'
+              )}
+            </div>
+            <div className="text-sm text-gray-600">
+              {partner.users_permissions_user?.email || partner.orgName || 'ผู้ร่วมวิจัย'}
+            </div>
+            {partner.participation_percentage && (
+              <div className="text-xs text-gray-500">
+                การมีส่วนร่วม: {partner.participation_percentage}%
+              </div>
+            )}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
 }

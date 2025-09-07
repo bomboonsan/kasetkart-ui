@@ -22,6 +22,7 @@ export default function RootLayout({ children }) {
         <AuthGuard>
           {children}
         </AuthGuard>
+        {/* {children} */}
       </body>
     </html>
   );

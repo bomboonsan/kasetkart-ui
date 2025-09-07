@@ -1,3 +1,5 @@
+"use client";
+
 import FormFieldBlock from './FormFieldBlock'
 import UserPicker from './UserPicker'
 import FormInput from "./FormInput";

@@ -7,6 +7,7 @@ import { isAuthenticated, getCurrentUser } from '@/lib/auth'
 export default function AuthGuard({ children, requireAuth = true, requireRole = null }) {
   const [isLoading, setIsLoading] = useState(true)
   const [user, setUser] = useState(null)
+  const [isLoggingIn, setIsLoggingIn] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -15,6 +16,8 @@ export default function AuthGuard({ children, requireAuth = true, requireRole = 
         const currentUser = getCurrentUser()
         
         if (!currentUser) {
+          setIsLoggingIn(true)
+          setIsLoading(false)
           router.push('/login')
           return
         }
@@ -42,7 +45,7 @@ export default function AuthGuard({ children, requireAuth = true, requireRole = 
     )
   }
 
-  if (requireAuth && !user) {
+  if (requireAuth && !user && !isLoggingIn) {
     return null // Will redirect to login
   }
 
