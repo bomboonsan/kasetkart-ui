@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef, useTransition } from 'react'
 import dynamic from 'next/dynamic'
 import { valueFromAPI, dashboardAPI } from '@/lib/api'
 
@@ -17,7 +17,10 @@ export default function PersonnelChart({
   const [selectedDeptId, setSelectedDeptId] = useState('')
   const [computedData, setComputedData] = useState(null)
   const [loading, setLoading] = useState(true)
+  const [isFetching, setIsFetching] = useState(false) // subtle fetching state (keep UI)
   const [error, setError] = useState('')
+  const debounceRef = useRef(null)
+  const [isPending, startTransition] = useTransition()
 
   // Load departments
   useEffect(() => {
@@ -59,7 +62,12 @@ export default function PersonnelChart({
 
   const loadPersonnelData = async () => {
     try {
-      setLoading(true)
+      // If we already have data, mark as fetching so we keep showing previous data
+      if (computedData && Array.isArray(computedData) && computedData.length) {
+        setIsFetching(true)
+      } else {
+        setLoading(true)
+      }
       setError('')
       
       const personnel = await dashboardAPI.getPersonnelByAcademicType(selectedDeptId === 'all' ? null : selectedDeptId)
@@ -78,13 +86,12 @@ export default function PersonnelChart({
       setError('ไม่สามารถโหลดสถิติบุคลากรได้')
       setComputedData([])
     } finally {
-      setLoading(false)
+  setIsFetching(false)
+  setLoading(false)
     }
   }
 
-  const displayData = computedData || data
-  console.log('Display data:', displayData)
-  console.log('data:', data)
+  const displayData = computedData && computedData.length ? computedData : data || []
 
   // Create series data for stacked bar
   const seriesData = displayData.map((item) => ({
@@ -181,12 +188,19 @@ export default function PersonnelChart({
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-500">เลือกภาควิชา</label>
-          <select
-            value={selectedDeptId}
-            onChange={(e) => setSelectedDeptId(e.target.value)}
-            className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md text-gray-900"
-            disabled={loading}
-          >
+            <select
+              value={selectedDeptId}
+              onChange={(e) => {
+                const v = e.target.value
+                // debounce rapid changes and keep it non-blocking
+                startTransition(() => {
+                  if (debounceRef.current) clearTimeout(debounceRef.current)
+                  debounceRef.current = setTimeout(() => setSelectedDeptId(v), 250)
+                })
+              }}
+              className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md text-gray-900"
+              disabled={departments.length === 0}
+            >
             <option value="all">ทั้งหมด</option>
               {departments.map((dept) => (
                 <option key={dept.id || dept.documentId || dept.name} value={String(dept.documentId || dept.id || '')}>
@@ -194,18 +208,24 @@ export default function PersonnelChart({
                 </option>
               ))}
           </select>
+            {(isFetching || isPending) && (
+              <div className="ml-2 flex items-center text-xs text-gray-500">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500 mr-2" />
+                <span>กำลังอัปเดต...</span>
+              </div>
+            )}
         </div>
       </div>
-      {error && <div className="text-xs text-red-600 mb-2">{error}</div>}
+        {error && <div className="text-xs text-red-600 mb-2">{error}</div>}
       
-      {loading ? (
-        <div className="flex justify-center items-center h-32">
-          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <p className="ml-2 text-gray-600">กำลังโหลดข้อมูล...</p>
-        </div>
-      ) : (
+        {loading && (!displayData || displayData.length === 0) ? (
+          <div className="flex justify-center items-center h-32">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <p className="ml-2 text-gray-600">กำลังโหลดข้อมูล...</p>
+          </div>
+        ) : (
         <>
-          {/* Custom legend with percentages */}
+            {/* Custom legend with percentages */}
           <div className="flex flex-wrap gap-4 mb-4">
             {displayData.map((item, index) => (
               <div key={index} className="flex items-center space-x-2">
@@ -225,6 +245,11 @@ export default function PersonnelChart({
             type="bar"
             height={height}
           />
+
+          {/* subtle overlay while fetching new data */}
+          {(isFetching || isPending) && (
+            <div className="mt-3 text-xs text-gray-500">อัปเดตข้อมูลล่าสุด...</div>
+          )}
           
           {/* Personnel details table */}
           <div className="mt-6 space-y-2">

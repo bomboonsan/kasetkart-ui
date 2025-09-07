@@ -1,6 +1,6 @@
-'use client'
+ 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useTransition } from 'react'
 import { valueFromAPI, dashboardAPI } from '@/lib/api'
 
 const TYPE_TABS = [
@@ -15,7 +15,10 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
   const [departments, setDepartments] = useState([])
   const [currentStats, setCurrentStats] = useState({ icTypes: [], impacts: [], sdgs: [] })
   const [loading, setLoading] = useState(false)
+  const [isFetching, setIsFetching] = useState(false)
   const [selectedItems, setSelectedItems] = useState([])
+  const debounceRef = useRef(null)
+  const [isPending, startTransition] = useTransition()
 
   const handleCheckboxChange = (e) => {
     const value = parseInt(e.target.value)
@@ -36,7 +39,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
   // Load research stats when department changes
   useEffect(() => {
     if (selectedDeptId !== '') {
-      loadResearchStats()
+  loadResearchStats()
     }
   }, [selectedDeptId])
 
@@ -59,12 +62,20 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
 
   const loadResearchStats = async () => {
     try {
-      setLoading(true)
+      // keep old data visible while fetching
+      if (currentStats && (currentStats.icTypes || currentStats.impacts || currentStats.sdgs) && (
+        (currentStats.icTypes || []).length || (currentStats.impacts || []).length || (currentStats.sdgs || []).length
+      )) {
+        setIsFetching(true)
+      } else {
+        setLoading(true)
+      }
       const stats = await dashboardAPI.getResearchStatsByTypes(selectedDeptId === 'all' ? null : selectedDeptId)
       setCurrentStats(stats)
     } catch (err) {
       console.error('Error loading research stats:', err)
     } finally {
+      setIsFetching(false)
       setLoading(false)
     }
   }
@@ -116,7 +127,13 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
           <label className="text-xs text-gray-500">เลือกภาควิชา</label>
           <select
             value={selectedDeptId}
-            onChange={(e) => setSelectedDeptId(e.target.value)}
+            onChange={(e) => {
+              const v = e.target.value
+              startTransition(() => {
+                if (debounceRef.current) clearTimeout(debounceRef.current)
+                debounceRef.current = setTimeout(() => setSelectedDeptId(v), 250)
+              })
+            }}
             className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md text-gray-900"
             disabled={loading}
           >
@@ -148,7 +165,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
           ))}
         </div>
 
-        {/* Table Content */}
+  {/* Table Content */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -160,7 +177,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {loading && (!activeData || activeData.length === 0) ? (
                 <tr>
                   <td colSpan={4} className="text-center py-8 text-gray-500">
                     กำลังโหลดข้อมูล...
@@ -173,6 +190,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
                   </td>
                 </tr>
               ) : (
+                // Render rows; while isFetching show slightly dimmed rows and a skeleton for clarity
                 activeData.map((item, index) => {
                   const count = item.count || 0
                   const totalCount = counts[activeType] || 1
@@ -189,7 +207,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
                   const color = colors[index % 5] || '#6b7280'
                   
                   return (
-                    <tr key={item.name || index} className="border-b hover:bg-gray-50">
+                    <tr key={item.name || index} className={`border-b hover:bg-gray-50 ${isFetching || isPending ? 'opacity-80' : ''}`}>
                       <td className="py-3 px-4">
                         <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
                           <input type="checkbox" value={index} checked={selectedItems.includes(index)} onChange={handleCheckboxChange} />
@@ -230,6 +248,11 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
             </tbody>
           </table>
         </div>
+
+          {/* subtle fetching indicator */}
+          {(isFetching || isPending) && (
+            <div className="mt-2 text-xs text-gray-500">อัปเดตข้อมูล...</div>
+          )}
 
         {/* Summary */}
         {activeData.length > 0 && (
