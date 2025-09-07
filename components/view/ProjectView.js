@@ -133,18 +133,36 @@ export default function ProjectView({ projectId }) {
                     <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">ชื่อ-นามสกุล</th>
                     <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">หน่วยงาน</th>
                     <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">ประเภท</th>
-                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">สัดส่วน (%)</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">สัดส่วนการมีส่วนร่วม (%)</th>
+                    <th className="px-4 py-2 text-left text-sm font-medium text-gray-700 border-b">สัดส่วนการวิจัย (%)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {project.research_partners.map((partner, index) => (
-                    <tr key={index} className="border-b">
-                      <td className="px-4 py-2 text-sm text-gray-900">{partner.fullname || '-'}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{partner.orgName || '-'}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{partner.participant_type || '-'}</td>
-                      <td className="px-4 py-2 text-sm text-gray-900">{partner.participation_percentage || '-'}%</td>
-                    </tr>
-                  ))}
+                  {project.research_partners.map((partner, index) => {
+                    // Format custom participation if present
+                    const custom = partner.participation_percentage_custom
+                    const customDisplay = (custom !== undefined && custom !== null && String(custom) !== '') ? `${parseFloat(custom)}%` : '-'
+
+                    // Format computed participation: if stored as fraction (<=1) treat as fraction and multiply by 100
+                    const pp = partner.participation_percentage
+                    let computedDisplay = '-'
+                    if (pp !== undefined && pp !== null && String(pp) !== '') {
+                      const num = parseFloat(pp)
+                      if (!Number.isNaN(num)) {
+                        computedDisplay = `${num <= 1 ? (num * 100).toFixed(1) : num.toFixed(1)}%`
+                      }
+                    }
+
+                    return (
+                      <tr key={index} className="border-b">
+                        <td className="px-4 py-2 text-sm text-gray-900">{partner.fullname || '-'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-900">{partner.orgName || '-'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-900">{partner.participant_type || '-'}</td>
+                        <td className="px-4 py-2 text-sm text-gray-900">{customDisplay}</td>
+                        <td className="px-4 py-2 text-sm text-gray-900">{computedDisplay}</td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

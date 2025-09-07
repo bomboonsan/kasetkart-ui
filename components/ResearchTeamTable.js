@@ -81,7 +81,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         isInternal: !!p.users_permissions_user || !!p.userID || false,
         userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
         partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
-        partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
+  partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
+  partnerProportion_percentage_custom: p.participation_percentage_custom !== undefined ? String(p.participation_percentage_custom) : undefined,
       }
     })
 
@@ -155,6 +156,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
           fullname: p.fullname || undefined,
           orgName: p.orgName || undefined,
           participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
+          participation_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '' ? parseFloat(p.partnerProportion_percentage_custom) : undefined,
           participant_type: partnerTypeMap[p.partnerType] || undefined,
           isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
           isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
@@ -184,9 +186,10 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       __userObj: undefined,
       partnerFullName: '',
       orgName: '',
-      userId: undefined,
+  userId: undefined,
       partnerType: '',
       partnerComment: '',
+  partnerProportion_percentage_custom: undefined,
     }))
     setEditingIndex(null)
   }
@@ -210,7 +213,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       orgName: internal ? (org || formData.orgName || '') : (formData.orgName || ''),
       partnerType: formData.partnerType || '',
       partnerComment: pcJoined,
-      partnerProportion: undefined,
+  partnerProportion: undefined,
+  partnerProportion_percentage_custom: formData.partnerProportion_percentage_custom !== undefined && formData.partnerProportion_percentage_custom !== '' ? String(formData.partnerProportion_percentage_custom) : undefined,
       User: internal && u ? { email: u.email } : undefined,
     }
     
@@ -253,7 +257,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         orgName: p.orgName,
         partnerType: p.partnerType || '',
         partnerComment: p.partnerComment || '',
-        partnerProportion: p.partnerProportion,
+  partnerProportion: p.partnerProportion,
+  partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
         User: p.User
       }) : p)
       .filter(p => true)
@@ -282,7 +287,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         orgName: p.orgName,
         partnerType: p.partnerType || '',
         partnerComment: p.partnerComment || '',
-        partnerProportion: p.partnerProportion,
+  partnerProportion: p.partnerProportion,
+  partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
         User: p.User
       }) : p)
 
@@ -330,7 +336,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       partnerFullName: p.fullname || '',
       orgName: p.orgName || '',
       partnerType: p.partnerType || '',
-      partnerComment: p.partnerComment || p.comment || '',
+  partnerComment: p.partnerComment || p.comment || '',
+  partnerProportion_percentage_custom: p.partnerProportion_percentage_custom || '',
       userId: p.userID || undefined,
       __userObj: undefined
     }))
@@ -499,8 +506,19 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                 min="0"
                 max="100"
                 value={formData.partnerProportion_percentage_custom || ''}
-                readOnly
-                placeholder="ระบบคำนวณสัดส่วนให้อัตโนมัติ"
+                onChange={(value) => {
+                  // allow empty or valid number between 0-100
+                  if (value === '' || value === null) {
+                    handleInputChange('partnerProportion_percentage_custom', '')
+                    return
+                  }
+                  const num = parseFloat(String(value))
+                  if (Number.isNaN(num)) return
+                  const clamped = Math.max(0, Math.min(100, num))
+                  // store as string to match other partnerProportion fields used elsewhere
+                  handleInputChange('partnerProportion_percentage_custom', String(clamped))
+                }}
+                placeholder="0%"
               />
             </div>
             <div>
@@ -577,7 +595,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     หมายเหตุ
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    สัดส่วนการวิจัย Custom (%)
+                    สัดส่วนการมีส่วนร่วม (%)
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     สัดส่วนการวิจัย (%)
