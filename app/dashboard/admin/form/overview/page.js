@@ -1,55 +1,83 @@
 'use client'
-import ResearchTopicsTable from '@/components/admin/form/ResearchTopicsTable'
-import PageHeader from '@/components/PageHeader'
-import Button from "@/components/Button";
-import Link from 'next/link';
-import { useState } from 'react';
 
-export default function OverviewPage() {
-  const [activeTab, setActiveTab] = useState(1);
-  const handleTabChange = (tabIndex) => {
-    setActiveTab(tabIndex);
-  };
-  const tabs = ['ทุนโครงการวิจัย', 'ประชุมวิชาการ', 'ตีพิมพ์ทางวิชาการ', 'ขอรับทุนเขียนตำรา', 'หนังสือและตำรา'];
+import Link from 'next/link'
+import Button from '@/components/Button'
+import PageHeader from '@/components/PageHeader'
+
+export default function AdminOverviewPage() {
+  const sections = [
+    {
+      title: 'โครงการวิจัย',
+      description: 'จัดการโครงการวิจัยและข้อมูลการวิจัยทั้งหมดในระบบ',
+      href: '/dashboard/admin/form/projects',
+      icon: '🔬',
+      color: 'bg-blue-500'
+    },
+    {
+      title: 'ทุนโครงการ',
+      description: 'จัดการข้อมูลทุนสนับสนุนโครงการทั้งหมด',
+      href: '/dashboard/admin/form/funds',
+      icon: '💰',
+      color: 'bg-green-500'
+    },
+    {
+      title: 'ประชุมวิชาการ',
+      description: 'จัดการข้อมูลการเข้าร่วมและนำเสนอในที่ประชุมทั้งหมด',
+      href: '/dashboard/admin/form/conferents',
+      icon: '🎤',
+      color: 'bg-purple-500'
+    },
+    {
+      title: 'ตีพิมพ์ทางวิชาการ',
+      description: 'จัดการข้อมูลบทความและงานตีพิมพ์ทั้งหมด',
+      href: '/dashboard/admin/form/publications',
+      icon: '📄',
+      color: 'bg-orange-500'
+    },
+    {
+      title: 'หนังสือและตำรา',
+      description: 'จัดการข้อมูลหนังสือและตำราทั้งหมด',
+      href: '/dashboard/admin/form/books',
+      icon: '📚',
+      color: 'bg-red-500'
+    }
+  ]
 
   return (
     <div className="space-y-6">
       <div className='flex justify-between items-center'>
-      <PageHeader title="รายการหัวข้อโครงการวิจัย" showAddButton={false} />
-      {/* <Link href="/form/create/project">
-        <Button variant="primary">เพิ่มโครงการใหม่</Button>
-      </Link> */}
-
-      </div>
-      <div className="mb-10" />
-
-      <div>
-        <ul className="flex space-x-4" role="tablist" aria-label="Tabs">
-          {tabs.map((label, i) => {
-            const idx = i + 1;
-            const active = activeTab === idx;
-            return (
-              <li key={label}>
-                <button
-                  role="tab"
-                  aria-selected={active}
-                  onClick={() => handleTabChange(idx)}
-                  className={`py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-                    active ? 'bg-blue-100 text-blue-700' : 'text-gray-700 hover:bg-gray-100'
-                  }`}
-                >
-                  {label}
-                </button>
-              </li>
-            );
-          })}
-        </ul>
+        <PageHeader title="จัดการข้อมูลวิจัยและผลงาน" showAddButton={false} />
       </div>
 
-      {/* render a single table and pass the active tab so the table can adjust if needed */}
-      <div>
-        <ResearchTopicsTable key={activeTab} tab={activeTab} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {sections.map((section) => (
+          <Link key={section.href} href={section.href} className="block">
+            <div className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1">
+              <div className="p-6">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className={`w-12 h-12 ${section.color} rounded-lg flex items-center justify-center text-white text-2xl`}>
+                    {section.icon}
+                  </div>
+                  <h3 className="text-xl font-semibold text-gray-900">{section.title}</h3>
+                </div>
+                <p className="text-gray-600 mb-4">{section.description}</p>
+                <div className="flex justify-end">
+                  <span className="text-blue-600 font-medium hover:text-blue-800">
+                    จัดการข้อมูล →
+                  </span>
+                </div>
+              </div>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <div className="bg-gray-50 rounded-lg p-6 mt-8">
+        <h4 className="text-lg font-semibold text-gray-800 mb-2">สำหรับผู้ดูแลระบบ</h4>
+        <p className="text-gray-600">
+          คุณสามารถดู แก้ไข และจัดการข้อมูลวิจัยและผลงานของสมาชิกทั้งหมดในระบบได้
+        </p>
       </div>
     </div>
-  );
+  )
 }
