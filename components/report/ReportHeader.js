@@ -20,6 +20,14 @@ export default function ReportHeader({ selectedReport, onChange }) {
     { 
   value: 'table-d', 
       label: 'Table 8-1 Part C: Quality of Intellectual Contribution (Single count)' 
+    },
+    { 
+  value: 'table-e', 
+      label: 'รายงานข้อมูลการตีพิมพ์ผลงานวิจัยในวารสารวิชาการระดับชาติและนานาชาติ' 
+    },
+    {
+  value: 'table-f',
+      label: 'รายงานนำเสนอผลงานทางวิชาการระดับชาติและนานาชาติ'
     }
   ]
 

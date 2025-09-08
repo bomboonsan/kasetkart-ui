@@ -118,7 +118,7 @@ export default function ReportTableC() {
                 International Publications
               </th>
               <th
-                className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider"
+                className="bg-orange-50 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider"
                 rowSpan="2"
               >
                 Total Publications<br/>(National + International)<br/>with single count
@@ -177,7 +177,7 @@ export default function ReportTableC() {
                 <td className="px-2 py-3 text-sm text-center text-gray-900 border-r">{row.totalAjg}</td>
                 <td className="px-2 py-3 text-sm text-center text-gray-900 border-r">{row.otherPjr}</td>
                 <td className="px-2 py-3 text-sm text-center text-gray-900 border-r font-medium">{row.totalInternational}</td>
-                <td className="px-4 py-3 text-sm text-center text-gray-900 font-medium">{row.totalPublications}</td>
+                <td className="bg-orange-50 px-4 py-3 text-sm text-center text-gray-900 font-medium">{row.totalPublications}</td>
               </tr>
             ))}
             
@@ -194,7 +194,7 @@ export default function ReportTableC() {
               <td className="px-2 py-3 text-sm text-center text-gray-900 border-r">{totalRow.totalAjg}</td>
               <td className="px-2 py-3 text-sm text-center text-gray-900 border-r">{totalRow.otherPjr}</td>
               <td className="px-2 py-3 text-sm text-center text-gray-900 border-r font-bold">{totalRow.totalInternational}</td>
-              <td className="px-4 py-3 text-sm text-center text-gray-900 font-bold">{totalRow.totalPublications}</td>
+              <td className="bg-orange-50 px-4 py-3 text-sm text-center text-gray-900 font-bold">{totalRow.totalPublications}</td>
             </tr>
           </tbody>
         </table>

@@ -10,7 +10,7 @@ export default function ReportTableB() {
   const totalRow = { discipline: 'Total', teaching: 42.0, research: 653.0, practice: 114.0, societal: 8.0, total: 817.0 }
 
   return (
-    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="bg-white rounded-lg border overflow-hidden">
       <div className="p-4 border-b bg-blue-100">
         <h3 className="text-center text-lg font-bold text-gray-800">Impacts</h3>
       </div>
