@@ -100,7 +100,7 @@ const adminMenuItems = [
     active: false,
   },
   {
-    id: "dashboard/form/add",
+    id: "dashboard/user/manage",
     url: "#",
     icon: <UsersRound />,
     label: "จัดการผู้ใช้",

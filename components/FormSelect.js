@@ -16,10 +16,9 @@ export default function FormSelect({
         </label>
       </div>
       <div className="flex-1">
-        <select
-        value={value}
-        defaultValue={value ?? ""}
-        onChange={(e) => onChange && onChange(e.target.value)}
+  <select
+  value={value ?? ""}
+  onChange={(e) => onChange && onChange(e.target.value)}
         required={required}
         disabled={disabled}
           className={`
