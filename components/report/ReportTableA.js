@@ -101,7 +101,7 @@ export default function ReportTableA() {
   }
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden"> TABLE A
+    <div className="bg-white rounded-lg border overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>

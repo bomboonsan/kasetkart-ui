@@ -1,19 +1,20 @@
-'use client'
+"use client"
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
 
-export default function ReportHeader() {
+// controlled: accept selectedReport and onChange so parent can drive which table shows
+export default function ReportHeader({ selectedReport, onChange }) {
   const reportOptions = [
     { 
-      value: 'table-a', 
+  value: 'table-a', 
       label: 'Table 8-1 Part A: Intellectual Contribution (IC) Strategies for SA and PA (2019-2023)' 
     },
     { 
-      value: 'table-b', 
+  value: 'table-b', 
       label: 'Table 8-1 Part B: Research Output Summary' 
     },
     { 
-      value: 'table-c', 
+  value: 'table-c', 
       label: 'Table 8-2: Publication Analytics Report' 
     }
   ]
@@ -48,7 +49,8 @@ export default function ReportHeader() {
           ประเภทรายงาน
         </label>
         <SelectField
-          value="table-8-1-part-a"
+          value={selectedReport || 'table-a'}
+          onChange={onChange}
           options={reportOptions}
           className="max-w-2xl"
         />
