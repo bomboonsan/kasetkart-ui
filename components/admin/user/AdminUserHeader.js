@@ -1,50 +1,60 @@
 "use client"
 
-// ใช้ SWR ดึงข้อมูลผู้ใช้ตาม id
 import Button from '@/components/Button'
 import Link from 'next/link'
 import { useState } from 'react'
 import useSWR from 'swr'
-import { api } from '@/lib/api'
+import Image from 'next/image'
+import { api, API_BASE } from '@/lib/api'
 import AdminUserStats from '@/components/admin/user/AdminUserStats'
 
-function initialsFrom(name, fallback) {
+function initials(name, fallback) {
   const s = (name || '').trim()
   if (!s) return (fallback || 'U').slice(0, 2).toUpperCase()
-  const parts = s.split(/[\s]+/)
+\s]+/)
+  const parts = s.split(/\s+/)
+\s]+/)
   return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '') || s[0]).toUpperCase()
 }
 
 export default function AdminUserHeader({ userId }) {
   const [error, setError] = useState('')
-  // bind api.get so `this.request` is available inside ApiClient
-  const { data: user, error: swrError } = useSWR(userId ? `/users/${userId}` : null, (key) => api.get(key), { revalidateOnMount: false, revalidateOnFocus: false })
+
+  // Use SWR to fetch user by id; server page seeds fallback so this will be instant on SSR render
+  const { data: userRes, error: swrError } = useSWR(
+    userId ? `/users/${userId}` : null,
+    () => api.get(`/users/${userId}`),
+    { revalidateOnMount: false, revalidateOnFocus: false }
+  )
+
   if (swrError && !error) setError(swrError.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
 
-  // Normalize response shapes: some endpoints return { data: { ... } } while others return raw object
-  const res = user?.data || user || {}
-  const prof = res.profile || res.Profile?.[0] || res
-  const firstName = prof?.firstName || prof?.firstNameTH || prof?.firstname || prof?.name || ''
-  const lastName = prof?.lastName || prof?.lastNameTH || prof?.lastname || ''
-  const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
-  const email = res?.email || prof?.email || ''
-  const departmentName = prof?.department?.name || res?.Department?.name || res?.department?.name || '-'
-  const facultyName = res?.Faculty?.name || res?.faculty?.name || ''
-  const orgLine = [facultyName, departmentName].filter(Boolean).join(' • ')
-  const jobType = prof?.jobType || ''
-  const highDegree = prof?.highDegree || ''
+  const res = userRes?.data || userRes || {}
+  const profObj = res.profile || res.Profile?.[0] || res
 
-  // Resolve avatar URL similarly to ProfileHeader
+  const firstName = profObj?.firstName || profObj?.firstNameTH || profObj?.firstname || profObj?.name || ''
+  const lastName = profObj?.lastName || profObj?.lastNameTH || profObj?.lastname || ''
+  const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
+  const email = res?.email || profObj?.email || ''
+  const departmentName = profObj?.department?.name || res?.Department?.name || res?.department?.name || '-'
+  const facultyName = res?.Faculty?.name || res?.faculty?.name || ''
+  const jobType = profObj?.jobType || ''
+  const highDegree = profObj?.highDegree || ''
+
+  // Resolve avatar URL from several common Strapi response shapes
   let avatarUrl = ''
   try {
     const candidates = []
-    if (prof?.avatarUrl?.url) candidates.push(prof.avatarUrl.url)
-    if (prof?.avatarUrl) candidates.push(prof.avatarUrl)
+    if (profObj?.avatarUrl?.url) candidates.push(profObj.avatarUrl.url)
+    if (profObj?.avatarUrl) candidates.push(profObj.avatarUrl)
+    if (profObj?.avatar?.data?.attributes?.url) candidates.push(profObj.avatar.data.attributes.url)
+    if (profObj?.profileImage?.data?.attributes?.url) candidates.push(profObj.profileImage.data.attributes.url)
     for (const c of candidates) {
       if (c) { avatarUrl = c; break }
     }
+
     if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
-      const mediaBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337/api').replace(/\/api\/?$/, '')
+      const mediaBase = (API_BASE || 'http://localhost:1337/api').replace(/\/api\/?$/, '')
       avatarUrl = `${mediaBase}${avatarUrl}`
     }
   } catch (e) {
@@ -58,26 +68,35 @@ export default function AdminUserHeader({ userId }) {
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200 mb-4">{error}</div>
         )}
         <div className="flex flex-col lg:flex-row items-start space-y-4 lg:space-y-0 lg:space-x-6">
+          {/* Profile Image */}
           <div className="flex-shrink-0">
             {avatarUrl ? (
-              <img src={avatarUrl} alt="avatar" className="w-24 h-24 rounded-full object-cover" />
+              <div className="w-24 h-24 rounded-full overflow-hidden">
+                <Image src={avatarUrl} alt={displayName || 'avatar'} width={96} height={96} className="object-cover w-24 h-24 rounded-full" />
+              </div>
             ) : (
-              <div className="w-24 h-24 rounded-full bg-primary text-white text-2xl font-bold flex items-center justify-center">
-                {initialsFrom(displayName, email)}
+              <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+                <div className="w-full h-full bg-primary text-white text-2xl font-bold flex items-center justify-center rounded-full">
+                  {initials(displayName, email)}
+                </div>
               </div>
             )}
           </div>
+
+          {/* Profile Info */}
           <div className="flex-1 min-w-0">
             <h1 className="text-2xl font-bold text-gray-900 mb-1">
               {displayName || email}
             </h1>
-            <p className="text-lg text-gray-600 mb-2">{orgLine || '-'}</p>
+            <p className="text-lg text-gray-600 mb-2">{[facultyName, departmentName].filter(Boolean).join(' • ')}</p>
             <div className="text-sm text-gray-500 space-y-1">
               <p>{email}</p>
               {jobType ? <p>Job Type: {jobType}</p> : null}
               {highDegree ? <p>Highest Degree: {highDegree}</p> : null}
             </div>
           </div>
+
+          {/* Action Button */}
           <div className="flex-shrink-0">
             <Link href={`/dashboard/admin/user/edit/${userId}`}>
               <Button variant="outline">Edit user</Button>
