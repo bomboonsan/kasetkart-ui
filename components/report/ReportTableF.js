@@ -66,7 +66,7 @@ export default function ReportTableE() {
                     ['pagination[pageSize]']: 100
                 }
 
-                const res = await worksAPI.getPublications(params)
+                const res = await worksAPI.getConferences(params)
                 const data = res?.data || res || []
 
                 if (!mounted) return
