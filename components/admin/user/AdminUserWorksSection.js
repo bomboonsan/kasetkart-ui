@@ -108,9 +108,10 @@ export default function AdminUserWorksSection({ userId }) {
             ) : (
               filtered.map((w) => {
                 const item = toItem(w)
+                const key = w.documentId || w.id || `${item.title}-${item.year}`
                 return (
                   <PublicationItem
-                    key={w.id}
+                    key={key}
                     title={item.title}
                     description={item.description}
                     year={item.year}

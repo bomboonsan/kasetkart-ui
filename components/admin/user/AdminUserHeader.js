@@ -20,10 +20,14 @@ export default function AdminUserHeader({ userId }) {
   const { data: user, error: swrError } = useSWR(userId ? `/users/${userId}` : null, (key) => api.get(key), { revalidateOnMount: false, revalidateOnFocus: false })
   if (swrError && !error) setError(swrError.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
 
-  const prof = user?.Profile?.[0]
-  const displayName = prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : ''
-  const email = user?.email || ''
-  const orgLine = [user?.Faculty?.name, user?.Department?.name].filter(Boolean).join(' • ')
+  // Normalize response shapes: some endpoints return { data: { ... } } while others return raw object
+  const res = user?.data || user || {}
+  const prof = res.profile || res.Profile?.[0] || res
+  const firstName = prof?.firstName || prof?.firstNameTH || prof?.firstname || prof?.name || ''
+  const lastName = prof?.lastName || prof?.lastNameTH || prof?.lastname || ''
+  const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
+  const email = res?.email || prof?.email || ''
+  const orgLine = [res?.Faculty?.name || res?.faculty?.name, res?.Department?.name || res?.department?.name].filter(Boolean).join(' • ')
   const jobType = prof?.jobType || ''
   const highDegree = prof?.highDegree || ''
 
