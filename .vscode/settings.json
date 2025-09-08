@@ -38,5 +38,6 @@
   // ปรับ performance ของ TypeScript/JavaScript
   "javascript.suggest.completeFunctionCalls": true,
   "typescript.suggest.completeFunctionCalls": true,
-  "typescript.tsserver.maxTsServerMemory": 4096
+  "typescript.tsserver.maxTsServerMemory": 4096,
+  "dotenv.enableAutocloaking": false
 }

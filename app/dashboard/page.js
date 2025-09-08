@@ -1,4 +1,4 @@
- 'use client'
+'use client'
 
 import { useState, useEffect } from 'react'
 import useSWR from 'swr'
@@ -9,7 +9,7 @@ import PersonnelChart from '@/components/dashboard/PersonnelChart'
 import ScholarshipTable from '@/components/dashboard/ScholarshipTable'
 import ScholarshipTableAll from '@/components/dashboard/ScholarshipTableAll'
 import { dashboardAPI, valueFromAPI } from '@/lib/api'
-import { FileSearch, FileBadge, Presentation, HandCoins , BookOpen } from "lucide-react";
+import { FileSearch, FileBadge, Presentation, HandCoins, BookOpen } from "lucide-react";
 
 export default function DashboardHome() {
   const [loading, setLoading] = useState(true)
@@ -123,11 +123,11 @@ export default function DashboardHome() {
         setResearchStats(stats)
         return
       }
-  // loading research stats for department
+      // loading research stats for department
       const stats = await dashboardAPI.getResearchStatsByTypes(departmentId)
       setResearchStats(stats)
     } catch (err) {
-  setError('ไม่สามารถโหลดสถิติการวิจัยสำหรับภาควิชานี้ได้')
+      setError('ไม่สามารถโหลดสถิติการวิจัยสำหรับภาควิชานี้ได้')
     }
   }
 
@@ -142,7 +142,7 @@ export default function DashboardHome() {
       const deptPersonnel = await dashboardAPI.getPersonnelByAcademicType(departmentId)
 
       // Ensure keys exist (SA,PA,SP,IP,A) and default to 0
-      const keys = ['SA','PA','SP','IP','A']
+      const keys = ['SA', 'PA', 'SP', 'IP', 'A']
       const normalized = {}
       keys.forEach(k => {
         const foundKey = Object.keys(deptPersonnel || {}).find(rk => String(rk).toUpperCase() === k)
@@ -158,7 +158,7 @@ export default function DashboardHome() {
 
       setDepartmentPersonnelData(deptChartData)
     } catch (err) {
-  setError('ไม่สามารถโหลดข้อมูลบุคลากรสำหรับภาควิชานี้ได้')
+      setError('ไม่สามารถโหลดข้อมูลบุคลากรสำหรับภาควิชานี้ได้')
     }
   }
 
@@ -177,8 +177,8 @@ export default function DashboardHome() {
     return (
       <div className="p-4 rounded bg-red-50 text-red-700 border border-red-200">
         {error}
-        <button 
-          onClick={loadDashboardData}
+        <button
+          // onClick={loadDashboardData}
           className="ml-4 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
         >
           ลองใหม่
@@ -211,7 +211,7 @@ export default function DashboardHome() {
         <div className='col-span-6 md:col-span-4 h-full'>
           <PersonnelChart
             title="ภาพรวมประเภทบุคคลากรของภาควิชา"
-            subtitle="จำนวนบุคลากรแบ่งตามประเภท" 
+            subtitle="จำนวนบุคลากรแบ่งตามประเภท"
             data={departmentPersonnelData}
             colors={['#6366f1', '#22c55e', '#06b6d4', '#f59e0b', '#ef4444']}
             height={80}
@@ -220,8 +220,8 @@ export default function DashboardHome() {
 
         {/* Scholarship Statistics Table */}
         <div className='col-span-6 md:col-span-6'>
-          <ScholarshipTable 
-            title="สถิติงานวิจัยตาม IC Types, Impact และ SDG" 
+          <ScholarshipTable
+            title="สถิติงานวิจัยตาม IC Types, Impact และ SDG"
             subtitle="จำนวนโครงการวิจัยแยกตามหมวดหมู่"
             researchStats={researchStats}
           />
