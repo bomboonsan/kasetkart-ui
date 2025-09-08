@@ -2,7 +2,7 @@
 
 export default function StatsCard({ title, stats, bgColor = 'bg-white' }) {
   return (
-    <div className={`p-6 border rounded-lg shadow-sm space-y-4 ${bgColor}`}>
+    <div className={`p-6 border border-gray-50 rounded-lg shadow-sm space-y-4 ${bgColor}`}>
       <h2 className='text-lg text-gray-900 font-medium'>{title}</h2>
       <div className="grid grid-cols-5 gap-4">
         {stats.map((stat, index) => (

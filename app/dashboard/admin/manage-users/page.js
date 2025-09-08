@@ -4,14 +4,15 @@ import { useRef } from 'react'
 import UserManagement from '@/components/UserManagement'
 import PageHeader from '@/components/PageHeader'
 import Button from '@/components/Button'
+import { useRouter } from 'next/navigation'
 
 export default function ManageUsersPage() {
+  const router = useRouter()
   const userManagementRef = useRef()
 
   const handleAddUser = () => {
-    if (userManagementRef.current) {
-      userManagementRef.current.openCreateModal()
-    }
+    router.push('/dashboard/admin/add-user')
+    
   }
 
   return (

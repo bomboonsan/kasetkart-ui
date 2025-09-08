@@ -9,7 +9,7 @@ import { api } from '@/lib/api'
 export default function AdminEducationSection({ userId }) {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
-  const { data: u, error: swrError } = useSWR(userId ? `/users/${userId}` : null, api.get)
+  const { data: u, error: swrError } = useSWR(userId ? `/users/${userId}` : null, (k) => api.get(k), { revalidateOnMount: false, revalidateOnFocus: false })
   useEffect(() => {
     if (!u) return
     try {

@@ -225,14 +225,9 @@ export default function PublicationsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
                       {publication.doi ? (
-                        <a 
-                          href={`https://doi.org/${publication.doi}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-900 underline"
-                        >
+                        <span className="text-blue-600 hover:text-blue-900 underline">
                           {publication.doi}
-                        </a>
+                        </span>
                       ) : '-'}
                     </td>
                     <td className="px-6 py-4">

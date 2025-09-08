@@ -16,7 +16,8 @@ function initialsFrom(name, fallback) {
 
 export default function AdminUserHeader({ userId }) {
   const [error, setError] = useState('')
-  const { data: user, error: swrError } = useSWR(userId ? `/users/${userId}` : null, api.get)
+  // bind api.get so `this.request` is available inside ApiClient
+  const { data: user, error: swrError } = useSWR(userId ? `/users/${userId}` : null, (key) => api.get(key), { revalidateOnMount: false, revalidateOnFocus: false })
   if (swrError && !error) setError(swrError.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
 
   const prof = user?.Profile?.[0]

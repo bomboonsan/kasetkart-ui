@@ -18,7 +18,7 @@ const TYPE_TABS = [
 
 export default function AdminUserWorksSection({ userId }) {
   const [activeType, setActiveType] = useState('PROJECT')
-  const { data: worksRes, error: worksErr } = useSWR(userId ? `/works?pageSize=100&userId=${userId}` : null, api.get)
+  const { data: worksRes, error: worksErr } = useSWR(userId ? `/works?pageSize=100&userId=${userId}` : null, (k) => api.get(k), { revalidateOnMount: false, revalidateOnFocus: false })
   const works = worksRes?.data || worksRes?.items || worksRes || []
 
   const counts = useMemo(() => {

@@ -45,10 +45,10 @@ export default function AdminUserEditForm({ userId }) {
   const onChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
   // ดึงข้อมูลด้วย SWR
-  const { data: u, error: uErr } = useSWR(userId ? `/users/${userId}` : null, api.get)
-  const { data: orgRes } = useSWR('/organizations', api.get)
-  const { data: facRes } = useSWR('/faculties', api.get)
-  const { data: deptRes } = useSWR('/departments', api.get)
+  const { data: u, error: uErr } = useSWR(userId ? `/users/${userId}` : null, (k) => api.get(k))
+  const { data: orgRes } = useSWR('/organizations', (k) => api.get(k))
+  const { data: facRes } = useSWR('/faculties', (k) => api.get(k))
+  const { data: deptRes } = useSWR('/departments', (k) => api.get(k))
 
   useEffect(() => {
     try {

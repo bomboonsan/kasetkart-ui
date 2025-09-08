@@ -63,13 +63,13 @@ export default function MyOverviewPage() {
               <p className="text-gray-600 mb-4">{section.description}</p>
               <div className="flex justify-between items-center">
                 <span className="text-blue-600 font-medium">ดูรายการ →</span>
-                <Link 
+                <a 
                   href={section.createHref}
                   className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   เพิ่มใหม่
-                </Link>
+                </a>
               </div>
             </Link>
           </div>

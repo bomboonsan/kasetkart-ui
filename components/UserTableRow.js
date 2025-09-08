@@ -63,7 +63,7 @@ export default function UserTableRow({ user, onAction }) {
             )}
           </div>
           <div className="ml-4">
-            <a href={`/dashboard/admin/user/view/${user.id}`} className="hover:underline">
+            <a href={`/dashboard/admin/user/view/${user.documentId}`} className="hover:underline">
               <div className="text-sm font-medium text-gray-900">{user.name}</div>
               <div className="text-sm text-gray-500">{user.email}</div>
             </a>

@@ -114,7 +114,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
   // }
 
   return (
-    <div className="p-6 border rounded-lg shadow-sm bg-white">
+    <div className="p-6 border border-gray-50 rounded-lg shadow-sm bg-white">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h2 className='text-lg text-gray-900 font-medium'>{title}</h2>
@@ -166,7 +166,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b">
+              <tr className="border-b border-b-gray-200">
                 <th className="text-left py-3 px-4 font-medium text-gray-700">ประเภท</th>
                 <th className="text-right py-3 px-4 font-medium text-gray-700">จำนวน</th>
                 <th className="text-right py-3 px-4 font-medium text-gray-700">เปอร์เซ็นต์</th>
@@ -204,7 +204,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
                   const color = colors[index % 5] || '#6b7280'
                   
                   return (
-                    <tr key={item.name || index} className={`border-b hover:bg-gray-50 ${isFetching || isPending ? 'opacity-80' : ''}`}>
+                    <tr key={item.name || index} className={`border-b border-b-gray-200 hover:bg-gray-50 ${isFetching || isPending ? 'opacity-80' : ''}`}>
                       <td className="py-3 px-4">
                         <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
                           <input type="checkbox" value={index} checked={selectedItems.includes(index)} onChange={handleCheckboxChange} />
@@ -253,7 +253,7 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
 
         {/* Summary */}
         {activeData.length > 0 && (
-          <div className="mt-4 pt-4 border-t">
+          <div className="mt-4 pt-4 border-t border-t-gray-300">
               <div className="text-sm text-gray-600">
                 รวม {activeType === 'icTypes' ? 'IC Types' : activeType === 'impacts' ? 'Impact' : 'SDG'}: 
                 <span className="font-semibold text-gray-900 ml-1">
