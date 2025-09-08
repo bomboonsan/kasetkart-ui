@@ -70,6 +70,7 @@ export default function LoginForm() {
             width={120}
             height={120}
             className="mb-4"
+            unoptimized
           />
         </div>
         <h1 className="text-2xl font-semibold text-gray-800">
