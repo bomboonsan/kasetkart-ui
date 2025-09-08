@@ -2,7 +2,7 @@ import AdminUserHeader from '@/components/admin/user/AdminUserHeader'
 import AdminEducationSection from '@/components/admin/user/AdminEducationSection'
 import AdminUserResearchPublicationsSection from '@/components/admin/user/AdminUserResearchPublicationsSection'
 import { SWRConfig } from 'swr'
-import { api, serverGet } from '@/lib/api'
+import { api, serverGet, profileAPI } from '@/lib/api'
 
 // Server component: fetch user + works using Strapi v5 documentId (with fallback search)
 export default async function AdminUserViewPage({ params }) {
@@ -15,10 +15,23 @@ export default async function AdminUserViewPage({ params }) {
 
   if (userId) {
       try {
-        // Prefer server-side authenticated fetch when available
-        // Fetch full populated user object so admin view has the same shape as /profile
-        const baseEndpoint = `/users/${userId}?populate=*&publicationState=preview`
+        // First, try to find a profile associated with this user (mimics profileAPI.findProfileByUserId)
+        try {
+          if (typeof serverGet === 'function') {
+            const p = await serverGet(`/profiles?filters[user][id][$eq]=${userId}&publicationState=preview&populate=*`)
+            const parr = p?.data || p || []
+            profileData = Array.isArray(parr) ? (parr[0] || null) : (parr || null)
+          } else {
+            const p = await profileAPI.findProfileByUserId(userId)
+            profileData = p || null
+          }
+        } catch (pe) {
+          profileData = null
+        }
 
+        // Then fetch the user object (populated) and merge profile into it so client components
+        // that expect /users/:id or 'profile' shapes receive a unified object.
+        const baseEndpoint = `/users/${userId}?populate=*&publicationState=preview`
         if (typeof serverGet === 'function') {
           const u = await serverGet(baseEndpoint)
           userData = u?.data || u || null
@@ -26,7 +39,14 @@ export default async function AdminUserViewPage({ params }) {
           const u = await api.get(baseEndpoint)
           userData = u?.data || u || null
         }
-    } catch (e) {
+
+        // Merge profileData into userData.profile (profile from profiles collection wins)
+        if (profileData) {
+          // If userData is null, start with an object that looks like the user's shape
+          userData = userData || {}
+          userData.profile = profileData
+        }
+      } catch (e) {
       // Fallback: try to find user by documentId filter (in case the direct route isn't enabled)
       try {
         const r = (typeof serverGet === 'function')
@@ -43,18 +63,18 @@ export default async function AdminUserViewPage({ params }) {
 
     // Separate fetch for educations with nested education_level to seed SWR cache for AdminEducationSection
     if (userId) {
-      try {
-        const eduEndpoint = `/users/${userId}?populate[educations][populate]=education_level&publicationState=preview`
-        if (typeof serverGet === 'function') {
-          const uEdu = await serverGet(eduEndpoint)
-          userEduData = uEdu?.data || uEdu || null
-        } else {
-          const uEdu = await api.get(eduEndpoint)
-          userEduData = uEdu?.data || uEdu || null
-        }
-      } catch (e) {
-        // ignore education populate failure
+    try {
+      const eduEndpoint = `/users/${userId}?populate[educations][populate]=education_level&publicationState=preview`
+      if (typeof serverGet === 'function') {
+        const uEdu = await serverGet(eduEndpoint)
+        userEduData = uEdu?.data || uEdu || null
+      } else {
+        const uEdu = await api.get(eduEndpoint)
+        userEduData = uEdu?.data || uEdu || null
       }
+    } catch (e) {
+      // ignore education populate failure
+    }
     }
 
     try {
