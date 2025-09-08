@@ -354,7 +354,7 @@ export default function CreateResearchForm() {
           <FormFieldBlock>
             <FormRadio
               inline={false}
-              required
+              
               label="ประเภทโครงการ"
               options={[
                 { label: "โครงการวิจัย", value: 0 },
@@ -370,7 +370,7 @@ export default function CreateResearchForm() {
           <FormFieldBlock>
             <FormRadio
               inline={true}
-              required
+              
               label="ลักษณะโครงการวิจัย"
               options={[
                 { label: "โครงการวิจัยเดี่ยว", value: 0 },
@@ -403,7 +403,7 @@ export default function CreateResearchForm() {
               value={formData.nameTH}
               onChange={(value) => handleInputChange("nameTH", value)}
               placeholder=""
-              required
+              
             />
           </FormFieldBlock>
 
@@ -413,7 +413,7 @@ export default function CreateResearchForm() {
               value={formData.nameEN}
               onChange={(value) => handleInputChange("nameEN", value)}
               placeholder=""
-              required
+              
             />
           </FormFieldBlock>
 
@@ -482,7 +482,7 @@ export default function CreateResearchForm() {
           <FormFieldBlock>
             <FormTextarea
               label="หน่วยงานหลักที่รับผิดชอบโครงการวิจัย (หน่วยงานที่ขอทุน)"
-              required
+              
               className='bg-gray-100 cursor-not-allowed'
               value={`${meData?.department?.name || ''}  ${meData?.faculty?.name} ${meData?.organization?.name || ''}`}
             />
@@ -491,7 +491,7 @@ export default function CreateResearchForm() {
           <FormFieldBlock>
             <FormSelect
               label="ประเภทงานวิจัย"
-              required
+              
               value={formData.researchKind}
               onChange={(value) => handleInputChange("researchKind", value)}
               className="max-w-lg"
@@ -515,7 +515,7 @@ export default function CreateResearchForm() {
           <FormFieldBlock>
             <FormSelect
               label="ประเภทแหล่งทุน"
-              required
+              
               value={formData.fundType}
               onChange={(value) => handleInputChange("fundType", value)}
               className="max-w-lg"
@@ -582,7 +582,7 @@ export default function CreateResearchForm() {
           <FormFieldBlock>
             <FormInput
               mini={true}
-              required
+              
               label="งบวิจัย"
               type="number"
               value={formData.budget}
@@ -594,7 +594,7 @@ export default function CreateResearchForm() {
           <FormFieldBlock>
             <FormTextarea
               label="คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)"
-              required
+              
               value={formData.keywords}
               onChange={(value) => handleInputChange("keywords", value)}
               placeholder=""

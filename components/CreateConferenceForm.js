@@ -194,7 +194,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <ProjectPicker
               label="โครงการวิจัย"
-              required
+              
               selectedProject={formData.__projectObj}
               onSelect={(project) => {
                 handleInputChange('project_research', getDocumentId(project))
@@ -208,7 +208,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
-              required
+              
               value={formData.titleTH}
               onChange={(value) => handleInputChange("titleTH", value)}
               placeholder=""
@@ -216,7 +216,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
 
             <FormTextarea
               label="ชื่อผลงาน (อังกฤษ)"
-              required
+              
               value={formData.titleEN}
               onChange={(value) => handleInputChange("titleEN", value)}
               placeholder=""
@@ -262,7 +262,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)"
-              required
+              
               value={formData.journalName}
               onChange={(value) => handleInputChange("journalName", value)}
               placeholder=""
@@ -336,7 +336,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
                     value={formData.cost}
                     onChange={(e) => handleInputChange("cost", e.target.value)}
                     placeholder="0"
-                    required
+                    
                     className={`
                   w-auto inline-block
           text-zinc-700
@@ -350,7 +350,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
                   <select
                     value={formData.costType}
                     onChange={(e) => handleInputChange("costType", e.target.value)}
-                    required
+                    
                     className="text-zinc-700
                                 block w-auto px-3 py-2 border border-gray-300 rounded-md
                                 bg-white focus:outline-none focus:ring-2 
@@ -374,7 +374,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
             </div>
             <FormRadio
               inline={true}
-              required
+              
               label="การนำเสนอผลงาน"
               options={[
                 {
@@ -391,7 +391,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
             />
             <FormRadio
               inline={true}
-              required
+              
               label="ประเภทการนำเสนอ"
               options={[
                 {
@@ -412,7 +412,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
             />
             <FormRadio
               inline={true}
-              required
+              
               label="ลักษณะของบทความ"
               options={[
                 {
@@ -432,14 +432,14 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
-              required
+              
               value={formData.abstractTH}
               onChange={(value) => handleInputChange("abstractTH", value)}
               placeholder=""
             />
             <FormTextarea
               label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
-              required
+              
               value={formData.abstractEN}
               onChange={(value) => handleInputChange("abstractEN", value)}
               placeholder=""
@@ -449,7 +449,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)"
-              required
+              
               value={formData.summary}
               onChange={(value) => handleInputChange("summary", value)}
               placeholder=""
@@ -468,7 +468,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormRadio
               inline={true}
-              required
+              
               label="ระดับการนำเสนอ"
               options={[
                 {
@@ -485,7 +485,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
             />
             <FormSelect
               label="ประเทศ"
-              required
+              
               value={formData.countryCode}
               onChange={(value) => handleInputChange("countryCode", value)}
               className="max-w-lg"
@@ -498,7 +498,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
             />
             <FormSelect
               label="มลรัฐ/จังหวัด"
-              required
+              
               value={formData.state}
               onChange={(value) => handleInputChange("state", value)}
               className="max-w-lg"
@@ -511,7 +511,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
             />
             <FormSelect
               label="เมือง"
-              required
+              
               value={formData.city}
               onChange={(value) => handleInputChange("city", value)}
               className="max-w-lg"
@@ -526,7 +526,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อแหล่งทุน"
-              required
+              
               value={formData.fundName}
               onChange={(value) => handleInputChange("fundName", value)}
               placeholder=""
@@ -535,7 +535,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)"
-              required
+              
               value={formData.keywords}
               onChange={(value) => handleInputChange("keywords", value)}
               placeholder=""

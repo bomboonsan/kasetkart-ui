@@ -164,14 +164,14 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
                         __projectFundingObj: p,
                         __projectObj: p,
                       }))}
-              required
+              
             />
           </FormFieldBlock>
           
           <FormFieldBlock>
             <FormRadio
               inline={true}
-              required
+              
               label="ประเภทผลงาน"
               options={[
                 { label: "หนังสือ", value: 0 },
@@ -185,7 +185,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
-              required
+              
               value={formData.titleTH}
               onChange={(value) => handleInputChange("titleTH", value)}
               placeholder="กรอกชื่อผลงานภาษาไทย"
@@ -202,7 +202,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
           <FormFieldBlock>
             <FormTextarea
               label="รายละเอียดเบื้องต้นของหนังสือ หรือ ตำรา"
-              required
+              
               value={formData.detail}
               onChange={(value) => handleInputChange("detail", value)}
               placeholder="กรอกรายละเอียดของหนังสือหรือตำรา"
@@ -212,7 +212,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
           <FormFieldBlock>
             <FormRadio
               inline={true}
-              required
+              
               label="ระดับของผลงาน"
               options={[
                 { label: "ระดับชาติ", value: 0 },
@@ -225,7 +225,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
             <FormInput
               label="วันที่เกิดผลงาน"
               type="date"
-              required
+              
               value={formData.publicationDate}
               onChange={(value) => handleInputChange("publicationDate", value)}
             />
