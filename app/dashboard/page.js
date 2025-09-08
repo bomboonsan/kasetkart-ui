@@ -127,7 +127,7 @@ export default function DashboardHome() {
       const stats = await dashboardAPI.getResearchStatsByTypes(departmentId)
       setResearchStats(stats)
     } catch (err) {
-      console.error('Error loading research stats for department:', err)
+  setError('ไม่สามารถโหลดสถิติการวิจัยสำหรับภาควิชานี้ได้')
     }
   }
 
@@ -158,7 +158,7 @@ export default function DashboardHome() {
 
       setDepartmentPersonnelData(deptChartData)
     } catch (err) {
-      console.error('Error loading personnel for department:', err)
+  setError('ไม่สามารถโหลดข้อมูลบุคลากรสำหรับภาควิชานี้ได้')
     }
   }
 

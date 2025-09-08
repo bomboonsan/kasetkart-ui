@@ -53,7 +53,6 @@ export default function LoginForm() {
         setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ')
       }
     } catch (err) {
-      console.error('Login error:', err)
       setError(err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง')
     } finally {
       setLoading(false)

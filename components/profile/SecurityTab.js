@@ -126,7 +126,7 @@ export default function SecurityTab() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" onClick={() => { console.log('Save passwords', { currentPassword, newPassword, confirmPassword }) }}>
+          <Button variant="primary" onClick={() => { /* save passwords (silent) */ }}>
             บันทึก
           </Button>
           <Button variant="outline" onClick={() => { setCurrentPassword(''); setNewPassword(''); setConfirmPassword('') }}>

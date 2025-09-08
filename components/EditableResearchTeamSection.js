@@ -182,13 +182,13 @@ export default function EditableResearchTeamSection({ project }) {
       })
       
     } catch (err) {
-      console.error('Save partners error:', err)
-      setError(err?.response?.data?.error?.message || err?.message || 'บันทึกไม่สำเร็จ')
+      const msg = err?.response?.data?.error?.message || err?.message || 'บันทึกไม่สำเร็จ'
+      setError(msg)
       setSwalProps({
         show: true,
         icon: 'error',
         title: 'บันทึกไม่สำเร็จ',
-        text: err?.response?.data?.error?.message || err?.message || '',
+        text: msg,
         timer: 2200
       })
     } finally {

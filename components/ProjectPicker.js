@@ -16,8 +16,8 @@ export default function ProjectPicker({ label = 'โครงการวิจ�
     () => projectAPI.getMyProjects(),
     {
       onError: (error) => {
-        console.error('ProjectPicker error:', error)
-        setError(error?.response?.data?.error?.message || error?.message || 'โหลดโครงการไม่สำเร็จ')
+        const msg = error?.response?.data?.error?.message || error?.message || 'โหลดโครงการไม่สำเร็จ'
+        setError(msg)
       }
     }
   )

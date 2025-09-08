@@ -180,7 +180,7 @@ export default function Sidebar() {
           setAvatarUrl(url || '')
         }
       } catch (err) {
-        // fallback to mock values
+    // fallback to mock values; avoid console logging in production UI
         if (mounted) {
           setUserDisplayName('ผู้ใช้งาน')
           setUserEmail('user@example.com')
@@ -207,7 +207,7 @@ export default function Sidebar() {
         document.cookie = 'jwt=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;'
       }
     } catch (err) {
-      console.error('Error clearing auth token:', err)
+      // ignore token clearing errors
     }
 
     // Reset UI state

@@ -16,7 +16,6 @@ export default function FundingPicker({ label = 'โครงการขอท�
     () => projectAPI.getMyProjects(),
     {
       onError: (error) => {
-        console.error('ProjectPicker error:', error)
         setError(error?.response?.data?.error?.message || error?.message || 'โหลดโครงการไม่สำเร็จ')
       }
     }

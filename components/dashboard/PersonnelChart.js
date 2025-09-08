@@ -46,10 +46,18 @@ export default function PersonnelChart({
         setSelectedDeptId('all')
       }
     } catch (err) {
-      console.error('Error loading departments:', err)
       setError('ไม่สามารถโหลดข้อมูลภาควิชาได้')
+    } finally {
+      setLoading(false)
     }
   }
+
+  // cleanup debounce on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    }
+  }, [])
 
   // Use SWR to fetch personnel stats per-department and keep previous data
   const personnelKey = selectedDeptId === '' ? null : ['personnel', selectedDeptId === 'all' ? 'all' : selectedDeptId]
@@ -143,8 +151,8 @@ export default function PersonnelChart({
     },
     legend: {
       show: false
-    },
-    tooltip: {
+  },
+  tooltip: {
       enabled: true,
       theme: 'light',
       y: {

@@ -32,7 +32,6 @@ export default function EducationSection({ educations = [] }) {
       setItems(Array.from(dedupedMap.values()))
     } catch (e) {
       setError('ไม่สามารถโหลดประวัติการศึกษา')
-      console.error('Education section error:', e)
     }
   }, [educations])
 

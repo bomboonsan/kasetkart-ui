@@ -16,8 +16,8 @@ export default function ProjectFundingPicker({ label = 'โครงการข
     () => api.get('/project-fundings?populate=*'),
     {
       onError: (error) => {
-        console.error('ProjectFundingPicker error:', error)
-        setError(error?.response?.data?.error?.message || error?.message || 'โหลดโครงการขอทุนไม่สำเร็จ')
+        const msg = error?.response?.data?.error?.message || error?.message || 'โหลดโครงการขอทุนไม่สำเร็จ'
+        setError(msg)
       }
     }
   )

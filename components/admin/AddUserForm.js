@@ -125,17 +125,14 @@ export default function AddUserForm() {
         lastNameEn: '', highDegree: '', phone: '', academicPosition: '', avatarUrl: ''
       })
     } catch (err) {
-      console.error('Error creating user:', err)
-      setError(err.message || 'สร้างผู้ใช้ไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'สร้างผู้ใช้ไม่สำเร็จ', text: err.message || '', timer: 2200 })
+  setError(err.message || 'สร้างผู้ใช้ไม่สำเร็จ')
+  setSwalProps({ show: true, icon: 'error', title: 'สร้างผู้ใช้ไม่สำเร็จ', text: err.message || '', timer: 2200 })
     } finally {
       setLoading(false)
     }
   }
 
   const dataLoaded = organizations.length > 0 && faculties.length > 0 && departments.length > 0 && academicTypes.length > 0 && participationTypes.length > 0
-
-  if (!dataLoaded) return <div className="p-6 text-gray-500">กำลังโหลดข้อมูล...</div>
 
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
@@ -312,7 +309,7 @@ export default function AddUserForm() {
             { value: 'SUPERADMIN', label: 'SUPERADMIN' },
           ]}
         />
-      </div>      
+  </div>
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">        
         <SelectField
           label="มหาวิทยาลัย/หน่วยงาน"

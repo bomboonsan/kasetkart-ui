@@ -66,7 +66,7 @@ export default function ProfileHeader({ profileData }) {
       const mediaBase = API_BASE.replace(/\/api\/?$/, '')
       avatarUrl = `${mediaBase}${avatarUrl}`
     }
-    console.log('Resolved avatar URL:', avatarUrl)
+  // avatar URL resolved; keep silent in production
   } catch (e) {
     console.warn('avatar resolution failed', e)
   }

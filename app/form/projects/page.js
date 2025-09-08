@@ -57,8 +57,7 @@ export default function ProjectsPage() {
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
       
     } catch (err) {
-      console.error('Error fetching projects:', err)
-      setError('ไม่สามารถโหลดข้อมูลโครงการได้')
+  setError('ไม่สามารถโหลดข้อมูลโครงการได้')
     } finally {
       setLoading(false)
     }
@@ -213,10 +212,10 @@ export default function ProjectsPage() {
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {project.nameTh || project.nameEn || 'ไม่ระบุชื่อ'}
+                          {project.nameTH || project.nameEN || 'ไม่ระบุชื่อ'}
                         </div>
-                        {project.nameEn && project.nameTh && (
-                          <div className="text-sm text-gray-500">{project.nameEn}</div>
+                        {project.nameEN && project.nameTH && (
+                          <div className="text-sm text-gray-500">{project.nameEN}</div>
                         )}
                       </div>
                     </td>

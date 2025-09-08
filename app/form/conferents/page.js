@@ -58,8 +58,7 @@ export default function ConferencesPage() {
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
       
     } catch (err) {
-      console.error('Error fetching conferences:', err)
-      setError('ไม่สามารถโหลดข้อมูลประชุมวิชาการได้')
+  setError('ไม่สามารถโหลดข้อมูลประชุมวิชาการได้')
     } finally {
       setLoading(false)
     }

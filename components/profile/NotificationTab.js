@@ -8,12 +8,14 @@ import Button from '@/components/Button'
 
 export default function NotificationTab() {
 
-  const [notifications, setNotifications] = useState([
+  const initialNotifications = [
     { id: 1, label: 'New for you', email: true, browser: true, app: true },
     { id: 2, label: 'Account activity', email: true, browser: true, app: true },
     { id: 3, label: 'A new browser used to sign in', email: true, browser: true, app: false },
     { id: 4, label: 'A new device is linked', email: true, browser: false, app: false },
-  ])
+  ]
+
+  const [notifications, setNotifications] = useState(initialNotifications)
   const [whenToSend, setWhenToSend] = useState('only-online')
 
   function toggleField(id, field) {
@@ -24,7 +26,12 @@ export default function NotificationTab() {
 
   function handleSave() {
     // implement save logic (API call) here
-    console.log('Saved notification settings', { notifications, whenToSend })
+    // Saved notification settings (silent)
+  }
+
+  function handleReset() {
+    setNotifications(initialNotifications)
+    setWhenToSend('only-online')
   }
 
   return (
@@ -103,10 +110,10 @@ export default function NotificationTab() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="primary" onClick={() => { console.log('บันทึกการตั้งค่าการแจ้งเตือน', { currentPassword, newPassword, confirmPassword }) }}>
+          <Button variant="primary" onClick={handleSave}>
             บันทึก
           </Button>
-          <Button variant="outline" onClick={() => { setCurrentPassword(''); setNewPassword(''); setConfirmPassword('') }}>
+          <Button variant="outline" onClick={handleReset}>
             รีเซต
           </Button>
         </div>

@@ -24,7 +24,6 @@ export default function ResearchTeamReadonly({ projectId }) {
       const partnersData = response?.data || response || []
       setPartners(partnersData)
     } catch (err) {
-      console.error('Error loading partners:', err)
       setError('ไม่สามารถโหลดข้อมูลทีมได้')
     } finally {
       setLoading(false)

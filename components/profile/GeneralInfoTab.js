@@ -222,27 +222,27 @@ export default function GeneralInfoTab() {
 
     // Departments
     const departments = normalize(departmentsRaw)
-    if (depError) console.error('departments load error:', depError)
+  if (depError) setError(prev => prev || (depError?.message || 'Failed to load departments'))
     setDepartments(departments)
 
     // Academic Types
     const academicTypes = normalize(academicTypesRaw)
-    if (acadError) console.error('academic types load error:', acadError)
+  if (acadError) setError(prev => prev || (acadError?.message || 'Failed to load academic types'))
     setAcademicTypes(academicTypes)
 
     // Participation Types
     const participationTypes = normalize(participationTypesRaw)
-    if (partError) console.error('participation types load error:', partError)
+  if (partError) setError(prev => prev || (partError?.message || 'Failed to load participation types'))
     setParticipationTypes(participationTypes)
 
     // Faculties
     const faculties = normalize(facultiesRes)
-    if (facError) console.error('faculties load error:', facError)
+  if (facError) setError(prev => prev || (facError?.message || 'Failed to load faculties'))
     setFaculties(faculties)
 
     // Organizations
     const organizations = normalize(organizationsRes)
-    if (orgError) console.error('organizations load error:', orgError)
+  if (orgError) setError(prev => prev || (orgError?.message || 'Failed to load organizations'))
     setOrganizations(organizations)
 
   }, [departmentsRaw, academicTypesRaw, participationTypesRaw, facultiesRes, organizationsRes])

@@ -105,8 +105,8 @@ export default function ProfileImageUpload() {
       mutate('profile')
 
     } catch (err) {
-      console.error('Upload error:', err)
-      setError(err.message || 'อัปโหลดรูปภาพไม่สำเร็จ')
+      const msg = err?.response?.data?.error?.message || err?.message || 'อัปโหลดรูปภาพไม่สำเร็จ'
+      setError(msg)
     } finally {
       setUploading(false)
     }

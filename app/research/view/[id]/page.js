@@ -45,7 +45,7 @@ export default function ViewProjectPage() {
       const projectData = response?.data || response
       setProject(projectData)
     } catch (err) {
-      console.error('Error loading project:', err)
+      // Use UI state for errors instead of logging to console
       setError('ไม่สามารถโหลดข้อมูลโครงการได้')
     } finally {
       setLoading(false)

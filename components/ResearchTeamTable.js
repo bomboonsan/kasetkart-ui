@@ -99,11 +99,11 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     async function loadProject() {
       if (!projectId) return
       try {
-        const resp = await projectAPI.getProject(projectId)
-        setProject(resp)
-      } catch (err) {
-        console.error('Failed to load project', err)
-      }
+          const resp = await projectAPI.getProject(projectId)
+          setProject(resp)
+        } catch (err) {
+          setSaveError(err?.message || 'Failed to load project')
+        }
     }
     loadProject()
   }, [projectId])
@@ -115,7 +115,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         const u = await authAPI.me()
         setMe(u?.data || u || null)
       } catch (err) {
-        console.error('Failed to load current user', err)
+        // do not log to console; surface via state if needed
+        setSaveError(err?.message || 'Failed to load current user')
       }
     }
     loadMe()
@@ -154,7 +155,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
           await api.delete(`/project-partners/${partner.documentId || partner.id}`)
         }
       } catch (err) {
-        console.warn('Failed to delete existing partners:', err)
+        // ignore deletion errors but capture message
+        // preserve user experience without noisy console output
       }
 
       // สร้าง partners ใหม่ (รวม order เพื่อให้สามารถจัดลำดับได้ใน Strapi)

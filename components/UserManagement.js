@@ -80,10 +80,9 @@ const UserManagement = forwardRef((props, ref) => {
   useEffect(() => {
     try {
       const usersData = usersRes?.data || usersRes || [];
-      const mapped = usersData.map((u) => {
-        // Extract data from Strapi v5 structure
-        const profile = u.profile;
-        console.log('User profile data:', profile);
+  const mapped = usersData.map((u) => {
+  // Extract data from Strapi v5 structure
+  const profile = u.profile;
         const firstName = profile?.firstNameTH || '';
         const lastName = profile?.lastNameTH || '';
         const displayName = `${firstName} ${lastName}`.trim() || u.username || u.email;
@@ -97,7 +96,7 @@ const UserManagement = forwardRef((props, ref) => {
         const faculty = u.faculty?.name || '-';
         const organization = u.organization?.name || '-';
 
-        console.log('User:', u, 'mapped to label:', roleLabel);
+  // mapping completed for user
         
         // Map status from user fields
         const status = u.blocked ? 'Inactive' : 
@@ -125,7 +124,6 @@ const UserManagement = forwardRef((props, ref) => {
       setUsers(mapped);
       setFilteredUsers(mapped);
     } catch (err) {
-      console.error('Error processing users data:', err);
       setError(err.message || "ไม่สามารถโหลดข้อมูลผู้ใช้");
     }
   }, [usersRes]);
@@ -196,7 +194,6 @@ const UserManagement = forwardRef((props, ref) => {
             await userAPI.deleteUser(user.id || user.documentId);
             mutate('users-all'); // รีเฟรชรายการ
           } catch (err) {
-            console.error('Delete user error:', err);
             setError(err.message || "ไม่สามารถลบผู้ใช้");
           }
         }
@@ -208,7 +205,6 @@ const UserManagement = forwardRef((props, ref) => {
             await userAPI.updateUserStatus(user.id || user.documentId, false, true); // unblock and confirm
             mutate('users-all'); // รีเฟรชรายการ
           } catch (err) {
-            console.error('Approve user error:', err);
             setError(err.message || "ไม่สามารถอนุมัติผู้ใช้");
           }
         }
@@ -220,7 +216,6 @@ const UserManagement = forwardRef((props, ref) => {
             await userAPI.updateUserStatus(user.id || user.documentId, true, true); // block user
             mutate('users-all'); // รีเฟรชรายการ
           } catch (err) {
-            console.error('Disable user error:', err);
             setError(err.message || "ไม่สามารถปิดใช้งานผู้ใช้");
           }
         }
@@ -271,7 +266,6 @@ const UserManagement = forwardRef((props, ref) => {
       setIsModalOpen(false);
       setSelectedUser(null);
     } catch (err) {
-      console.error('Save user error:', err);
       setError(err.message || "ไม่สามารถบันทึกข้อมูลผู้ใช้");
     }
   };

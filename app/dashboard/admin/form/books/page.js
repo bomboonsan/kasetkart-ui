@@ -58,8 +58,7 @@ export default function AdminBooksPage() {
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
       
     } catch (err) {
-      console.error('Error fetching books:', err)
-      setError('ไม่สามารถโหลดข้อมูลหนังสือได้')
+  setError('ไม่สามารถโหลดข้อมูลหนังสือได้')
     } finally {
       setLoading(false)
     }

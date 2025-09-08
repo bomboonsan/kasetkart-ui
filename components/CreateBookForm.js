@@ -134,12 +134,12 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
       }, 1700)
       
     } catch (error) {
-      console.error('Submit error:', error)
+        const msg = error?.response?.data?.error?.message || error?.message || 'เกิดข้อผิดพลาด'
       setSwalProps({ 
         show: true, 
         icon: 'error', 
         title: 'บันทึกไม่สำเร็จ', 
-        text: error?.response?.data?.error?.message || error?.message || 'เกิดข้อผิดพลาด'
+          text: msg
       })
     } finally {
       setIsLoading(false)

@@ -111,7 +111,6 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
       }, 1700)
 
     } catch (err) {
-      console.error('Submit error:', err)
       const errorMsg = err?.response?.data?.error?.message || err?.message || 'เกิดข้อผิดพลาดในการบันทึก'
       setError(errorMsg)
       setSwalProps({ 

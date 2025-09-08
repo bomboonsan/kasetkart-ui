@@ -58,8 +58,7 @@ export default function AdminFundsPage() {
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
       
     } catch (err) {
-      console.error('Error fetching funds:', err)
-      setError('ไม่สามารถโหลดข้อมูลทุนได้')
+  setError('ไม่สามารถโหลดข้อมูลทุนได้')
     } finally {
       setLoading(false)
     }

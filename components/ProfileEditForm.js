@@ -128,7 +128,7 @@ export default function ProfileEditForm() {
       })
 
     } catch (err) {
-      console.error("Failed to fetch profile data:", err)
+      // Use state-based error handling instead of logging to console
       setError("ไม่สามารถดึงข้อมูลโปรไฟล์ได้")
     } finally {
       setIsLoading(false)
@@ -222,7 +222,7 @@ export default function ProfileEditForm() {
       alert("บันทึกข้อมูลสำเร็จ!")
 
     } catch (err) {
-      console.error("Failed to save profile data:", err)
+      // Use state-based error handling instead of logging to console
       setError(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${err.message}`)
       alert(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${err.message}`)
     } finally {

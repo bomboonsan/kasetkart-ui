@@ -55,9 +55,6 @@ export default function CreateResearchForm() {
       setSdgLists(sdgRes.data || [])
     }
   }, [sdgRes])
-  // console.log('icTypesLists', icTypesLists)
-  // console.log('impactLists', impactLists)
-  // console.log('sdgLists', sdgLists)
   ////////////////////////////////////////////////////////
   // End setup form fields
   ////////////////////////////////////////////////////////
@@ -222,7 +219,7 @@ export default function CreateResearchForm() {
         const meResp = await authAPI.me()
         meObj = meResp?.data || meResp || null
       } catch (e) {
-        console.warn('Unable to fetch current user; proceeding without explicit leader user', e)
+        // proceed without explicit leader user; do not log to console
       }
 
       // สร้าง partner สำหรับผู้กรอกฟอร์ม (current user) เป็น หัวหน้าโครงการ
@@ -292,7 +289,8 @@ export default function CreateResearchForm() {
       }
 
       // สร้างข้อมูล project-partner สำหรับสมาชิกแต่ละคน
-      for (const p of partnersArray) {
+  const partnerErrors = []
+  for (const p of partnersArray) {
         // หมายเหตุ: Normalize ชื่อคีย์จากตาราง (userID vs userId, partnerComment vs comment)
         const userIdField = p.userId || p.userID || p.User?.id || undefined
         const commentField = p.partnerComment || p.comment || ''
@@ -317,8 +315,8 @@ export default function CreateResearchForm() {
         try {
           await api.post('/project-partners', { data: partnerData })
         } catch (err) {
-          // don't fail whole submission for partner creation; collect/log instead
-          console.error('Failed creating partner', partnerData, err)
+          // collect partner creation errors silently
+          partnerErrors.push({ partner: partnerData, error: err?.message || String(err) })
         }
       }
 

@@ -110,7 +110,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
     try {
       // Prepare payload aligned to work-conference schema
       const payload = {
-        project_research: formData.project_research || undefined,
+    project_research: getDocumentId(formData.project_research) || undefined,
         titleTH: formData.titleTH || undefined,
         titleEN: formData.titleEN || undefined,
         isEnvironmentallySustainable: parseInt(formData.isEnvironmentallySustainable) || 0,
@@ -167,15 +167,15 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
       }, 1700)
 
     } catch (err) {
-      console.error('Submit error:', err)
-      setError(err?.response?.data?.error?.message || err?.message || 'เกิดข้อผิดพลาดในการบันทึก')
-      setSwalProps({ 
-        show: true, 
-        icon: 'error', 
-        title: 'บันทึกไม่สำเร็จ', 
-        text: err?.response?.data?.error?.message || err?.message || '', 
-        timer: 2200 
-      })
+        const msg = err?.response?.data?.error?.message || err?.message || 'เกิดข้อผิดพลาด'
+        setError(msg)
+        setSwalProps({ 
+          show: true, 
+          icon: 'error', 
+          title: 'บันทึกไม่สำเร็จ', 
+          text: msg, 
+          timer: 2200 
+        })
     } finally {
       setSubmitting(false)
     }

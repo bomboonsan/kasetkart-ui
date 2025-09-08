@@ -57,7 +57,9 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
       const depts = response?.data || response || []
       setDepartments(depts)
     } catch (err) {
-      console.error('Error loading departments:', err)
+  // Graceful fallback: clear departments on error
+  setDepartments([])
+  setLoading(false)
     }
   }
   // Use SWR for research stats per-department

@@ -58,8 +58,7 @@ export default function AdminProjectsPage() {
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
       
     } catch (err) {
-      console.error('Error fetching projects:', err)
-      setError('ไม่สามารถโหลดข้อมูลโครงการได้')
+  setError('ไม่สามารถโหลดข้อมูลโครงการได้')
     } finally {
       setLoading(false)
     }

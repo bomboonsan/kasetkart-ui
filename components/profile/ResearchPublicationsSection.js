@@ -50,7 +50,6 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 					const resp = await projectAPI.getMyProjects()
 					projectsRes = resp?.data || resp || []
 				} catch (e) {
-					console.warn('projectAPI.getMyProjects failed', e)
 					projectsRes = []
 				}
 
@@ -78,7 +77,7 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 						const confData = confRes?.data || confRes || []
 						confs.push(...confData)
 					} catch (e) {
-						console.warn('getConferences failed', e)
+						// ignore conference fetch failures
 					}
 
 					try {
@@ -86,7 +85,7 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 						const pubData = pubRes?.data || pubRes || []
 						pubs.push(...pubData)
 					} catch (e) {
-						console.warn('getPublications failed', e)
+						// ignore publication fetch failures
 					}
 				}
 
@@ -123,7 +122,7 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 						fundingArr = Array.from(fundingMap.values())
 					}
 				} catch (e) {
-					console.warn('getFundings failed', e)
+					// ignore funding fetch failures
 				}
 
 				if (fundingArr.length > 0) {
@@ -138,7 +137,7 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 							const bookData = booksRes?.data || booksRes || []
 							books.push(...bookData)
 						} catch (e) {
-							console.warn('getBooks failed', e)
+							// ignore book fetch failures
 						}
 					}
 				}
@@ -147,7 +146,6 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 				setWorks({ conferences: confs, publications: pubs, books })
 				setFundings(fundingArr)
 			} catch (e) {
-				console.error('ResearchPublicationsSection load error', e)
 				if (mounted) setError(e.message || String(e))
 			} finally {
 				if (mounted) setLoading(false)

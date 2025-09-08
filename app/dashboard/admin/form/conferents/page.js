@@ -58,7 +58,7 @@ export default function AdminConferencesPage() {
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
       
     } catch (err) {
-      console.error('Error fetching conferences:', err)
+      // Prefer storing error in state for UI display instead of console logging
       setError('ไม่สามารถโหลดข้อมูลการประชุมได้')
     } finally {
       setLoading(false)
