@@ -5,31 +5,29 @@ import Link from 'next/link'
 import { useState } from 'react'
 import useSWR from 'swr'
 import Image from 'next/image'
-import { api, API_BASE } from '@/lib/api'
+import { API_BASE, profileAPI } from '@/lib/api'
 import AdminUserStats from '@/components/admin/user/AdminUserStats'
 
 function initials(name, fallback) {
   const s = (name || '').trim()
   if (!s) return (fallback || 'U').slice(0, 2).toUpperCase()
-\s]+/)
-  const parts = s.split(/\s+/)
-\s]+/)
+
   return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '') || s[0]).toUpperCase()
 }
 
 export default function AdminUserHeader({ userId }) {
   const [error, setError] = useState('')
 
-  // Use SWR to fetch user by id; server page seeds fallback so this will be instant on SSR render
-  const { data: userRes, error: swrError } = useSWR(
-    userId ? `/users/${userId}` : null,
-    () => api.get(`/users/${userId}`),
+  // Use SWR to fetch profile by user id. Server page seeds `profile` fallback (or profile:<id>) so this will be instant.
+  const { data: profileRes, error: swrError } = useSWR(
+    userId ? `profile:${userId}` : null,
+    () => profileAPI.findProfileByUserId(userId),
     { revalidateOnMount: false, revalidateOnFocus: false }
   )
 
   if (swrError && !error) setError(swrError.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
 
-  const res = userRes?.data || userRes || {}
+  const res = profileRes?.data || profileRes || {}
   const profObj = res.profile || res.Profile?.[0] || res
 
   const firstName = profObj?.firstName || profObj?.firstNameTH || profObj?.firstname || profObj?.name || ''
