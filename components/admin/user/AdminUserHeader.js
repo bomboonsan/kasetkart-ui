@@ -28,9 +28,28 @@ export default function AdminUserHeader({ userId }) {
   const lastName = prof?.lastName || prof?.lastNameTH || prof?.lastname || ''
   const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
   const email = res?.email || prof?.email || ''
-  const orgLine = [res?.Faculty?.name || res?.faculty?.name, res?.Department?.name || res?.department?.name].filter(Boolean).join(' • ')
+  const departmentName = prof?.department?.name || res?.Department?.name || res?.department?.name || '-'
+  const facultyName = res?.Faculty?.name || res?.faculty?.name || ''
+  const orgLine = [facultyName, departmentName].filter(Boolean).join(' • ')
   const jobType = prof?.jobType || ''
   const highDegree = prof?.highDegree || ''
+
+  // Resolve avatar URL similarly to ProfileHeader
+  let avatarUrl = ''
+  try {
+    const candidates = []
+    if (prof?.avatarUrl?.url) candidates.push(prof.avatarUrl.url)
+    if (prof?.avatarUrl) candidates.push(prof.avatarUrl)
+    for (const c of candidates) {
+      if (c) { avatarUrl = c; break }
+    }
+    if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
+      const mediaBase = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337/api').replace(/\/api\/?$/, '')
+      avatarUrl = `${mediaBase}${avatarUrl}`
+    }
+  } catch (e) {
+    // ignore
+  }
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -40,8 +59,8 @@ export default function AdminUserHeader({ userId }) {
         )}
         <div className="flex flex-col lg:flex-row items-start space-y-4 lg:space-y-0 lg:space-x-6">
           <div className="flex-shrink-0">
-            {prof?.avatarUrl ? (
-              <img src={prof.avatarUrl} alt="avatar" className="w-24 h-24 rounded-full object-cover" />
+            {avatarUrl ? (
+              <img src={avatarUrl} alt="avatar" className="w-24 h-24 rounded-full object-cover" />
             ) : (
               <div className="w-24 h-24 rounded-full bg-primary text-white text-2xl font-bold flex items-center justify-center">
                 {initialsFrom(displayName, email)}

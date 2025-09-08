@@ -75,6 +75,9 @@ export default async function AdminUserViewPage({ params }) {
   if (userId && userData) {
     fallback[`/users/${userId}`] = userData
     fallback[`/users/${userId}?populate=*&publicationState=preview`] = userData
+  // Also seed the generic 'profile' SWR key so components that rely on 'profile'
+  // (the public profile page) will render identically when this admin page is shown.
+  fallback['profile'] = userData
   }
   if (userId && worksData) fallback[`/works?pageSize=100&userId=${userId}`] = worksData
   if (userId && userEduData) fallback[`/users/${userId}?populate[educations][populate]=education_level&publicationState=preview`] = userEduData
