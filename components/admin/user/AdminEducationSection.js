@@ -10,8 +10,9 @@ export default function AdminEducationSection({ userId }) {
   const [items, setItems] = useState([])
   const [error, setError] = useState('')
 
+  // Fetch target user with nested educations (mirror profile page pattern)
   const { data: u, error: swrError } = useSWR(
-    userId ? `/users/${userId}` : null,
+    userId ? `/users/${userId}?populate[educations][populate]=education_level&publicationState=preview` : null,
     (k) => api.get(k),
     { revalidateOnMount: false, revalidateOnFocus: false }
   )
@@ -20,11 +21,24 @@ export default function AdminEducationSection({ userId }) {
     if (!u) return
     try {
       const res = u?.data || u || {}
-      const prof = res.profile || res.Profile?.[0] || res || {}
-      const list = []
-      if (prof.highDegree) list.push({ degree: prof.highDegree, school: res?.Faculty?.name || res?.Department?.name || '', period: '' })
-      if (prof.academicRank) list.push({ degree: prof.academicRank, school: res?.Faculty?.name || res?.Department?.name || '', period: '' })
-      setItems(list)
+      const educations = res?.educations || []
+      const mapped = (educations || []).map((edu, idx) => {
+        const documentId = edu?.documentId || edu?.id || undefined
+        const degree = edu?.education_level?.name || (typeof edu?.education_level === 'string' ? edu.education_level : '') || edu?.name || 'ไม่ระบุวุฒิการศึกษา'
+        return {
+          degree,
+          school: edu?.name || 'ไม่ระบุสถาบันการศึกษา',
+          period: edu?.year ? `ปี ${edu.year}` : '',
+          faculty: edu?.faculty || '',
+          documentId,
+          _key: documentId || `${degree}||${edu?.name || ''}||${edu?.year || ''}||${idx}`
+        }
+      })
+      const dedupedMap = new Map()
+      for (const it of mapped) {
+        if (!dedupedMap.has(it.documentId || it._key)) dedupedMap.set(it.documentId || it._key, it)
+      }
+      setItems(Array.from(dedupedMap.values()))
     } catch (e) {
       setError(e.message || 'โหลดข้อมูลการศึกษาไม่สำเร็จ')
     }

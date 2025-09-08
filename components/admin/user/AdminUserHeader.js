@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import useSWR from 'swr'
 import { api } from '@/lib/api'
+import AdminUserStats from '@/components/admin/user/AdminUserStats'
 
 function initialsFrom(name, fallback) {
   const s = (name || '').trim()
@@ -65,6 +66,7 @@ export default function AdminUserHeader({ userId }) {
           </div>
         </div>
       </div>
+      <AdminUserStats userId={userId} />
     </div>
   )
 }
