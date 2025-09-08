@@ -11,11 +11,15 @@ export default function ReportHeader({ selectedReport, onChange }) {
     },
     { 
   value: 'table-b', 
-      label: 'Table 8-1 Part B: Research Output Summary' 
+      label: 'Table 8-1 Part B: Alignment with Mission ' 
     },
     { 
   value: 'table-c', 
-      label: 'Table 8-2: Publication Analytics Report' 
+      label: 'Table 8-1 Part C: Quality of Intellectual Contribution (Multiple counts)' 
+    },
+    { 
+  value: 'table-d', 
+      label: 'Table 8-1 Part C: Quality of Intellectual Contribution (Single count)' 
     }
   ]
 

@@ -2,95 +2,95 @@ export default function ReportTableC() {
   const reportData = [
     {
       discipline: "Accounting",
-      tciTier1: 22.5,
-      tciTier2: 6.0,
-      nonListedTci: 0.0,
-      totalNational: 28.5,
-      aci: 11.0,
-      totalScopus: 15.3,
-      totalWebOfScience: 5,
-      totalAbdc: 4,
-      totalAjg: 4.5,
-      otherPjr: 3,
-      totalInternational: 42.8,
-      totalPublications: 71.3
+  tciTier1: 13.5,
+  tciTier2: 6.0,
+  nonListedTci: 0.0,
+  totalNational: 19.5,
+  aci: 5.0,
+  totalScopus: 15.3,
+  totalWebOfScience: 0,
+  totalAbdc: 0,
+  totalAjg: 0,
+  otherPjr: 3,
+  totalInternational: 23.3,
+  totalPublications: 42.8
     },
     {
       discipline: "Finance",
-      tciTier1: 13.5,
-      tciTier2: 10.5,
-      nonListedTci: 0.0,
-      totalNational: 24.0,
-      aci: 2.0,
-      totalScopus: 17.0,
-      totalWebOfScience: 14,
-      totalAbdc: 7,
-      totalAjg: 7,
-      otherPjr: 1,
-      totalInternational: 48.0,
-      totalPublications: 72.0
+  tciTier1: 11.5,
+  tciTier2: 10.5,
+  nonListedTci: 0.0,
+  totalNational: 22.0,
+  aci: 2.0,
+  totalScopus: 17.0,
+  totalWebOfScience: 0,
+  totalAbdc: 0,
+  totalAjg: 0,
+  otherPjr: 1,
+  totalInternational: 20.0,
+  totalPublications: 42.0
     },
     {
       discipline: "Management",
-      tciTier1: 17.0,
-      tciTier2: 55.3,
-      nonListedTci: 2.0,
-      totalNational: 74.3,
-      aci: 3.3,
-      totalScopus: 22.7,
-      totalWebOfScience: 12,
-      totalAbdc: 7,
-      totalAjg: 5,
-      otherPjr: 4,
-      totalInternational: 54.0,
-      totalPublications: 128.3
+  tciTier1: 14.7,
+  tciTier2: 54.3,
+  nonListedTci: 2.0,
+  totalNational: 71.0,
+  aci: 3.3,
+  totalScopus: 22.7,
+  totalWebOfScience: 0,
+  totalAbdc: 0,
+  totalAjg: 0,
+  otherPjr: 4,
+  totalInternational: 30.0,
+  totalPublications: 101.0
     },
     {
       discipline: "Marketing",
-      tciTier1: 10.7,
-      tciTier2: 24.5,
-      nonListedTci: 1.0,
-      totalNational: 36.2,
-      aci: 6.3,
-      totalScopus: 49.5,
-      totalWebOfScience: 22,
-      totalAbdc: 5,
-      totalAjg: 6.5,
-      otherPjr: 10,
-      totalInternational: 99.3,
-      totalPublications: 135.5
+  tciTier1: 7.3,
+  tciTier2: 21.5,
+  nonListedTci: 1.0,
+  totalNational: 29.8,
+  aci: 6.3,
+  totalScopus: 49.5,
+  totalWebOfScience: 0,
+  totalAbdc: 0,
+  totalAjg: 0,
+  otherPjr: 10,
+  totalInternational: 65.8,
+  totalPublications: 95.7
     },
     {
       discipline: "Technology and Operation Management",
-      tciTier1: 38.3,
-      tciTier2: 18.7,
-      nonListedTci: 0.0,
-      totalNational: 57.0,
-      aci: 21.3,
-      totalScopus: 12.5,
-      totalWebOfScience: 8,
-      totalAbdc: 3,
-      totalAjg: 4,
-      otherPjr: 1,
-      totalInternational: 49.8,
-      totalPublications: 106.8
+  tciTier1: 21.0,
+  tciTier2: 14.7,
+  nonListedTci: 0.0,
+  totalNational: 35.7,
+  aci: 21.3,
+  totalScopus: 12.5,
+  totalWebOfScience: 1,
+  totalAbdc: 0,
+  totalAjg: 0,
+  otherPjr: 1,
+  totalInternational: 35.8,
+  totalPublications: 71.5
     }
   ]
 
   const totalRow = {
     discipline: "Total",
-    tciTier1: 102.0,
-    tciTier2: 115.0,
-    nonListedTci: 3.0,
-    totalNational: 220.0,
-    aci: 44.0,
-    totalScopus: 117.0,
-    totalWebOfScience: 61.0,
-    totalAbdc: 26.0,
-    totalAjg: 27.0,
-    otherPjr: 19.0,
-    totalInternational: 294.0,
-    totalPublications: 514.0
+  tciTier1: 68.0,
+  tciTier2: 107.0,
+  nonListedTci: 3.0,
+  totalNational: 178.0,
+  aci: 38.0,
+  totalScopus: 117.0,
+  totalWebOfScience: 1.0,
+  totalAbdc: 0,
+  totalAjg: 0,
+  otherPjr: 19.0,
+  totalInternational: 175.0,
+  totalPublications: 353.0
   }
 
   return (
@@ -121,7 +121,7 @@ export default function ReportTableC() {
                 className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider"
                 rowSpan="2"
               >
-                Total Publications<br/>(National + International)<br/>with multiple count
+                Total Publications<br/>(National + International)<br/>with single count
               </th>
             </tr>
             <tr>

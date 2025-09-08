@@ -10,55 +10,55 @@ export default function ReportTableB() {
   const totalRow = { discipline: 'Total', teaching: 42.0, research: 653.0, practice: 114.0, societal: 8.0, total: 817.0 }
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden">
+    <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
       <div className="p-4 border-b bg-blue-100">
         <h3 className="text-center text-lg font-bold text-gray-800">Impacts</h3>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full border-collapse">
+        <table className="w-full">
           <thead>
             <tr>
-              <th className="bg-blue-100 px-4 py-3 text-center text-sm font-bold text-gray-800 border">
+              <th className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
                 Discipline
               </th>
-              <th className="bg-blue-100 px-4 py-3 text-center text-sm font-bold text-gray-800 border">
+              <th className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
                 Teaching & Learning Impact
               </th>
-              <th className="bg-blue-100 px-4 py-3 text-center text-sm font-bold text-gray-800 border">
+              <th className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
                 Research & Scholarly Impact
               </th>
-              <th className="bg-blue-100 px-4 py-3 text-center text-sm font-bold text-gray-800 border">
+              <th className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
                 Practice & Community Impact
               </th>
-              <th className="bg-blue-100 px-4 py-3 text-center text-sm font-bold text-gray-800 border">
+              <th className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r">
                 Societal Impact
               </th>
-              <th className="bg-blue-100 px-4 py-3 text-center text-sm font-bold text-gray-800 border">
+              <th className="bg-blue-100 px-4 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
                 Total
               </th>
             </tr>
           </thead>
-          <tbody>
+          <tbody className="bg-white divide-y divide-gray-200">
             {reportData.map((row, idx) => (
-              <tr key={idx}>
-                <td className="px-4 py-3 text-sm text-gray-900 border font-medium">
+              <tr key={idx} className="hover:bg-gray-50">
+                <td className="px-4 py-3 text-sm text-gray-900 border-r font-medium">
                   {row.discipline}
                 </td>
-                <td className="px-4 py-3 text-sm text-center text-gray-900 border">{row.teaching}</td>
-                <td className="px-4 py-3 text-sm text-center text-gray-900 border">{row.research}</td>
-                <td className="px-4 py-3 text-sm text-center text-gray-900 border">{row.practice}</td>
-                <td className="px-4 py-3 text-sm text-center text-gray-900 border">{row.societal}</td>
-                <td className="px-4 py-3 text-sm text-center text-gray-900 border font-bold">{row.total}</td>
+                <td className="px-4 py-3 text-sm text-center text-gray-900 border-r">{row.teaching}</td>
+                <td className="px-4 py-3 text-sm text-center text-gray-900 border-r">{row.research}</td>
+                <td className="px-4 py-3 text-sm text-center text-gray-900 border-r">{row.practice}</td>
+                <td className="px-4 py-3 text-sm text-center text-gray-900 border-r">{row.societal}</td>
+                <td className="px-4 py-3 text-sm text-center text-gray-900 font-medium">{row.total}</td>
               </tr>
             ))}
             
-            <tr className="bg-gray-200 font-bold">
-              <td className="px-4 py-3 text-sm text-gray-900 border font-bold">{totalRow.discipline}</td>
-              <td className="px-4 py-3 text-sm text-center text-gray-900 border">{totalRow.teaching}</td>
-              <td className="px-4 py-3 text-sm text-center text-gray-900 border">{totalRow.research}</td>
-              <td className="px-4 py-3 text-sm text-center text-gray-900 border">{totalRow.practice}</td>
-              <td className="px-4 py-3 text-sm text-center text-gray-900 border">{totalRow.societal}</td>
-              <td className="px-4 py-3 text-sm text-center text-gray-900 border font-bold">{totalRow.total}</td>
+            <tr className="bg-gray-100 font-semibold">
+              <td className="px-4 py-3 text-sm text-gray-900 border-r font-bold">{totalRow.discipline}</td>
+              <td className="px-4 py-3 text-sm text-center text-gray-900 border-r">{totalRow.teaching}</td>
+              <td className="px-4 py-3 text-sm text-center text-gray-900 border-r">{totalRow.research}</td>
+              <td className="px-4 py-3 text-sm text-center text-gray-900 border-r">{totalRow.practice}</td>
+              <td className="px-4 py-3 text-sm text-center text-gray-900 border-r">{totalRow.societal}</td>
+              <td className="px-4 py-3 text-sm text-center text-gray-900 font-bold">{totalRow.total}</td>
             </tr>
           </tbody>
         </table>

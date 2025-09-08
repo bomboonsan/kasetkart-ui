@@ -6,6 +6,7 @@ import ReportFilters from '@/components/report/ReportFilters'
 import ReportTableA from '@/components/report/ReportTableA'
 import ReportTableB from '@/components/report/ReportTableB'
 import ReportTableC from '@/components/report/ReportTableC'
+import ReportTableD from '@/components/report/ReportTableD'
 
 export default function Reports() {
   const [selectedReport, setSelectedReport] = useState('table-a')
@@ -18,6 +19,8 @@ export default function Reports() {
       {selectedReport === 'table-a' && <ReportTableA />}
       {selectedReport === 'table-b' && <ReportTableB />}
       {selectedReport === 'table-c' && <ReportTableC />}
+      {selectedReport === 'table-d' && <ReportTableD />}
+
     </div>
   )
 }

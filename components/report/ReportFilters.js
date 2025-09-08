@@ -10,7 +10,7 @@ export default function ReportFilters() {
   ]
 
   return (
-    <div className="bg-white p-4 rounded-lg border mb-6">
+    <div className="bg-white p-4 rounded-lg border border-gray-200 mb-6">
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">
