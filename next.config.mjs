@@ -8,6 +8,12 @@ const nextConfig = {
                 port: '1337',
                 pathname: '/**',
             },
+            {
+                protocol: 'https',
+                hostname: 'kasetbackend.bomboonsan.com',
+                port: '',
+                pathname: '/**',
+            }
         ],
     },
 };

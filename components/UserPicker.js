@@ -47,7 +47,7 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
   // กรองรายชื่อผู้ใช้จากคำค้นหา โดยค้นจาก firstName/lastName (profile) และอีเมล
   const filtered = users.filter(u => {
     const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
-    const name = ((prof?.firstName || '') + ' ' + (prof?.lastName || '')).toLowerCase()
+    const name = ((prof?.firstNameTH || '') + ' ' + (prof?.lastNameTH || '')).toLowerCase()
     const email = (u.email || '').toLowerCase()
     const q = query.trim().toLowerCase()
     if (!q) return true
@@ -71,7 +71,7 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
           <span className="text-sm text-gray-700">
             {(() => {
               const prof = Array.isArray(selectedUser.profile) ? selectedUser.profile[0] : selectedUser.profile
-              return prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : selectedUser.email
+              return prof ? `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim() : selectedUser.email
             })()}
           </span>
         )}
@@ -105,7 +105,7 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
                     <div className="font-medium text-gray-900">
                       {(() => {
                         const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
-                        return prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email
+                        return prof ? `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim() : u.email
                       })()}
                     </div>
                     <div className="text-xs text-gray-600">{u.email}</div>

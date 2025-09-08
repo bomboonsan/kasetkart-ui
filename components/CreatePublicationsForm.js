@@ -605,7 +605,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
-              required
+              
               value={formData.titleTH}
               onChange={(value) => handleInputChange("titleTH", value)}
               placeholder=""
@@ -613,7 +613,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
 
             <FormTextarea
               label="ชื่อผลงาน (อังกฤษ)"
-              required
+              
               value={formData.titleEN}
               onChange={(value) => handleInputChange("titleEN", value)}
               placeholder=""
@@ -659,14 +659,14 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อวารสาร/แหล่งตีพิมพ์"
-              required
+              
               value={formData.journalName}
               onChange={(value) => handleInputChange("journalName", value)}
               placeholder=""
             />
     <ProjectPicker
               label="โครงการวิจัย"
-              required
+              
               selectedProject={formData.__projectObj}
               onSelect={(p) => {
                 setFormData(prev => ({
@@ -681,7 +681,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
             />
             <FormInput
               label="DOI (ถ้าไม่มีให้ใส่ “-”)"
-              required
+              
               type="text"
               value={formData.doi}
               onChange={(value) => handleInputChange("doi", value)}
@@ -689,7 +689,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
             />
             <FormInput
               label="ISSN (ถ้ามี)"
-              required
+              
               type="text"
               value={formData.isbn}
               onChange={(value) => handleInputChange("isbn", value)}
@@ -767,11 +767,11 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
               value2={formData.pageEnd}
               onChange={(value, field) => handleInputChange(field, value)}
               placeholder=""
-              required
+              
             />
             {/* <FormRadio
               inline={true}
-              required
+              
               label="การนำเสนอผลงาน"
               options={[
                 {
@@ -788,7 +788,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
             />            
             <FormRadio
               inline={true}
-              required
+              
               label="ประเภทการนำเสนอ"
               options={[
                 {
@@ -809,7 +809,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
             />
             <FormRadio
               inline={true}
-              required
+              
               label="ลักษณะของบทความ"
               options={[
                 {
@@ -829,7 +829,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           {/* <FormFieldBlock>
             <FormTextarea
               label="กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)"
-              required
+              
               value={formData.fundName}
               onChange={(value) => handleInputChange("fundName", value)}
               placeholder=""
@@ -840,7 +840,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormRadio
               inline={true}
-              required
+              
               label="ระดับการตีพิมพ์"
               options={[
                 {
@@ -1019,7 +1019,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อแหล่งทุน"
-              required
+              
               value={formData.fundName}
               onChange={(value) => handleInputChange("fundName", value)}
               placeholder=""
@@ -1028,7 +1028,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)"
-              required
+              
               value={formData.keywords}
               onChange={(value) => handleInputChange("keywords", value)}
               placeholder=""
@@ -1037,14 +1037,14 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
-              required
+              
               value={formData.abstractTH}
               onChange={(value) => handleInputChange("abstractTH", value)}
               placeholder=""
             />
             <FormTextarea
               label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
-              required
+              
               value={formData.abstractEN}
               onChange={(value) => handleInputChange("abstractEN", value)}
               placeholder=""
