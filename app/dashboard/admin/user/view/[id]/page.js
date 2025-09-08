@@ -11,18 +11,38 @@ export default async function AdminUserViewPage({ params }) {
   let userData = null
   let worksData = null
   let userEduData = null
+  let profileData = null
   let fetchError = ''
 
   if (userId) {
       try {
-        // First, try to find a profile associated with this user (mimics profileAPI.findProfileByUserId)
+        // Determine numeric user id for profile lookup. If route param is a documentId,
+        // resolve to the real numeric id first by querying users?filters[documentId]...
+        let targetUserId = userId
+        if (!/^[0-9]+$/.test(String(userId))) {
+          try {
+            const lookup = (typeof serverGet === 'function')
+              ? await serverGet(`/users?filters[documentId][$eq]=${encodeURIComponent(userId)}&publicationState=preview&populate=`)
+              : await api.get(`/users?filters[documentId][$eq]=${encodeURIComponent(userId)}&publicationState=preview&populate=`)
+            const arr = lookup?.data || lookup || []
+            const found = Array.isArray(arr) ? (arr[0] || null) : (arr || null)
+            if (found && (found.id || found.data?.id)) {
+              targetUserId = found.id || found.data.id
+            }
+          } catch (_) {
+            // couldn't resolve documentId -> id, keep original userId
+          }
+        }
+
+        // Now look up profile using the real numeric user id
         try {
           if (typeof serverGet === 'function') {
-            const p = await serverGet(`/profiles?filters[user][id][$eq]=${userId}&publicationState=preview&populate=*`)
+            const p = await serverGet(`/profiles?filters[user][id][$eq]=${targetUserId}&publicationState=preview&populate=*`)
             const parr = p?.data || p || []
             profileData = Array.isArray(parr) ? (parr[0] || null) : (parr || null)
           } else {
-            const p = await profileAPI.findProfileByUserId(userId)
+            // reuse helper when on client fallback (unlikely on server)
+            const p = await profileAPI.findProfileByUserId(targetUserId)
             profileData = p || null
           }
         } catch (pe) {
@@ -31,7 +51,7 @@ export default async function AdminUserViewPage({ params }) {
 
         // Then fetch the user object (populated) and merge profile into it so client components
         // that expect /users/:id or 'profile' shapes receive a unified object.
-        const baseEndpoint = `/users/${userId}?populate=*&publicationState=preview`
+        const baseEndpoint = `/users/${targetUserId}?populate=*&publicationState=preview`
         if (typeof serverGet === 'function') {
           const u = await serverGet(baseEndpoint)
           userData = u?.data || u || null
