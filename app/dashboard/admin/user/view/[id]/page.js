@@ -119,6 +119,14 @@ export default async function AdminUserViewPage({ params }) {
   // (the public profile page) will render identically when this admin page is shown.
   fallback['profile'] = userData
   }
+  // Seed the profile:<id> key used by AdminUserHeader which calls
+  // profileAPI.findProfileByUserId(userId) and expects a profile object.
+  // Prefer the explicit profileData fetched above; fall back to userData.profile
+  // or the userData object if necessary so client-side SWR won't refetch.
+  if (userId) {
+    const profFallback = profileData || (userData && userData.profile) || userData || null
+    if (profFallback) fallback[`profile:${userId}`] = profFallback
+  }
   if (userId && worksData) fallback[`/works?pageSize=100&userId=${userId}`] = worksData
   if (userId && userEduData) fallback[`/users/${userId}?populate[educations][populate]=education_level&publicationState=preview`] = userEduData
 
