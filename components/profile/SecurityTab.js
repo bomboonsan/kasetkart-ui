@@ -5,6 +5,7 @@ import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
+import { authAPI } from '@/lib/api'
 
 export default function SecurityTab() {
 
@@ -14,6 +15,9 @@ export default function SecurityTab() {
   const [showCurrent, setShowCurrent] = useState(false)
   const [showNew, setShowNew] = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [errorMsg, setErrorMsg] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
 
   return (
     <div className="bg-white rounded-lg shadow-sm mt-6">
@@ -125,9 +129,57 @@ export default function SecurityTab() {
           </ul>
         </div>
 
+        {errorMsg ? (
+          <div className="p-2 rounded bg-red-50 text-red-700 text-sm border border-red-200">{errorMsg}</div>
+        ) : null}
+        {successMsg ? (
+          <div className="p-2 rounded bg-green-50 text-green-700 text-sm border border-green-200">{successMsg}</div>
+        ) : null}
+
         <div className="flex items-center gap-3">
-          <Button variant="primary" onClick={() => { /* save passwords (silent) */ }}>
-            บันทึก
+          <Button
+            variant="primary"
+            onClick={async () => {
+              setErrorMsg('')
+              setSuccessMsg('')
+              // Basic validation
+              if (!currentPassword) {
+                setErrorMsg('กรุณากรอกรหัสผ่านปัจจุบัน')
+                return
+              }
+              if (!newPassword) {
+                setErrorMsg('กรุณากรอกรหัสผ่านใหม่')
+                return
+              }
+              if (newPassword !== confirmPassword) {
+                setErrorMsg('รหัสผ่านใหม่ไม่ตรงกัน')
+                return
+              }
+              // Password policy: min 8, upper, lower, digit, special
+              const checks = [/.{8,}/, /[A-Z]/, /[a-z]/, /[0-9]/, /[^A-Za-z0-9]/]
+              const failed = checks.some((rx) => !rx.test(newPassword))
+              if (failed) {
+                setErrorMsg('รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัว และประกอบด้วย พิมพ์ใหญ่, พิมพ์เล็ก, ตัวเลข และอักขระพิเศษ')
+                return
+              }
+
+              setLoading(true)
+              try {
+                const res = await authAPI.changePassword(currentPassword, newPassword, confirmPassword)
+                // Strapi may return object or message; normalize
+                setSuccessMsg('เปลี่ยนรหัสผ่านเรียบร้อย')
+                setCurrentPassword('')
+                setNewPassword('')
+                setConfirmPassword('')
+              } catch (e) {
+                setErrorMsg(e?.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้')
+              } finally {
+                setLoading(false)
+              }
+            }}
+            disabled={loading}
+          >
+            {loading ? 'กำลังบันทึก...' : 'บันทึก'}
           </Button>
           <Button variant="outline" onClick={() => { setCurrentPassword(''); setNewPassword(''); setConfirmPassword('') }}>
             รีเซต
