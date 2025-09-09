@@ -66,13 +66,13 @@ export default function CreateResearchForm() {
   // Align form keys to Project model in schema.prisma
   const [formData, setFormData] = useState({
     fiscalYear: "2568", // ปีงบประมาณ (Int)
-    projectType: 0, // ประเภทโครงการ (Int)
-    projectMode: 0, // ลักษณะโครงการวิจัย (Int)
-    subProjectCount: 0, // จำนวนโครงการย่อย (Int)
+    projectType: "", // ประเภทโครงการ (Int)
+    projectMode: "", // ลักษณะโครงการวิจัย (Int)
+    subProjectCount: "", // จำนวนโครงการย่อย (Int)
     nameTH: "", // ชื่อโครงการ (ภาษาไทย) (String) - fixed field name
     nameEN: "", // ชื่อโครงการ (ภาษาอังกฤษ) (String)
 
-    isEnvironmentallySustainable: 0, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
+    isEnvironmentallySustainable: "", // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
     durationStart: "", // ระยะเวลาการทำวิจัย (Date)
     durationEnd: "", // ระยะเวลาการทำวิจัย (Date)
 

@@ -34,7 +34,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
     titleTH: "", // ชื่อผลงาน (ไทย)
     titleEN: "", // ชื่อผลงาน (อังกฤษ)
     detail: "", // รายละเอียดเบื้องต้นของหนังสือ หรือ ตำรา
-    level: 0, // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
+    level: "", // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
     publicationDate: "", // วันที่เกิดผลงาน (Date)
     attachments: [],
     writers: [], // Writers array for dynamic management

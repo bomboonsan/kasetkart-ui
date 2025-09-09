@@ -37,20 +37,20 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
     isbn: "", // ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)
     durationStart: "", // ระยะเวลาการทำวิจัย (Date)
     durationEnd: "", // ระยะเวลาการทำวิจัย (Date)
-    cost: 0, // ค่าใช้จ่าย (Int)
-    costType: 0, // ค่าใช้จ่ายมาจาก  (Int) Value จาก select
+    cost: "", // ค่าใช้จ่าย (Int)
+    costType: "", // ค่าใช้จ่ายมาจาก  (Int) Value จาก select
     __projectObj: undefined, // สำหรับเก็บ object โครงการวิจัยที่เลือก
-    presentationWork: 0, // การนำเสนอผลงาน (Int) 0=ได้รับเชิญ (Invited Paper.), 1=เสนอเอง
-    presentType: 0, // ประเภทการนำเสนอ (Int) 0=ภาคบรรยาย (Oral), 1=ภาคโปสเตอร์ (Poster), 2=เข้าร่วมประชุมวิชาการ
-    articleType: 0, // ประเภทบทความ (Int) 0=Abstract อย่างเดียว, 1=เรื่องเต็ม
+    presentationWork: "", // การนำเสนอผลงาน (Int) 0=ได้รับเชิญ (Invited Paper.), 1=เสนอเอง
+    presentType: "", // ประเภทการนำเสนอ (Int) 0=ภาคบรรยาย (Oral), 1=ภาคโปสเตอร์ (Poster), 2=เข้าร่วมประชุมวิชาการ
+    articleType: "", // ประเภทบทความ (Int) 0=Abstract อย่างเดียว, 1=เรื่องเต็ม
     abstractTH: "", // บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)
     abstractEN: "", // บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)
     summary: "", // กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)
     keywords: "", // คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)
-    level: 0, // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
-    countryCode: 0, // รหัสประเทศ   (Int) Value จาก select
-    state: 0, // รัฐ/จังหวัด   (Int) Value จาก select
-    city: 0, // เมือง   (Int) Value จาก select
+    level: "", // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
+    countryCode: "", // รหัสประเทศ   (Int) Value จาก select
+    state: "", // รัฐ/จังหวัด   (Int) Value จาก select
+    city: "", // เมือง   (Int) Value จาก select
     fundName: "", // ชื่อแหล่งทุน (String)
     attachments: [],
   });

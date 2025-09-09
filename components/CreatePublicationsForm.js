@@ -43,13 +43,13 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
     journalName: "", // ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)
     doi: "", // DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI
     isbn: "", // ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)
-    volume: 0, // ปีที่ (Volume) (Int)
-    issue: 0, // ฉบับที่ (Issue) (Int)
+    volume: "", // ปีที่ (Volume) (Int)
+    issue: "", // ฉบับที่ (Issue) (Int)
     durationStart: "", // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
     durationEnd: "", // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
-    pageStart: 0, // หน้าเริ่มต้น (Int)
-    pageEnd: 0, // หน้าสิ้นสุด (Int)
-    level: 0, // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
+    pageStart: "", // หน้าเริ่มต้น (Int)
+    pageEnd: "", // หน้าสิ้นสุด (Int)
+    level: "", // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
     isJournalDatabase: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูลหรือไม่
     isScopus: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล Scopus หรือไม่
     scopusType: 0, // Scopus (ถ้าเลือก) (Int) Value จาก select
