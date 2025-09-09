@@ -105,10 +105,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
 
       // Refresh data and navigate
       mutate('project-fundings') // SWR key to revalidate
-      setTimeout(() => {
-        // Navigate to a relevant page, e.g., a list of fundings
-        router.push('/dashboard') 
-      }, 1700)
+      setTimeout(() => router.push('/form/overview'), 1200)
 
     } catch (err) {
       const errorMsg = err?.response?.data?.error?.message || err?.message || 'เกิดข้อผิดพลาดในการบันทึก'

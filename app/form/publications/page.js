@@ -99,7 +99,7 @@ export default function PublicationsPage() {
     <div className="space-y-6">
       <div className='flex justify-between items-center'>
         <PageHeader title="ตีพิมพ์ทางวิชาการ" showAddButton={false} />
-        <Link href="/form/create/publication">
+        <Link href="/form/create/publications">
           <Button variant="primary">เพิ่มตีพิมพ์ทางวิชาการใหม่</Button>
         </Link>
       </div>

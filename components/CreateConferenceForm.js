@@ -162,9 +162,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
 
       // Refresh data and navigate
       mutate('work-conferences')
-      setTimeout(() => {
-        router.push('/works/conferences')
-      }, 1700)
+      setTimeout(() => router.push('/form/overview'), 1200)
 
     } catch (err) {
         const msg = err?.response?.data?.error?.message || err?.message || 'เกิดข้อผิดพลาด'
@@ -190,7 +188,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
         )}
-        <FormSection>
+        {/* <FormSection>
           <FormFieldBlock>
             <ProjectPicker
               label="โครงการวิจัย"
@@ -202,7 +200,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
               }}
             />
           </FormFieldBlock>
-        </FormSection>
+        </FormSection> */}
 
         <FormSection>
           <FormFieldBlock>

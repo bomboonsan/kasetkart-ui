@@ -129,9 +129,7 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
 
       mutate('work-books') // SWR key to revalidate
       
-      setTimeout(() => {
-        router.push('/works') // Navigate back to works list
-      }, 1700)
+      setTimeout(() => router.push('/form/overview'), 1200)
       
     } catch (error) {
         const msg = error?.response?.data?.error?.message || error?.message || 'เกิดข้อผิดพลาด'

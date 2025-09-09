@@ -582,7 +582,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
 
       // Refresh list and navigate back
       mutate('work-publications')
-      setTimeout(() => router.push('/works/publications'), 1200)
+      setTimeout(() => router.push('/form/overview'), 1200)
     } catch (err) {
       setError(err.message || 'บันทึกไม่สำเร็จ')
     } finally {
