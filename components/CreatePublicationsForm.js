@@ -47,8 +47,8 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
     issue: "", // ฉบับที่ (Issue) (Int)
     durationStart: "", // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
     durationEnd: "", // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
-    pageStart: "", // หน้าเริ่มต้น (Int)
-    pageEnd: "", // หน้าสิ้นสุด (Int)
+    pageStart: 0, // หน้าเริ่มต้น (Int)
+    pageEnd: 0, // หน้าสิ้นสุด (Int)
     level: "", // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
     isJournalDatabase: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูลหรือไม่
     isScopus: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล Scopus หรือไม่
