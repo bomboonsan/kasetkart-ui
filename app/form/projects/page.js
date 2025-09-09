@@ -33,28 +33,55 @@ export default function ProjectsPage() {
     setError('')
     
     try {
-      const params = {
-        'pagination[page]': currentPage,
-        'pagination[pageSize]': pageSize,
-        sort: `${sortBy}:${sortOrder}`,
-        populate: '*'
-      }
+      // Get projects for current user only
+      // projectAPI.getMyProjects will fetch current user and filter projects
+      const response = await projectAPI.getMyProjects()
+      let list = response?.data || response || []
 
-      // Add search filter if provided
+      // Client-side search (case-insensitive) on nameTh / nameEN
       if (searchTitle.trim()) {
-        params['filters[nameTh][$containsi]'] = searchTitle.trim()
+        const q = searchTitle.trim().toLowerCase()
+        list = list.filter(p => {
+          const a = (p.nameTH || p.nameTh || p.nameTh || '')
+          const b = (p.nameEN || p.nameEn || p.nameEN || '')
+          return (String(a).toLowerCase().includes(q) || String(b).toLowerCase().includes(q))
+        })
       }
 
-      const response = await projectAPI.getProjects(params)
-      
-      // Handle different response structures
-      const data = response?.data || response || []
-      const meta = response?.meta || {}
-      const pagination = meta.pagination || {}
-      
-      setProjects(data)
-      setTotalItems(pagination.total || data.length)
-      setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
+      // Client-side sort
+      const compare = (a, b) => {
+        const av = a?.[sortBy] || a?.[camelCase(sortBy)] || ''
+        const bv = b?.[sortBy] || b?.[camelCase(sortBy)] || ''
+        if (av == null && bv == null) return 0
+        if (av == null) return 1
+        if (bv == null) return -1
+        if (sortBy.toLowerCase().includes('date') || sortBy.toLowerCase().includes('at') || /updatedAt|createdAt/.test(sortBy)) {
+          return (new Date(av)) - (new Date(bv))
+        }
+        if (typeof av === 'number' && typeof bv === 'number') return av - bv
+        return String(av).localeCompare(String(bv))
+      }
+
+      // helper: convert camelCase/field mapping
+      function camelCase(s) {
+        return s.replace(/[:_-].|\s+./g, x => x.slice(-1).toUpperCase())
+      }
+
+      list.sort((a, b) => {
+        const res = compare(a, b)
+        return sortOrder === 'asc' ? res : -res
+      })
+
+      const total = list.length
+      const pageCount = Math.max(1, Math.ceil(total / pageSize))
+
+      // pagination slice (1-based page)
+      const start = (currentPage - 1) * pageSize
+      const paged = list.slice(start, start + pageSize)
+
+      setProjects(paged)
+      setTotalItems(total)
+      setTotalPages(pageCount)
       
     } catch (err) {
   setError('ไม่สามารถโหลดข้อมูลโครงการได้')
