@@ -77,90 +77,6 @@ const menuItems = [
     ]
   },
 ];
-let adminMenuItems;
-if (role == "Admin") {
-  adminMenuItems = [
-    {
-      id: "form/overview",
-      url: "/dashboard/admin/form/overview",
-      icon: <FileUser />,
-      label: "โครงการทั้งหมด",
-      active: false,
-    },
-    {
-      id: "dashboard/user/manage",
-      url: "#",
-      icon: <UsersRound />,
-      label: "จัดการผู้ใช้",
-      active: false,
-      children: [
-        {
-          id: "dashboard/admin/manage-users",
-          url: "/dashboard/admin/manage-users",
-          icon: <UsersRound />,
-          label: "รายชื่อผู้ใช้",
-          active: false,
-        },
-        {
-          id: "dashboard/admin/add-user",
-          url: "/dashboard/admin/add-user",
-          icon: <UsersRound />,
-          label: "เพิ่มผู้ใช้",
-          active: false,
-        },
-      ],
-    },
-  ];
-}
-if (role == "Super admin") {
-  adminMenuItems = [
-    {
-      id: "dashbaord",
-      url: "/dashboard",
-      icon: <LayoutDashboard />,
-      label: "แดชบอร์ด",
-      active: false,
-    },
-    {
-      id: "reports",
-      url: "/dashboard/report",
-      icon: <ChartArea />,
-      label: "ดูรายงาน",
-      active: false,
-    },
-    {
-      id: "form/overview",
-      url: "/dashboard/admin/form/overview",
-      icon: <FileUser />,
-      label: "โครงการทั้งหมด",
-      active: false,
-    },
-    {
-      id: "dashboard/user/manage",
-      url: "#",
-      icon: <UsersRound />,
-      label: "จัดการผู้ใช้",
-      active: false,
-      children: [
-        {
-          id: "dashboard/admin/manage-users",
-          url: "/dashboard/admin/manage-users",
-          icon: <UsersRound />,
-          label: "รายชื่อผู้ใช้",
-          active: false,
-        },
-        {
-          id: "dashboard/admin/add-user",
-          url: "/dashboard/admin/add-user",
-          icon: <UsersRound />,
-          label: "เพิ่มผู้ใช้",
-          active: false,
-        },
-      ],
-    },
-  ];
-}
-
 
 export default function Sidebar() {
   const router = useRouter();
@@ -234,6 +150,90 @@ export default function Sidebar() {
 
     return () => { mounted = false }
   }, [])
+
+  let adminMenuItems;
+  if (role == "Admin") {
+    adminMenuItems = [
+      {
+        id: "form/overview",
+        url: "/dashboard/admin/form/overview",
+        icon: <FileUser />,
+        label: "โครงการทั้งหมด",
+        active: false,
+      },
+      {
+        id: "dashboard/user/manage",
+        url: "#",
+        icon: <UsersRound />,
+        label: "จัดการผู้ใช้",
+        active: false,
+        children: [
+          {
+            id: "dashboard/admin/manage-users",
+            url: "/dashboard/admin/manage-users",
+            icon: <UsersRound />,
+            label: "รายชื่อผู้ใช้",
+            active: false,
+          },
+          {
+            id: "dashboard/admin/add-user",
+            url: "/dashboard/admin/add-user",
+            icon: <UsersRound />,
+            label: "เพิ่มผู้ใช้",
+            active: false,
+          },
+        ],
+      },
+    ];
+  }
+  if (role == "Super admin") {
+    adminMenuItems = [
+      {
+        id: "dashbaord",
+        url: "/dashboard",
+        icon: <LayoutDashboard />,
+        label: "แดชบอร์ด",
+        active: false,
+      },
+      {
+        id: "reports",
+        url: "/dashboard/report",
+        icon: <ChartArea />,
+        label: "ดูรายงาน",
+        active: false,
+      },
+      {
+        id: "form/overview",
+        url: "/dashboard/admin/form/overview",
+        icon: <FileUser />,
+        label: "โครงการทั้งหมด",
+        active: false,
+      },
+      {
+        id: "dashboard/user/manage",
+        url: "#",
+        icon: <UsersRound />,
+        label: "จัดการผู้ใช้",
+        active: false,
+        children: [
+          {
+            id: "dashboard/admin/manage-users",
+            url: "/dashboard/admin/manage-users",
+            icon: <UsersRound />,
+            label: "รายชื่อผู้ใช้",
+            active: false,
+          },
+          {
+            id: "dashboard/admin/add-user",
+            url: "/dashboard/admin/add-user",
+            icon: <UsersRound />,
+            label: "เพิ่มผู้ใช้",
+            active: false,
+          },
+        ],
+      },
+    ];
+  }
 
   function toggleGroup(id) {
     setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))
