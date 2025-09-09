@@ -12,7 +12,7 @@ function initials(name, fallback) {
   const s = (name || '').trim()
   if (!s) return (fallback || 'U').slice(0, 2).toUpperCase()
 
-  return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '') || s[0]).toUpperCase()
+  // return ((parts[0]?.[0] || '') + (parts[1]?.[0] || '') || s[0]).toUpperCase()
 }
 
 export default function AdminUserHeader({ userId }) {
