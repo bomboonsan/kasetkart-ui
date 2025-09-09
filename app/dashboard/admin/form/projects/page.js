@@ -12,6 +12,7 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  console.log('AdminProjectsPage render', projects)
   
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
@@ -42,8 +43,8 @@ export default function AdminProjectsPage() {
 
       // Add search filter if provided
       if (searchTitle.trim()) {
-        params['filters[$or][0][nameTh][$containsi]'] = searchTitle.trim()
-        params['filters[$or][1][nameEn][$containsi]'] = searchTitle.trim()
+        params['filters[$or][0][nameTH][$containsi]'] = searchTitle.trim()
+        params['filters[$or][1][nameEN][$containsi]'] = searchTitle.trim()
       }
 
       const response = await projectAPI.getProjects(params)
@@ -221,10 +222,10 @@ export default function AdminProjectsPage() {
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {project.nameTh || project.nameEn || 'ไม่ระบุชื่อ'}
+                          {project.nameTH || project.nameEN || 'ไม่ระบุชื่อ'}
                         </div>
-                        {project.nameEn && project.nameTh && (
-                          <div className="text-sm text-gray-500">{project.nameEn}</div>
+                        {project.nameEN && project.nameTH && (
+                          <div className="text-sm text-gray-500">{project.nameEN}</div>
                         )}
                       </div>
                     </td>
@@ -248,13 +249,13 @@ export default function AdminProjectsPage() {
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
                         <Link 
-                          href={`/research/view/${project.documentId || project.id}`}
+                          href={`/form/view/project/${project.documentId || project.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
                         <Link 
-                          href={`/research/edit/${project.documentId || project.id}`}
+                          href={`/form/edit/project/${project.documentId || project.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           แก้ไข

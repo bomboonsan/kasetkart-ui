@@ -6,7 +6,7 @@ import Checkbox from './Checkbox'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { authAPI } from '@/lib/api'
-import { isAuthenticated } from '@/lib/auth'
+import { isAuthenticated, getUserRole } from '@/lib/auth'
 
 export default function LoginForm() {
   const router = useRouter()
@@ -22,7 +22,14 @@ export default function LoginForm() {
     // ถ้าล็อกอินแล้วให้ redirect ไป dashboard
     if (isAuthenticated()) {
       const next = searchParams.get('next')
-      router.push(next || '/dashboard')
+
+      // check role
+      const userRole = getUserRole() // Assume this function retrieves the user's role
+      if (userRole === 'Admin' || userRole === 'Super admin') {
+        router.push(next || '/dashboard')
+      } else {
+        router.push(next || '/profile')
+      }
     }
   }, [router, searchParams])
 
@@ -48,7 +55,13 @@ export default function LoginForm() {
         
         // Redirect to intended page or dashboard
         const next = searchParams.get('next')
-        router.push(next || '/dashboard')
+        // check role
+        const userRole = getUserRole() // Assume this function retrieves the user's role
+        if (userRole === 'Admin' || userRole === 'Super admin') {
+          router.push(next || '/dashboard')
+        } else {
+          router.push(next || '/profile')
+        }
       } else {
         setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ')
       }

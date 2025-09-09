@@ -57,7 +57,7 @@ export default function MyOverviewPage() {
           <div key={section.href} className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
             <Link href={section.href} className="block p-6">
               <div className="flex items-center space-x-4 mb-4">
-                <div className="text-3xl">{section.icon}</div>
+                {/* <div className="text-3xl">{section.icon}</div> */}
                 <h3 className="text-xl font-semibold text-gray-900">{section.title}</h3>
               </div>
               <p className="text-gray-600 mb-4">{section.description}</p>

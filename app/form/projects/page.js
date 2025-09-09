@@ -240,13 +240,13 @@ export default function ProjectsPage() {
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
                         <Link 
-                          href={`/research/view/${project.documentId || project.id}`}
+                          href={`/form/view/project/${project.documentId || project.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
-                        <Link 
-                          href={`/research/edit/${project.documentId || project.id}`}
+                        <Link
+                          href={`/form/edit/project/${project.documentId || project.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           แก้ไข

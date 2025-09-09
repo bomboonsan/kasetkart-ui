@@ -236,10 +236,10 @@ export default function AdminConferencesPage() {
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {conference.titleTh || conference.titleEn || 'ไม่ระบุชื่อ'}
+                          {conference.titleTH || conference.titleEN || 'ไม่ระบุชื่อ'}
                         </div>
-                        {conference.titleEn && conference.titleTh && (
-                          <div className="text-sm text-gray-500">{conference.titleEn}</div>
+                        {conference.titleEN && conference.titleTH && (
+                          <div className="text-sm text-gray-500">{conference.titleEN}</div>
                         )}
                       </div>
                     </td>
@@ -272,13 +272,13 @@ export default function AdminConferencesPage() {
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
                         <Link 
-                          href={`/work/conference/view/${conference.documentId || conference.id}`}
+                          href={`/form/view/conference/${conference.documentId || conference.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
                         <Link 
-                          href={`/work/conference/edit/${conference.documentId || conference.id}`}
+                          href={`/form/edit/conference/${conference.documentId || conference.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           แก้ไข

@@ -244,14 +244,14 @@ export default function PublicationsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Link 
-                          href={`/form/view/publication/${publication.documentId || publication.id}`}
+                        <Link
+                          href={`/form/view/publications/${publication.documentId || publication.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
-                        <Link 
-                          href={`/form/edit/publication/${publication.documentId || publication.id}`}
+                        <Link
+                          href={`/form/edit/publications/${publication.documentId || publication.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           แก้ไข

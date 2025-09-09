@@ -4,7 +4,7 @@ export default function ProfileEditTabs({ activeTab, onTabChange }) {
   const tabs = [
     { id: 'general', label: 'บัญชีของฉัน', icon: <User /> },
     { id: 'security', label: 'ตั้งค่าความปลอดภัย', icon: <LockKeyhole /> },
-    { id: 'notification', label: 'การแจ้งเตือน', icon: <Bell /> }
+    // { id: 'notification', label: 'การแจ้งเตือน', icon: <Bell /> }
   ]
 
   return (

@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader'
 export default function AdminFundsPage() {
   const router = useRouter()
   const [funds, setFunds] = useState([])
+  console.log('AdminFundsPage render', funds)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   
@@ -232,11 +233,8 @@ export default function AdminFundsPage() {
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {fund.nameTh || fund.nameEn || 'ไม่ระบุชื่อ'}
+                          {fund.fundTypeText || 'ไม่ระบุชื่อ'}
                         </div>
-                        {fund.nameEn && fund.nameTh && (
-                          <div className="text-sm text-gray-500">{fund.nameEn}</div>
-                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
@@ -262,13 +260,13 @@ export default function AdminFundsPage() {
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
                         <Link 
-                          href={`/funding/view/${fund.documentId || fund.id}`}
+                          href={`/form/view/funding/${fund.documentId || fund.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
                         <Link 
-                          href={`/funding/edit/${fund.documentId || fund.id}`}
+                          href={`/form/edit/funding/${fund.documentId || fund.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           แก้ไข

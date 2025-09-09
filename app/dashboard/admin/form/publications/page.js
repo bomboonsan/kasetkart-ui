@@ -229,10 +229,10 @@ export default function AdminPublicationsPage() {
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {publication.titleTh || publication.titleEn || 'ไม่ระบุชื่อ'}
+                          {publication.titleTH || publication.titleEN || 'ไม่ระบุชื่อ'}
                         </div>
-                        {publication.titleEn && publication.titleTh && (
-                          <div className="text-sm text-gray-500">{publication.titleEn}</div>
+                        {publication.titleEN && publication.titleTH && (
+                          <div className="text-sm text-gray-500">{publication.titleEN}</div>
                         )}
                       </div>
                     </td>
@@ -262,13 +262,13 @@ export default function AdminPublicationsPage() {
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
                         <Link 
-                          href={`/work/publication/view/${publication.documentId || publication.id}`}
+                          href={`/form/view/publications/${publication.documentId || publication.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
                         <Link 
-                          href={`/work/publication/edit/${publication.documentId || publication.id}`}
+                          href={`/form/edit/publications/${publication.documentId || publication.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           แก้ไข

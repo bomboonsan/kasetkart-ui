@@ -28,7 +28,9 @@ export default function AdminUserHeader({ userId }) {
   if (swrError && !error) setError(swrError.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
 
   const res = profileRes?.data || profileRes || {}
+  console.log('AdminUserHeader profile res', res)
   const profObj = res.profile || res.Profile?.[0] || res
+  
 
   const firstName = profObj?.firstName || profObj?.firstNameTH || profObj?.firstname || profObj?.name || ''
   const lastName = profObj?.lastName || profObj?.lastNameTH || profObj?.lastname || ''

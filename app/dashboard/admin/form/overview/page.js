@@ -55,9 +55,9 @@ export default function AdminOverviewPage() {
             <div className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1">
               <div className="p-6">
                 <div className="flex items-center space-x-4 mb-4">
-                  <div className={`w-12 h-12 ${section.color} rounded-lg flex items-center justify-center text-white text-2xl`}>
+                  {/* <div className={`w-12 h-12 ${section.color} rounded-lg flex items-center justify-center text-white text-2xl`}>
                     {section.icon}
-                  </div>
+                  </div> */}
                   <h3 className="text-xl font-semibold text-gray-900">{section.title}</h3>
                 </div>
                 <p className="text-gray-600 mb-4">{section.description}</p>
