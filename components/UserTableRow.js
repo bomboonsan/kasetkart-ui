@@ -111,15 +111,7 @@ export default function UserTableRow({ user, onAction }) {
               <div className="py-1">
 
                 <Link href={`/dashboard/admin/user/view/${user.documentId}`} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">                
-                  <button
-                    // onClick={() => {
-                    //   onAction("view", user);
-                    //   setShowDropdown(false);
-                    // }}
-                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
-                  >
                   ดูรายละเอียด
-                  </button>
                 </Link>
                 <button
                   onClick={() => {
