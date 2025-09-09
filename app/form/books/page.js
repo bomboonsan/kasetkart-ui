@@ -33,29 +33,39 @@ export default function BooksPage() {
     setError('')
     
     try {
-      const params = {
-        'pagination[page]': currentPage,
-        'pagination[pageSize]': pageSize,
-        sort: `${sortBy}:${sortOrder}`,
-        populate: '*'
-      }
+      // Use API helper to fetch current user's books
+      const response = await worksAPI.getMyBooks()
+      let list = response?.data || response || []
 
-      // Add search filter if provided
+      // Client-side search across titleTH/titleEN
       if (searchTitle.trim()) {
-        params['filters[$or][0][titleTH][$containsi]'] = searchTitle.trim()
-        params['filters[$or][1][titleEN][$containsi]'] = searchTitle.trim()
+        const q = searchTitle.trim().toLowerCase()
+        list = list.filter(b => (String(b.titleTH || b.titleTh || '').toLowerCase().includes(q) || String(b.titleEN || b.titleEn || '').toLowerCase().includes(q)))
       }
 
-      const response = await worksAPI.getBooks(params)
-      
-      // Handle different response structures
-      const data = response?.data || response || []
-      const meta = response?.meta || {}
-      const pagination = meta.pagination || {}
-      
-      setBooks(data)
-      setTotalItems(pagination.total || data.length)
-      setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
+      // Client-side sort
+      function camelCase(s) { return s.replace(/[:_-].|\s+./g, x => x.slice(-1).toUpperCase()) }
+      const compare = (a, b) => {
+        const av = a?.[sortBy] || a?.[camelCase(sortBy)] || ''
+        const bv = b?.[sortBy] || b?.[camelCase(sortBy)] || ''
+        if (av == null && bv == null) return 0
+        if (av == null) return 1
+        if (bv == null) return -1
+        if (/updatedAt|createdAt|occurredAt/.test(sortBy)) return (new Date(av)) - (new Date(bv))
+        if (typeof av === 'number' && typeof bv === 'number') return av - bv
+        return String(av).localeCompare(String(bv))
+      }
+
+      list.sort((a, b) => (sortOrder === 'asc' ? compare(a, b) : -compare(a, b)))
+
+      const total = list.length
+      const pageCount = Math.max(1, Math.ceil(total / pageSize))
+      const start = (currentPage - 1) * pageSize
+      const paged = list.slice(start, start + pageSize)
+
+      setBooks(paged)
+      setTotalItems(total)
+      setTotalPages(pageCount)
       
     } catch (err) {
   setError('ไม่สามารถโหลดข้อมูลหนังสือและตำราได้')
