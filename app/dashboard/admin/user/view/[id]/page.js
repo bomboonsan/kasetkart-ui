@@ -2,7 +2,8 @@ import AdminUserHeader from '@/components/admin/user/AdminUserHeader'
 import AdminEducationSection from '@/components/admin/user/AdminEducationSection'
 import AdminUserResearchPublicationsSection from '@/components/admin/user/AdminUserResearchPublicationsSection'
 import { SWRConfig } from 'swr'
-import { api, serverGet, profileAPI } from '@/lib/api'
+import { api, serverGet } from '@/lib/api-base'
+import { profileAPI } from '@/lib/api/profile'
 
 // Server component: fetch user + works using Strapi v5 documentId (with fallback search)
 export default async function AdminUserViewPage({ params }) {

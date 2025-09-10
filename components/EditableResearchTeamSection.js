@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) แทน relative path
-import { projectAPI } from '@/lib/api'
+import { projectAPI } from '@/lib/api/project'
 import Button from './Button'
 import SweetAlert2 from 'react-sweetalert2'
 

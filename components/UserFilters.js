@@ -5,7 +5,7 @@ import useSWR from 'swr'
 import FormField from './FormField'
 import SelectField from './SelectField'
 import Button from './Button'
-import { api } from '@/lib/api'
+import { api } from '@/lib/api-base'
 
 export default function UserFilters({ onFilter }) {
   const [filters, setFilters] = useState({

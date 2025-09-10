@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import SectionCard from '@/components/SectionCard'
 import PublicationItem from '@/components/PublicationItem'
-import { projectAPI, worksAPI, api } from '@/lib/api'
+import { projectAPI } from '@/lib/api/project'
+import { worksAPI } from '@/lib/api/works'
+import { api } from '@/lib/api-base'
 
 const TYPE_TABS = [
   { key: 'PROJECT', label: 'โครงการวิจัย' },

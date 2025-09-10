@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { projectAPI } from '@/lib/api'
+import { projectAPI } from '@/lib/api/project'
 import PageHeader from '@/components/PageHeader'
 import FormSection from '@/components/FormSection'
 import FormFieldBlock from '@/components/FormFieldBlock'

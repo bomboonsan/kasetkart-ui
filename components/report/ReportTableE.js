@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { worksAPI } from '@/lib/api'
+import { worksAPI } from '@/lib/api/works'
 
 // Format ISO date to dd/mm/yyyy
 function formatDate(d) {

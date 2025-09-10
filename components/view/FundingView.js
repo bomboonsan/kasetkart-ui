@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { fundingAPI } from '@/lib/api'
+import { fundingAPI } from '@/lib/api/project'
 import ViewFormSection from './ViewFormSection'
 import ViewFormField from './ViewFormField'
 // ใช้ path alias (@/) แทน relative path

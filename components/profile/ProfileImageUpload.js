@@ -3,7 +3,9 @@
 import { useEffect, useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import Button from '@/components/Button'
-import { uploadAPI, API_BASE, profileAPI } from '@/lib/api'
+import { uploadAPI } from '@/lib/api/admin'
+import { profileAPI } from '@/lib/api/profile'
+import { API_BASE } from '@/lib/api-base'
 
 export default function ProfileImageUpload() {
   const [imagePreview, setImagePreview] = useState(null)

@@ -5,7 +5,8 @@ import ProfileStats from "@/components/ProfileStats";
 import Link from 'next/link';
 import { useState } from 'react'
 import useSWR from 'swr'
-import { profileAPI, API_BASE } from '@/lib/api'
+import { profileAPI } from '@/lib/api/profile'
+import { API_BASE } from '@/lib/api-base'
 import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 

@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef, useTransition, useMemo } from 'react'
 import useSWR from 'swr'
-import { valueFromAPI, dashboardAPI } from '@/lib/api'
+import { valueFromAPI } from '@/lib/api/lookup'
+import { dashboardAPI } from '@/lib/api/dashboard'
 
 const TYPE_TABS = [
   { key: 'icTypes', label: 'IC Type' },

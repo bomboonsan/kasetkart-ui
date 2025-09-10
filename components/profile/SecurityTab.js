@@ -5,7 +5,7 @@ import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/FormField'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
-import { authAPI } from '@/lib/api'
+import { authAPI } from '@/lib/api/auth'
 
 export default function SecurityTab() {
 

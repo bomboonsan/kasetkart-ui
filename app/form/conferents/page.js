@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { worksAPI } from '@/lib/api'
+import { worksAPI } from '@/lib/api/works'
 import Button from '@/components/Button'
 import PageHeader from '@/components/PageHeader'
 

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import useSWR, { mutate } from 'swr'
-import { profileAPI, orgAPI, eduAPI } from '@/lib/api'
+import { profileAPI } from '@/lib/api/profile'
+import { orgAPI, eduAPI } from '@/lib/api/lookup'
 import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/FormField'
 import FormSelect from '@/components/FormSelect'

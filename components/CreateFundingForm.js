@@ -5,7 +5,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 // ใช้ path alias (@/) สำหรับ API (คงพฤติกรรมเดิม)
-import { projectAPI, api } from '@/lib/api'
+import { projectAPI } from '@/lib/api/project'
+import { api } from '@/lib/api-base'
 import { stripUndefined } from '@/utils/strapi'
 import { createHandleChange } from '@/utils/form'
 import useSWR, { mutate } from 'swr'

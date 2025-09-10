@@ -8,7 +8,7 @@ import FormTextarea from "./FormTextarea"
 import ResearchTeamSection from './ResearchTeamSection'
 import FileUploadSection from './FileUploadSection'
 import Button from './Button'
-import { projectAPI } from '@/lib/api'
+import { projectAPI } from '@/lib/api/project'
 import { createHandleChange } from '@/utils/form'
 
 export default function ProjectForm({ projectId, readonly = true }) {

@@ -3,7 +3,8 @@
 import { useEffect, useState, useMemo, useRef, useTransition } from 'react'
 import useSWR from 'swr'
 import dynamic from 'next/dynamic'
-import { valueFromAPI, dashboardAPI } from '@/lib/api'
+import { valueFromAPI } from '@/lib/api/lookup'
+import { dashboardAPI } from '@/lib/api/dashboard'
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
 

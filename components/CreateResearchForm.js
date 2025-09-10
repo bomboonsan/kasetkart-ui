@@ -16,7 +16,10 @@ import Button from './Button'
 import Link from 'next/link'
 import SweetAlert2 from 'react-sweetalert2'
 // ใช้ path alias (@/) เพื่อให้ import ชัดเจนและลดความซ้ำซ้อนของ path
-import { projectAPI, api, authAPI, valueFromAPI } from '@/lib/api'
+import { projectAPI } from '@/lib/api/project'
+import { api } from '@/lib/api-base'
+import { authAPI } from '@/lib/api/auth'
+import { valueFromAPI } from '@/lib/api/lookup'
 // ยูทิลิตี้สำหรับจัดการ payload ให้สะอาด
 import { stripUndefined } from '@/utils/strapi'
 // ใช้ path alias (@/) สำหรับ helper

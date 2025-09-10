@@ -6,7 +6,8 @@ import Link from 'next/link';
 import { useState } from 'react'
 import useSWR from 'swr'
 import Image from 'next/image'
-import { profileAPI, API_BASE } from '@/lib/api'
+import { profileAPI } from '@/lib/api/profile'
+import { API_BASE } from '@/lib/api-base'
 
 function initials(name, fallback) {
   const s = (name || '').trim()

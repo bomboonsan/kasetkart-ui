@@ -6,7 +6,7 @@ import SectionCard from '@/components/SectionCard'
 import PublicationFilters from '@/components/PublicationFilters'
 import PublicationItem from '@/components/PublicationItem'
 import Button from '@/components/Button'
-import { api } from '@/lib/api'
+import { api } from '@/lib/api-base'
 
 const TYPE_TABS = [
   { key: 'PROJECT', label: 'โครงการวิจัย' },

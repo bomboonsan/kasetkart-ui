@@ -2,7 +2,9 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { projectAPI, worksAPI, fundingAPI, api } from '@/lib/api'
+import { projectAPI, fundingAPI } from '@/lib/api/project'
+import { worksAPI } from '@/lib/api/works'
+import { api } from '@/lib/api-base'
 
 export default function ProfileStats() {
   const [counts, setCounts] = useState({

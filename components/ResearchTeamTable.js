@@ -12,7 +12,9 @@ import {
   ChevronDown
 } from "lucide-react";
 // ใช้ path alias (@/) เพื่อลด relative path และทำให้แก้ไขได้ง่ายขึ้น
-import { projectAPI, api, authAPI } from '@/lib/api'
+import { projectAPI } from '@/lib/api/project'
+import { api } from '@/lib/api-base'
+import { authAPI } from '@/lib/api/auth'
 import { stripUndefined } from '@/utils/strapi'
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {

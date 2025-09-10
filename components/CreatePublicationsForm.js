@@ -4,7 +4,9 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) สำหรับ API
-import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
+import { worksAPI } from '@/lib/api/works'
+import { projectAPI } from '@/lib/api/project'
+import { profileAPI } from '@/lib/api/profile'
 import { stripUndefined, getDocumentId } from '@/utils/strapi'
 import { createHandleChange } from '@/utils/form'
 import FormSection from "./FormSection";

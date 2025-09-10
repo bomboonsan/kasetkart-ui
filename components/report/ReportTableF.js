@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { worksAPI } from '@/lib/api'
+import { worksAPI } from '@/lib/api/works'
 
 function formatDate(d) {
     if (!d) return ''

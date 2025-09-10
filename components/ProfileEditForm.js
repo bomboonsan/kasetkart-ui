@@ -7,7 +7,9 @@ import WorkInfoTab from './WorkInfoTab'
 import SystemAccessTab from './SystemAccessTab'
 import Button from './Button'
 // ใช้ path alias (@/) เพื่อลดความซับซ้อนของ relative path และคงความยืดหยุ่น
-import { profileAPI, orgAPI, eduAPI } from '@/lib/api'
+// ปรับ import หลัง modular API
+import { profileAPI } from '@/lib/api/profile'
+import { orgAPI, eduAPI } from '@/lib/api/lookup'
 
 // โครงสร้างข้อมูลเริ่มต้นสำหรับฟอร์ม
 const initialFormData = {

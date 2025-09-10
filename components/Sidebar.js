@@ -13,7 +13,7 @@ import {
   File,
   FileUser,
 } from "lucide-react";
-import { API_BASE } from '@/lib/api'
+import { API_BASE } from '@/lib/api-base'
 import { useSession, signOut } from 'next-auth/react'
 
 const menuItems = [

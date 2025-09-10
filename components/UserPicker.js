@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import Button from './Button'
-import { api } from '@/lib/api'
+import { api } from '@/lib/api-base'
 
 export default function UserPicker({ label = 'ผู้ร่วมงาน', onSelect, selectedUser }) {
   const [open, setOpen] = useState(false)
