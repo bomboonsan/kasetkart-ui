@@ -378,6 +378,8 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
           <FormFieldBlock>
             <FileUploadField
               label="อัปโหลดไฟล์"
+              // ปรับให้รองรับการอัปโหลดไฟล์หลายครั้งแบบสะสม
+              value={formData.attachments}
               onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
               accept=".pdf,.doc,.docx"
               multiple

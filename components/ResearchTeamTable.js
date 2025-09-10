@@ -208,7 +208,10 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     const internal = formData.isInternal === true
     const u = formData.__userObj || null
     const prof = u ? (Array.isArray(u.profile) ? u.profile[0] : u.profile) : null
-    const full = u ? (prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email) : ''
+    // ใช้ชื่อไทยก่อน ถ้าไม่มีค่อย fallback อังกฤษ / อีเมล
+    const full = u ? (
+      prof ? `${prof.firstNameTH || prof.firstName || ''} ${prof.lastNameTH || prof.lastName || ''}`.trim() || u.email : u.email
+    ) : ''
     const org = u ? [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ') : ''
     
     const pcArr = Array.isArray(formData.partnerComment)
@@ -225,7 +228,14 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       partnerComment: pcJoined,
   partnerProportion: undefined,
   partnerProportion_percentage_custom: formData.partnerProportion_percentage_custom !== undefined && formData.partnerProportion_percentage_custom !== '' ? String(formData.partnerProportion_percentage_custom) : undefined,
-      User: internal && u ? { email: u.email } : undefined,
+      // แนบข้อมูลผู้ใช้เพิ่มเติมเพื่อใช้แสดงชื่อ (ลดการเรียก API ซ้ำ)
+      User: internal && u ? { 
+        email: u.email, 
+        profile: prof ? { 
+          firstNameTH: prof.firstNameTH || prof.firstName, 
+          lastNameTH: prof.lastNameTH || prof.lastName 
+        } : undefined 
+      } : undefined,
     }
     
     setLocalPartners(prev => {
@@ -653,11 +663,21 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {p.fullname || p.User?.email || '-'}
+                          {/* แสดงชื่อเต็มจาก profile (ไทย) เป็นหลัก */}
+                          {(() => {
+                            if (p.fullname) return p.fullname
+                            const prof = p.User?.profile
+                            if (prof && (prof.firstNameTH || prof.lastNameTH)) {
+                              return `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim()
+                            }
+                            return p.User?.email || '-'
+                          })()}
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {p.User?.email || ''}
-                        </div>
+                        {p.User?.email && (
+                          <div className="text-sm text-gray-500">
+                            {p.User.email}
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-4 py-4 whitespace-nowrap">

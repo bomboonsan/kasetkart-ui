@@ -459,6 +459,8 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FileUploadField
               label="* ส่งไฟล์หลักฐาน (ขอให้ Scan หน้าปก สารบัญ และไฟล์เรื่องเต็ม ของการประชุม เพื่อการตรวจสอบหลักฐาน)"
+              // ปรับให้รองรับการอัปโหลดไฟล์หลายครั้งแบบสะสม
+              value={formData.attachments}
               onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
               accept=".pdf,.doc,.docx"
               multiple

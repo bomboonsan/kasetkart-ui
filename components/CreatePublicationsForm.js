@@ -1057,6 +1057,8 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         <FormSection>
                   <FileUploadField
                     label="* ส่งไฟล์บทความทางวิชาการ (ขอให้ Scan หน้าปกวารสาร สารบัญ พร้อมบทความ เพื่อการตรวจสอบหลักฐาน)"
+                    // ปรับให้รองรับการอัปโหลดไฟล์หลายครั้งแบบสะสม
+                    value={formData.attachments}
                     onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
                     accept=".pdf,.doc,.docx"
                     multiple

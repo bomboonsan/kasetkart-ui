@@ -47,11 +47,13 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
   // กรองรายชื่อผู้ใช้จากคำค้นหา โดยค้นจาก firstName/lastName (profile) และอีเมล
   const filtered = users.filter(u => {
     const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
-    const name = ((prof?.firstNameTH || '') + ' ' + (prof?.lastNameTH || '')).toLowerCase()
+    const fullTH = ((prof?.firstNameTH || '') + ' ' + (prof?.lastNameTH || '')).trim()
+    const fullEN = ((prof?.firstName || '') + ' ' + (prof?.lastName || '')).trim()
+    const combined = (fullTH || fullEN).toLowerCase()
     const email = (u.email || '').toLowerCase()
     const q = query.trim().toLowerCase()
     if (!q) return true
-    return name.includes(q) || email.includes(q)
+    return combined.includes(q) || email.includes(q)
   })
 
   return (
@@ -70,8 +72,14 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
         {selectedUser && (
           <span className="text-sm text-gray-700">
             {(() => {
+              // แสดงชื่อไทย ถ้าไม่มีใช้ชื่ออังกฤษ ถ้าไม่มีใช้ email
               const prof = Array.isArray(selectedUser.profile) ? selectedUser.profile[0] : selectedUser.profile
-              return prof ? `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim() : selectedUser.email
+              if (prof) {
+                const th = `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim()
+                const en = `${prof.firstName || ''} ${prof.lastName || ''}`.trim()
+                return th || en || selectedUser.email
+              }
+              return selectedUser.email
             })()}
           </span>
         )}
@@ -104,8 +112,14 @@ export default function UserPicker({ label = 'ผู้ร่วมงาน', o
                   >
                     <div className="font-medium text-gray-900">
                       {(() => {
+                        // แสดงชื่อ (ไทย > อังกฤษ > email)
                         const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
-                        return prof ? `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim() : u.email
+                        if (prof) {
+                          const th = `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim()
+                          const en = `${prof.firstName || ''} ${prof.lastName || ''}`.trim()
+                          return th || en || u.email
+                        }
+                        return u.email
                       })()}
                     </div>
                     <div className="text-xs text-gray-600">{u.email}</div>

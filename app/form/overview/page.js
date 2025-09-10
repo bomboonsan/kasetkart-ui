@@ -55,23 +55,23 @@ export default function MyOverviewPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sections.map((section) => (
           <div key={section.href} className="bg-white rounded-lg shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
-            <Link href={section.href} className="block p-6">
+            <div className="block p-6">
               <div className="flex items-center space-x-4 mb-4">
                 {/* <div className="text-3xl">{section.icon}</div> */}
                 <h3 className="text-xl font-semibold text-gray-900">{section.title}</h3>
               </div>
               <p className="text-gray-600 mb-4">{section.description}</p>
               <div className="flex justify-between items-center">
-                <span className="text-blue-600 font-medium">ดูรายการ →</span>
-                <a 
+                <Link href={section.href} className="text-blue-600 font-medium">ดูรายการ →</Link>
+                <Link
                   href={section.createHref}
                   className="px-3 py-1 bg-blue-100 text-blue-700 rounded text-sm hover:bg-blue-200 transition-colors"
                   onClick={(e) => e.stopPropagation()}
                 >
                   เพิ่มใหม่
-                </a>
+                </Link>
               </div>
-            </Link>
+            </div>
           </div>
         ))}
       </div>

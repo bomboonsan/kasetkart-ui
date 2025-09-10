@@ -1,32 +1,53 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 export default function FileUploadField({ 
   label, 
   onFilesChange, 
   accept,
-  multiple = false,
-  className = '' 
+  multiple = true, // อนุญาตหลายไฟล์ แต่ผู้ใช้จะเลือกทีละไฟล์ก็ได้
+  className = '',
+  value = [] // เพิ่ม prop สำหรับรับรายการไฟล์ปัจจุบันจาก parent
 }) {
   const [dragActive, setDragActive] = useState(false)
-  const [files, setFiles] = useState([])
+  const [files, setFiles] = useState([]) // เก็บ File objects ที่เพิ่งเลือก (ยังไม่รวม metadata จาก Strapi)
+  const [attachments, setAttachments] = useState(value || []) // เก็บผลการอัปโหลด (id, name, url) จาก Strapi
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
+  // ซิงค์ค่าจากภายนอก (กรณีแก้ไข/รีเฟรช state จาก parent)
+  // ป้องกันการเรียก setAttachments ซ้ำๆ เมื่อ prop `value` มี reference ใหม่แต่ข้อมูลเดิม
+  const lastAppliedRef = useRef(JSON.stringify(value || []))
+  useEffect(() => {
+    try {
+      const incoming = JSON.stringify(value || [])
+      if (incoming !== lastAppliedRef.current) {
+        lastAppliedRef.current = incoming
+        setAttachments(value || [])
+      }
+    } catch (e) {
+      // หาก stringify ล้มเหลว ให้ fallback เป็นการเซ็ตปกติ
+      setAttachments(value || [])
+    }
+    // หมายเหตุ: ใช้เฉพาะ `value` เป็น dependency เพื่อลด risk ของ loop
+  }, [value])
+
   const doUpload = async (fileList) => {
     const filesArray = Array.from(fileList)
+    if (filesArray.length === 0) return
+    // เก็บไฟล์ที่ผู้ใช้เพิ่งเลือกเพื่อแสดง (ไม่จำเป็นต้องเก็บทั้งหมด)
     setFiles(filesArray)
     setError('')
     setUploading(true)
     try {
-      // Real upload to Strapi
       const formData = new FormData()
+      // รองรับการเลือกทีละไฟล์ หลายครั้ง (append ทีละรอบ)
       filesArray.forEach((file) => {
         formData.append('files', file)
       })
 
-      const token = localStorage.getItem('jwt')
+      const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:1337'}/api/upload`, {
         method: 'POST',
         headers: {
@@ -40,21 +61,31 @@ export default function FileUploadField({
       }
 
       const uploadedFiles = await response.json()
-      // Strapi returns array of uploaded files with id, name, url, etc.
-      const attachments = uploadedFiles.map(file => ({
+      const newAttachments = uploadedFiles.map(file => ({
         id: file.id,
         name: file.name,
         url: file.url,
         size: file.size,
         documentId: file.documentId,
       }))
-      
-      onFilesChange && onFilesChange(attachments)
+
+      // รวมไฟล์ใหม่กับไฟล์เดิม (incremental)
+      const merged = [...attachments, ...newAttachments]
+      setAttachments(merged)
+      // แจ้ง parent ด้วยรายการรวม
+      onFilesChange && onFilesChange(merged)
     } catch (err) {
       setError('อัปโหลดไฟล์ไม่สำเร็จ: ' + err.message)
     } finally {
       setUploading(false)
     }
+  }
+
+  const removeAttachment = (idx) => {
+    // ลบไฟล์เฉพาะในรายการที่อัปโหลดแล้ว (ไม่ยุ่งกับฝั่ง Strapi server เพื่อความง่าย)
+    const next = attachments.filter((_, i) => i !== idx)
+    setAttachments(next)
+    onFilesChange && onFilesChange(next)
   }
 
   const handleDrag = (e) => {
@@ -104,10 +135,10 @@ export default function FileUploadField({
         onDragLeave={handleDrag}
         onDragOver={handleDrag}
         onDrop={handleDrop}
-        onClick={() => document.getElementById('file-upload').click()}
+        onClick={() => document.getElementById('file-upload-field-input').click()}
       >
         <input
-          id="file-upload"
+          id="file-upload-field-input"
           type="file"
           accept={accept}
           multiple={multiple}
@@ -137,16 +168,31 @@ export default function FileUploadField({
       </div>
 
       {/* File List */}
-      {files.length > 0 && (
+      {/* แสดงรายการไฟล์ที่อัปโหลดแล้วแบบสะสม */}
+      {attachments.length > 0 && (
         <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700">Selected files:</p>
+          <p className="text-sm font-medium text-gray-700">ไฟล์ที่อัปโหลดแล้ว:</p>
           <ul className="space-y-1">
-            {files.map((file, index) => (
-              <li key={index} className="text-sm text-gray-600 flex items-center justify-between">
-                <span>{file.name}</span>
-                <span className="text-xs text-gray-400">
-                  {(file.size / 1024 / 1024).toFixed(2)} MB
-                </span>
+            {attachments.map((file, index) => (
+              <li key={file.id || index} className="text-sm text-gray-600 flex items-center justify-between gap-4">
+                <div className="flex-1 truncate">
+                  <a
+                    href={file.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 hover:underline"
+                  >
+                    {file.name}
+                  </a>
+                  <span className="text-xs text-gray-400 ml-2">{(file.size / 1024 / 1024).toFixed(2)} MB</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeAttachment(index)}
+                  className="text-red-600 text-xs hover:underline"
+                >
+                  ลบ
+                </button>
               </li>
             ))}
           </ul>
