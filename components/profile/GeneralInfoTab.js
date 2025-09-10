@@ -52,7 +52,7 @@ export default function GeneralInfoTab() {
 
       if (!userId) throw new Error('ไม่พบข้อมูลผู้ใช้ (userId)')
 
-      // เตรียมข้อมูลสำหรับ profile (collection type)
+      // คอมเมนต์ (ไทย): เตรียมข้อมูลสำหรับ profile (collection type) - เฉพาะฟิลด์ข้อมูลส่วนตัว
       const profileBody = {
         firstNameTH: formData.firstName?.trim() || '',
         lastNameTH: formData.lastName?.trim() || '',
@@ -63,8 +63,8 @@ export default function GeneralInfoTab() {
         highDegree: formData.highDegree?.trim() || '',
       }
 
-      // เตรียมข้อมูลสำหรับ user (relations + email)
-      // Strapi v5: ใช้ documentId สำหรับ relations
+      // คอมเมนต์ (ไทย): เตรียมข้อมูลสำหรับ user - รวม relations และ email
+      // แก้ไข: อัปเดต relations ผ่าน User entity เท่านั้น เพื่อป้องกันการ conflict
       const userBody = {}
       if (formData.email) userBody.email = formData.email
       if (formData.department) userBody.department = formData.department
@@ -73,7 +73,7 @@ export default function GeneralInfoTab() {
       if (formData.academic_type) userBody.academic_type = formData.academic_type
       if (formData.participation_type) userBody.participation_type = formData.participation_type
 
-      // Find existing profile หรือสร้างใหม่ - ใช้ documentId ใน Strapi v5
+      // คอมเมนต์ (ไทย): ค้นหา profile ที่มีอยู่หรือสร้างใหม่
       let profileDocumentId = res?.profile?.documentId || res?.profile?.data?.documentId || res?.Profile?.[0]?.documentId || res?.Profile?.[0]?.data?.documentId
 
       if (!profileDocumentId) {
@@ -81,14 +81,14 @@ export default function GeneralInfoTab() {
         profileDocumentId = existingProfile?.documentId
       }
 
-      // อัปเดต/สร้าง profile ด้วย collection endpoint และ documentId
+      // คอมเมนต์ (ไทย): อัปเดต/สร้าง profile ด้วยข้อมูลส่วนตัวเท่านั้น (ไม่รวม relations)
       if (profileDocumentId) {
         await profileAPI.updateProfileData(profileDocumentId, profileBody)
       } else {
         await profileAPI.createProfile({ ...profileBody, user: userId })
       }
 
-      // อัปเดต user เพื่อผูก relations และอีเมล
+      // คอมเมนต์ (ไทย): อัปเดต user relations ผ่าน User entity เพื่อรักษาความสอดคล้องของข้อมูล
       if (Object.keys(userBody).length > 0) {
         await profileAPI.updateProfile(userId, userBody)
       }
@@ -145,7 +145,7 @@ export default function GeneralInfoTab() {
     if (!profileRes) return
 
     // คอมเมนต์ (ไทย): map ฟิลด์จาก profile และ user
-    // Strapi v5: ใช้ documentId สำหรับแสดงค่าใน select (frontend) แต่เก็บ id ไว้สำหรับบันทึก (backend)
+    // แก้ไข: ดึง relations จาก User entity เท่านั้น เพื่อป้องกันความขัดแย้งของข้อมูล
     setFormData(prev => ({
       ...prev,
       firstName: profObj?.firstNameTH || profObj?.firstName || '',
@@ -157,6 +157,7 @@ export default function GeneralInfoTab() {
       nameEn: profObj ? `${profObj?.firstNameEN || profObj?.firstNameEn || profObj?.firstName || ''} ${profObj?.lastNameEN || profObj?.lastNameEn || profObj?.lastName || ''}`.trim() : '',
       academicPosition: profObj?.academicPosition || profObj?.position || '',
       highDegree: profObj?.highDegree || '',
+      // คอมเมนต์ (ไทย): ดึง relations จาก User entity เท่านั้น เพื่อรักษาความถูกต้องของข้อมูล
       academic_type: res?.academic_type?.documentId || '',
       participation_type: res?.participation_type?.documentId || '',
       department: res?.department?.documentId || '',
@@ -164,8 +165,7 @@ export default function GeneralInfoTab() {
       organization: res?.organization?.documentId || '',
     }))
 
-    // ดึงวุฒิการศึกษาที่ populate มาด้วย (Strapi v5: ใช้ documentId สำหรับแสดงผล, id สำหรับบันทึก)
-    // แก้ไข: ป้องกันการ duplicate โดยเช็คว่า educations ที่มีอยู่แล้วต่างจาก response หรือไม่
+    // คอมเมนต์ (ไทย): ดึงวุฒิการศึกษาที่ populate มาด้วย (ยังคงอยู่ใน User entity)
     const eduArr = res?.educations || []
 
     // Normalize and dedupe educations from various Strapi shapes
