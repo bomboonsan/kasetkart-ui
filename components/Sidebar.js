@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useState , useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -85,9 +85,14 @@ export default function Sidebar() {
   // เปลี่ยนแนวทาง: ไม่ใช้ useEffect + state ในการเซ็ตข้อมูลผู้ใช้
   // เพราะอาจเกิดปัญหา timing/hydration ทำให้ข้อมูลไม่แสดงบน client
   // ให้คำนวณค่าจาก session โดยตรงใน render เพื่อความคงที่
-  const { data: session } = useSession()
+  const { data: session , status } = useSession()
   const user = session?.user
   const profile = user?.profile || {}
+  useEffect(() => {
+    if (status !== 'loading') {
+      console.debug('Session status:', status, 'user:', session?.user)
+    }
+  }, [status, session])
 
   // ฟังก์ชันช่วยแปลงรูปแบบ avatar ที่ต่างกันของ Strapi เป็นสตริง URL
   const resolveAvatarUrl = (avatar) => {
@@ -110,7 +115,12 @@ export default function Sidebar() {
     const mediaBase = API_BASE.replace(/\/api\/?$/, '')
     avatarUrl = `${mediaBase}${avatarUrl}`
   }
-  const role = typeof user?.role === 'string' ? user.role : (user?.role?.name || 'User')
+  // กำหนด role โดยพยายามอ่าน roleId ก่อน (ถ้ามีเป็นตัวเลข)
+  // ตามข้อกำหนด: 1 = Super admin, 2 = User, 3 = Admin
+  // ถ้าไม่มี roleId ให้ fallback ไปใช้ชื่อ role ที่ backend ส่งมา
+  const roleId = user?.roleId ?? (typeof user?.role === 'number' ? user.role : null)
+  const roleNameFromUser = typeof user?.role === 'string' ? user.role : (user?.role?.name || null)
+  const role = roleId === 1 ? 'Super admin' : roleId === 3 ? 'Admin' : (roleNameFromUser || 'User')
   const userEmail = user?.email || ''
 
   let adminMenuItems;

@@ -4,7 +4,7 @@ import axios from 'axios'
 
 // ตรวจสอบตัวแปรสภาพแวดล้อมหลายรูปแบบเพื่อให้เข้ากับโปรเจค
 // Strapi ตัวโปรเจคมักตั้งเป็น NEXT_PUBLIC_API_BASE_URL หรือ NEXT_PUBLIC_API_URL
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_URL || 'https://kasetbackend.bomboonsan.com/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_URL || 'http://localhost:1337/api'
 
 export const authOptions = {
   session: {
@@ -58,16 +58,24 @@ export const authOptions = {
           const me = meRes.data
 
           // สร้างอ็อบเจ็กต์ผู้ใช้ขนาดเล็กสำหรับเก็บใน session
+          // หมายเหตุ: Strapi คืนค่า role เป็น relation object (มี id และ name)
+          // แต่บางครั้งอาจได้ค่า role เป็นตัวเลขหรือตัวอักษรได้ด้วย
+          // ดังนั้นให้เก็บทั้ง roleId และ role (ชื่อ) เพื่อให้ฝั่ง client ใช้งานได้ยืดหยุ่น
+          const roleId = me.role?.id ?? (typeof me.role === 'number' ? me.role : null)
+          const roleName = me.role?.name || (typeof me.role === 'string' ? me.role : null) || 'authenticated'
+
           return {
             id: me.id,
             email: me.email,
             username: me.username,
-            role: me.role?.name || me.role?.type || 'authenticated',
+            role: roleName,
+            roleId: roleId,
             jwt: data.jwt,
             profile: {
               firstNameTH: me.profile?.firstNameTH || '',
               lastNameTH: me.profile?.lastNameTH || '',
               academicPosition: me.profile?.academicPosition || '',
+              // avatarUrl อาจเป็น media object หรือ string URL
               avatarUrl: me.profile?.avatarUrl || (me.profile?.avatarUrl?.data?.attributes?.url) || null,
               department: me.department?.name || null,
             }
@@ -86,6 +94,7 @@ export const authOptions = {
       if (user) {
         token.id = user.id
         token.role = user.role
+  token.roleId = user.roleId ?? null
         token.jwt = user.jwt
         token.profile = user.profile
         token.email = user.email
@@ -98,7 +107,8 @@ export const authOptions = {
         id: token.id,
         email: token.email,
         username: token.username,
-        role: token.role,
+  role: token.role,
+  roleId: token.roleId ?? null,
         profile: token.profile,
       }
       session.jwt = token.jwt
