@@ -43,67 +43,69 @@ export default function GeneralInfoTab() {
   const handleInputChange = createHandleChange(setFormData)
 
   const handleSave = async () => {
-    try {
-      setError('')
-      setLoading(true)
+  try {
+    setError('')
+    setLoading(true)
 
-      const res = profileRes?.data || profileRes || {}
-      const userId = res?.id
+    const res = profileRes?.data || profileRes || {}
+    const userId = res?.id
+    if (!userId) throw new Error('ไม่พบข้อมูลผู้ใช้ (userId)')
 
-      if (!userId) throw new Error('ไม่พบข้อมูลผู้ใช้ (userId)')
-
-      // คอมเมนต์ (ไทย): เตรียมข้อมูลสำหรับ profile (collection type) - เฉพาะฟิลด์ข้อมูลส่วนตัว
-      const profileBody = {
-        firstNameTH: formData.firstName?.trim() || '',
-        lastNameTH: formData.lastName?.trim() || '',
-        firstNameEN: formData.firstNameEn?.trim() || '',
-        lastNameEN: formData.lastNameEn?.trim() || '',
-        telephoneNo: formData.phone?.trim() || '',
-        academicPosition: formData.academicPosition?.trim() || '',
-        highDegree: formData.highDegree?.trim() || '',
-      }
-
-      // คอมเมนต์ (ไทย): เตรียมข้อมูลสำหรับ user - รวม relations และ email
-      // แก้ไข: อัปเดต relations ผ่าน User entity เท่านั้น เพื่อป้องกันการ conflict
-      const userBody = {}
-      if (formData.email) userBody.email = formData.email
-      if (formData.department) userBody.department = formData.department
-      if (formData.faculty) userBody.faculty = formData.faculty
-      if (formData.organization) userBody.organization = formData.organization
-      if (formData.academic_type) userBody.academic_type = formData.academic_type
-      if (formData.participation_type) userBody.participation_type = formData.participation_type
-
-      // คอมเมนต์ (ไทย): ค้นหา profile ที่มีอยู่หรือสร้างใหม่
-      let profileDocumentId = res?.profile?.documentId || res?.profile?.data?.documentId || res?.Profile?.[0]?.documentId || res?.Profile?.[0]?.data?.documentId
-
-      if (!profileDocumentId) {
-        const existingProfile = await profileAPI.findProfileByUserId(userId)
-        profileDocumentId = existingProfile?.documentId
-      }
-
-      // คอมเมนต์ (ไทย): อัปเดต/สร้าง profile ด้วยข้อมูลส่วนตัวเท่านั้น (ไม่รวม relations)
-      if (profileDocumentId) {
-        await profileAPI.updateProfileData(profileDocumentId, profileBody)
-      } else {
-        await profileAPI.createProfile({ ...profileBody, user: userId })
-      }
-
-      // คอมเมนต์ (ไทย): อัปเดต user relations ผ่าน User entity เพื่อรักษาความสอดคล้องของข้อมูล
-      if (Object.keys(userBody).length > 0) {
-        await profileAPI.updateProfile(userId, userBody)
-      }
-
-      // Refresh the profile data
-      mutate('profile')
-
-      setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
-    } catch (err) {
-      setError(err?.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'บันทึกโปรไฟล์ไม่สำเร็จ', text: err?.message || '', timer: 2200 })
-    } finally {
-      setLoading(false)
+    // 1) อัปเดต Profile (ฟิลด์ non-relation) ตามเดิม
+    const profileBody = {
+      firstNameTH: formData.firstName?.trim() || '',
+      lastNameTH: formData.lastName?.trim() || '',
+      firstNameEN: formData.firstNameEn?.trim() || '',
+      lastNameEN: formData.lastNameEn?.trim() || '',
+      telephoneNo: formData.phone?.trim() || '',
+      academicPosition: formData.academicPosition?.trim() || '',
+      highDegree: formData.highDegree?.trim() || '',
     }
+
+    let profileDocumentId =
+      res?.profile?.documentId ||
+      res?.profile?.data?.documentId ||
+      res?.Profile?.[0]?.documentId ||
+      res?.Profile?.[0]?.data?.documentId
+
+    if (!profileDocumentId) {
+      const existingProfile = await profileAPI.findProfileByUserId(userId)
+      profileDocumentId = existingProfile?.documentId
+    }
+
+    if (profileDocumentId) {
+      // หมายเหตุ: ฟังก์ชันใน lib ของคุณควรห่อ { data: profileBody } ให้แล้วตาม v5
+      await profileAPI.updateProfileData(profileDocumentId, profileBody)
+    } else {
+      await profileAPI.createProfile({ ...profileBody, user: userId })
+    }
+
+    // 2) อัปเดต User + ความสัมพันธ์ ผ่าน endpoint custom (/user-relations/update) ด้วยรูปแบบ set
+    //    - Strapi v5 to-one: ใช้ { set: [documentId] }, เคลียร์ใช้ { set: [] }
+    const toSet = (val) => ({ set: val ? [val] : [] })
+    const userBody = {
+      userId,
+      ...(formData.email ? { email: formData.email } : {}),
+      department: toSet(formData.department),
+      faculty: toSet(formData.faculty),
+      organization: toSet(formData.organization),
+      academic_type: toSet(formData.academic_type),
+      participation_type: toSet(formData.participation_type),
+    }
+    // คอมเมนต์ (ไทย): ใช้ endpoint เดิม (updateUserRelations) เพื่อให้ backend map documentId -> id
+    await profileAPI.updateUserRelations(userBody)
+
+    // refresh
+    mutate('profile')
+
+    setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
+  } catch (err) {
+    setError(err?.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
+    setSwalProps({ show: true, icon: 'error', title: 'บันทึกโปรไฟล์ไม่สำเร็จ', text: err?.message || '', timer: 2200 })
+  } finally {
+    setLoading(false)
   }
+}
 
   const handleCancel = () => {
     // TODO: Implement cancel logic or navigate back
