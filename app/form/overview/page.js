@@ -14,7 +14,7 @@ export default function MyOverviewPage() {
       createHref: '/form/create/project'
     },
     {
-      title: 'ทุนโครงการ',
+      title: 'ทุนตำราหรือหนังสือ',
       description: 'จัดการข้อมูลทุนสนับสนุนโครงการ',
       href: '/form/funds',
       icon: '💰',
@@ -32,7 +32,7 @@ export default function MyOverviewPage() {
       description: 'จัดการข้อมูลบทความและงานตีพิมพ์',
       href: '/form/publications',
       icon: '📄',
-      createHref: '/form/create/publication'
+      createHref: '/form/create/publications'
     },
     {
       title: 'หนังสือและตำรา',

@@ -701,7 +701,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     <td className="px-4 py-4 whitespace-nowrap">
                       {p.partnerProportion && (
                         <div className="text-sm text-gray-900">
-                          {(parseFloat(p.partnerProportion) * 100).toFixed(1)}%
+                          {/* {(parseFloat(p.partnerProportion) * 100).toFixed(1)}% */}
+                          {Number(p.partnerProportion).toFixed(1)}
                         </div>
                       )}
                     </td>
