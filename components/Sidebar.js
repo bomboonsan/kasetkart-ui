@@ -93,15 +93,40 @@ export default function Sidebar() {
     if (!user) return
     const profile = user.profile || {}
     const display = [profile.firstNameTH || user.email, profile.lastNameTH].filter(Boolean).join(' ').trim()
-    let url = profile.avatarUrl
+
+    // ฟังก์ชันช่วยแปลงรูปแบบ avatar ที่ต่างกันของ Strapi เป็นสตริง URL
+    const resolveAvatarUrl = (avatar) => {
+      if (!avatar) return null
+      if (typeof avatar === 'string') return avatar
+      // รูปแบบปกติ: { data: { attributes: { url: '/uploads/...' } } }
+      if (avatar.data?.attributes?.url) return avatar.data.attributes.url
+      // รูปแบบ: { url: '/uploads/...' }
+      if (typeof avatar.url === 'string') return avatar.url
+      // รูปแบบ array: { data: [ { attributes: { url } } ] }
+      if (Array.isArray(avatar.data) && avatar.data[0]?.attributes?.url) return avatar.data[0].attributes.url
+      // รูปแบบมี formats: เลือกตัวแรกถ้ามี
+      const fmt = avatar.data?.attributes?.formats || avatar.formats
+      if (fmt && typeof fmt === 'object') {
+        const firstKey = Object.keys(fmt)[0]
+        if (firstKey && fmt[firstKey]?.url) return fmt[firstKey].url
+      }
+      return null
+    }
+
+    let url = resolveAvatarUrl(profile.avatarUrl)
+    // ถ้าได้ค่าเป็น relative path ให้เติม media base (ตัด /api ออก)
     if (url && !/^https?:\/\//i.test(url)) {
       const mediaBase = API_BASE.replace(/\/api\/?$/, '')
       url = `${mediaBase}${url}`
     }
+
+    // role อาจเป็นสตริงหรืออ็อบเจ็กต์จาก session จึงอ่านอย่างปลอดภัย
+    const roleName = typeof user.role === 'string' ? user.role : (user.role?.name || 'User')
+
     setUserDisplayName(display || 'ผู้ใช้งาน')
     setUserEmail(user.email || '')
     setAvatarUrl(url || '')
-    setRole(user.role || 'User')
+    setRole(roleName)
   }, [session])
 
   let adminMenuItems;
