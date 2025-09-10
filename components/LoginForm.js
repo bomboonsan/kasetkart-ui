@@ -49,11 +49,14 @@ export default function LoginForm() {
         identifier: formData.identifier,
         password: formData.password,
       })
+      // NextAuth จะคืนค่า result.error เมื่อ authorize ทำนองเดียวกับ 401
       if (result?.error) {
-        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
+        // แสดงข้อความข้อผิดพลาดจาก NextAuth ถ้ามี เพื่อช่วย debug
+        setError(result.error || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง')
       }
     } catch (err) {
-      setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
+      // กรณี exception ให้โชว์ข้อความแบบสั้น
+      setError(err?.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง')
     } finally {
       setLoading(false)
     }

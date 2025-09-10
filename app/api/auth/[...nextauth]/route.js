@@ -2,7 +2,9 @@ import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import axios from 'axios'
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://kasetbackend.bomboonsan.com/api'
+// ตรวจสอบตัวแปรสภาพแวดล้อมหลายรูปแบบเพื่อให้เข้ากับโปรเจค
+// Strapi ตัวโปรเจคมักตั้งเป็น NEXT_PUBLIC_API_BASE_URL หรือ NEXT_PUBLIC_API_URL
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_URL || 'https://kasetbackend.bomboonsan.com/api'
 
 export const authOptions = {
   session: {
@@ -19,15 +21,27 @@ export const authOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
+        // ตรวจสอบ input เบื้องต้น
+        if (!credentials?.identifier || !credentials?.password) {
+          // ส่งข้อความเป็นภาษาอังกฤษเพราะ NextAuth จะส่งกลับใน error field
+          throw new Error('Identifier and password are required')
+        }
+
         try {
+          // เรียก Strapi auth endpoint (จะต่อกับ API_BASE ซึ่งมักลงท้ายด้วย /api)
           const res = await axios.post(`${API_BASE}/auth/local`, {
             identifier: credentials.identifier,
             password: credentials.password,
-          })
-          const data = res.data
-          if (!data || !data.jwt) return null
+          }, { headers: { 'Content-Type': 'application/json' } })
 
-          // fetch enriched user with profile + role
+          const data = res.data
+          if (!data || !data.jwt) {
+            // ให้รายละเอียดข้อผิดพลาดเล็กน้อยแทนการคืนค่า null เงียบ ๆ
+            const msg = data?.message || 'Invalid credentials'
+            throw new Error(msg)
+          }
+
+          // ดึงข้อมูลผู้ใช้ที่ enrich จาก Strapi โดยส่ง JWT ที่ได้จากการล็อกอิน
           const meRes = await axios.get(`${API_BASE}/users/me`, {
             params: {
               'populate[profile][populate]': 'avatarUrl',
@@ -40,9 +54,10 @@ export const authOptions = {
             },
             headers: { Authorization: `Bearer ${data.jwt}` }
           })
+
           const me = meRes.data
 
-            // Build a compact user object for the session
+          // สร้างอ็อบเจ็กต์ผู้ใช้ขนาดเล็กสำหรับเก็บใน session
           return {
             id: me.id,
             email: me.email,
@@ -53,12 +68,15 @@ export const authOptions = {
               firstNameTH: me.profile?.firstNameTH || '',
               lastNameTH: me.profile?.lastNameTH || '',
               academicPosition: me.profile?.academicPosition || '',
-              avatarUrl: me.profile?.avatarUrl || null,
+              avatarUrl: me.profile?.avatarUrl || (me.profile?.avatarUrl?.data?.attributes?.url) || null,
               department: me.department?.name || null,
             }
           }
-        } catch (e) {
-          return null
+        } catch (err) {
+          // บันทึกข้อผิดพลาดเพื่อการดีบั๊ก (จะไม่แสดงใน production logs โดยไม่ตั้งค่า)
+          console.error('NextAuth authorize error:', err?.message || err)
+          // โยน error ให้ NextAuth คืน 401 กับ client และส่งข้อความกลับใน result.error
+          throw new Error(err?.response?.data?.message || err?.message || 'Authentication failed')
         }
       }
     })
