@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -440,19 +440,21 @@ export default function Sidebar() {
             {avatarUrl ? (
               <Image
                 src={avatarUrl}
-                alt={userDisplayName || 'avatar'}
+                // แก้ไข: ใช้ตัวแปร displayName แทน userDisplayName ที่ถูกลบไป
+                alt={displayName || 'avatar'}
                 width={40}
                 height={40}
                 className="w-10 h-10 rounded-full object-cover"
               />
             ) : (
               <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center text-xs font-semibold text-white">
-                {(userDisplayName || userEmail || 'U').split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}
+                {(displayName || userEmail || 'U').split(' ').map(s => s[0]).join('').slice(0, 2).toUpperCase()}
               </div>
             )}
           </div>
           <div>
-            <p className="text-sm text-gray-900">{userDisplayName || userEmail || '-'}</p>
+            {/* แสดงชื่อผู้ใช้ ถ้าไม่มีให้ใช้ email หรือ '-' */}
+            <p className="text-sm text-gray-900">{displayName || userEmail || '-'}</p>
             <Link href="/profile" className="text-xs text-gray-600">โปรไฟล์ของฉัน</Link>
           </div>
         </div>
