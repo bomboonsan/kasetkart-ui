@@ -1,43 +1,24 @@
 'use client'
-
-import { useEffect, useState } from 'react'
+import { useSession } from 'next-auth/react'
+import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { isAuthenticated, getCurrentUser } from '@/lib/auth'
 
 export default function AuthGuard({ children, requireAuth = true, requireRole = null }) {
-  const [isLoading, setIsLoading] = useState(true)
-  const [user, setUser] = useState(null)
-  const [isLoggingIn, setIsLoggingIn] = useState(false)
+  const { data: session, status } = useSession()
   const router = useRouter()
 
   useEffect(() => {
-    const checkAuth = () => {
-      if (requireAuth) {
-        const currentUser = getCurrentUser()
-        
-        if (!currentUser) {
-          setIsLoggingIn(true)
-          setIsLoading(false)
-          router.push('/login')
-          return
-        }
-
-        // Check role requirement
-        if (requireRole && currentUser.role !== requireRole) {
-          router.push('/unauthorized')
-          return
-        }
-
-        setUser(currentUser)
-      }
-      
-      setIsLoading(false)
+    if (status === 'loading') return
+    if (!requireAuth) return
+    if (status === 'unauthenticated') {
+      router.replace('/login')
+    } else if (status === 'authenticated' && requireRole) {
+      const role = session?.user?.role
+      if (role !== requireRole) router.replace('/unauthorized')
     }
+  }, [status, requireAuth, requireRole, session, router])
 
-    checkAuth()
-  }, [requireAuth, requireRole, router])
-
-  if (isLoading) {
+  if (status === 'loading' && requireAuth) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-red-500"></div>
@@ -45,9 +26,8 @@ export default function AuthGuard({ children, requireAuth = true, requireRole = 
     )
   }
 
-  if (requireAuth && !user && !isLoggingIn) {
-    return null // Will redirect to login
-  }
+  if (requireAuth && status === 'unauthenticated') return null
+  if (requireRole && session?.user?.role !== requireRole) return null
 
   return children
 }

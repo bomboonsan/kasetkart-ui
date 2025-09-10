@@ -5,8 +5,7 @@ import Button from './Button'
 import Checkbox from './Checkbox'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { authAPI } from '@/lib/api'
-import { isAuthenticated, getUserRole } from '@/lib/auth'
+import { signIn, useSession } from 'next-auth/react'
 
 export default function LoginForm() {
   const router = useRouter()
@@ -18,20 +17,18 @@ export default function LoginForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
+  const { data: session } = useSession()
   useEffect(() => {
-    // ถ้าล็อกอินแล้วให้ redirect ไป dashboard
-    if (isAuthenticated()) {
+    if (session?.user) {
       const next = searchParams.get('next')
-
-      // check role
-      const userRole = getUserRole() // Assume this function retrieves the user's role
-      if (userRole === 'Admin' || userRole === 'Super admin') {
-        router.push(next || '/dashboard')
+      const role = session.user.role
+      if (role === 'Admin' || role === 'Super admin') {
+        router.replace(next || '/dashboard')
       } else {
-        router.push(next || '/profile')
+        router.replace(next || '/profile')
       }
     }
-  }, [router, searchParams])
+  }, [session, router, searchParams])
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -47,26 +44,16 @@ export default function LoginForm() {
     setLoading(true)
 
     try {
-      const response = await authAPI.login(formData.identifier, formData.password)
-      
-      if (response.jwt) {
-        // Set cookie for middleware
-        document.cookie = `jwt=${response.jwt}; path=/; max-age=${7 * 24 * 60 * 60}` // 7 days
-        
-        // Redirect to intended page or dashboard
-        const next = searchParams.get('next')
-        // check role
-        const userRole = getUserRole() // Assume this function retrieves the user's role
-        if (userRole === 'Admin' || userRole === 'Super admin') {
-          router.push(next || '/dashboard')
-        } else {
-          router.push(next || '/profile')
-        }
-      } else {
-        setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ')
+      const result = await signIn('credentials', {
+        redirect: false,
+        identifier: formData.identifier,
+        password: formData.password,
+      })
+      if (result?.error) {
+        setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
       }
     } catch (err) {
-      setError(err.message || 'อีเมลหรือรหัสผ่านไม่ถูกต้อง')
+      setError('อีเมลหรือรหัสผ่านไม่ถูกต้อง')
     } finally {
       setLoading(false)
     }

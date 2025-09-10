@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { useState } from 'react'
 import useSWR from 'swr'
 import { profileAPI, API_BASE } from '@/lib/api'
+import { useSession } from 'next-auth/react'
 import Image from 'next/image'
 
 function initials(name, fallback) {
@@ -17,35 +18,15 @@ function initials(name, fallback) {
 
 export default function ProfileHeader() {
   const [error, setError] = useState('')
-  const { data: profileRes, error: swrError } = useSWR('profile', () => profileAPI.getMyProfile())
-  if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
-
-  const res = profileRes?.data || profileRes || {}
-  // profile entity may be nested under `profile` or be the entity itself
-  const profObj = res.profile || res.Profile?.[0] || res
-
-  // Resolve display name from multiple possible fields
-  const firstName = profObj?.firstName || profObj?.firstNameTH || profObj?.firstname || profObj?.name || ''
-  const lastName = profObj?.lastName || profObj?.lastNameTH || profObj?.lastname || ''
+  const { data: session } = useSession()
+  const user = session?.user
+  const profObj = user?.profile || {}
+  const firstName = profObj.firstNameTH || profObj.firstName || ''
+  const lastName = profObj.lastNameTH || profObj.lastName || ''
   const displayName = [firstName, lastName].filter(Boolean).join(' ').trim()
-  const email = res?.email || profObj?.email || ''
-  const departmentName = profObj?.department?.name || res?.Department?.name || res?.department?.name || '-'
-
-  // Try to find an avatar URL in common Strapi response shapes
-  let avatarUrl = ''
-  const tryPaths = [
-    profObj?.avatar?.data?.attributes?.url,
-    profObj?.avatar?.url,
-    profObj?.profileImage?.data?.attributes?.url,
-    profObj?.profile_image?.data?.attributes?.url,
-    profObj?.picture?.data?.attributes?.url,
-    profObj?.image?.data?.attributes?.url,
-    profObj?.avatarUrl,
-    profObj?.avatar_url,
-  ]
-  for (const p of tryPaths) {
-    if (p) { avatarUrl = p; break }
-  }
+  const email = user?.email || ''
+  const departmentName = profObj?.department || '-'
+  let avatarUrl = profObj?.avatarUrl || ''
   if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
     const mediaBase = API_BASE.replace(/\/api\/?$/, '')
     avatarUrl = `${mediaBase}${avatarUrl}`

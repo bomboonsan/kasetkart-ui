@@ -13,8 +13,8 @@ import {
   File,
   FileUser,
 } from "lucide-react";
-import { profileAPI, API_BASE } from '@/lib/api'
-import { getUserRole } from '@/lib/auth'
+import { API_BASE } from '@/lib/api'
+import { useSession, signOut } from 'next-auth/react'
 
 const menuItems = [
   {
@@ -87,69 +87,22 @@ export default function Sidebar() {
   const [role, setRole] = useState('User')
 
   // Mock user data แทน API call
+  const { data: session } = useSession()
   useEffect(() => {
-    let mounted = true
-
-    async function loadProfile() {
-      try {
-        const res = await profileAPI.getMyProfileSidebar()
-
-        // res may be the user object directly or { data: ... }
-        const user = res?.data || res || {}
-
-        const backendURL = "http://localhost:1337"
-
-        // Try multiple possible fields for display name
-        const firstName = user.profile.firstNameTH || user.email
-        const lastName = user.profile.lastNameTH || ''
-        const display = [firstName, lastName].filter(Boolean).join(' ').trim()
-
-        // Attempt to find avatar URL in common Strapi shapes
-        let url = null
-        // common shapes: user.avatar.data.attributes.url OR user.avatar.url OR user.profileImage.data.attributes.url
-        const tryPaths = [
-          user?.avatar?.data?.attributes?.url,
-          user?.avatar?.url,
-          user?.profileImage?.data?.attributes?.url,
-          user?.profile_image?.data?.attributes?.url,
-          user?.picture?.data?.attributes?.url,
-          user?.image?.data?.attributes?.url,
-          user?.avatarUrl,
-
-          user?.profile?.avatarUrl?.url || user?.profile?.avatarUrl,
-        ]
-
-        for (const p of tryPaths) {
-          if (p) { url = p; break }
-        }
-
-        // If url is relative (starts with /), prefix API base without /api
-        if (url && !/^https?:\/\//i.test(url)) {
-          const mediaBase = API_BASE.replace(/\/api\/?$/, '')
-          url = `${mediaBase}${url}`
-        }
-
-        if (mounted) {
-          setUserDisplayName(display || 'ผู้ใช้งาน')
-          setUserEmail(user.email || '')
-          setAvatarUrl(url || '')
-          setRole(user.role.name || 'User')
-        }
-      } catch (err) {
-    // fallback to mock values; avoid console logging in production UI
-        if (mounted) {
-          setUserDisplayName('ผู้ใช้งาน')
-          setUserEmail('user@example.com')
-          setAvatarUrl('')
-          setRole(user.role.name || 'User')
-        }
-      }
+    const user = session?.user
+    if (!user) return
+    const profile = user.profile || {}
+    const display = [profile.firstNameTH || user.email, profile.lastNameTH].filter(Boolean).join(' ').trim()
+    let url = profile.avatarUrl
+    if (url && !/^https?:\/\//i.test(url)) {
+      const mediaBase = API_BASE.replace(/\/api\/?$/, '')
+      url = `${mediaBase}${url}`
     }
-
-    loadProfile()
-
-    return () => { mounted = false }
-  }, [])
+    setUserDisplayName(display || 'ผู้ใช้งาน')
+    setUserEmail(user.email || '')
+    setAvatarUrl(url || '')
+    setRole(user.role || 'User')
+  }, [session])
 
   let adminMenuItems;
   if (role == "Admin") {
@@ -239,25 +192,7 @@ export default function Sidebar() {
     setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
-  function handleLogout() {
-    // Clear client-side auth (localStorage + cookie) so middleware and client know user is logged out
-    try {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('jwt')
-        // remove cookie by setting it expired
-        document.cookie = 'jwt=; Path=/; Expires=Thu, 01 Jan 1970 00:00:01 GMT;'
-      }
-    } catch (err) {
-      // ignore token clearing errors
-    }
-
-    // Reset UI state
-    setUserDisplayName('')
-    setUserEmail('')
-
-    // Redirect to login
-    router.push('/login')
-  }
+  function handleLogout() { signOut({ callbackUrl: '/login' }) }
 
   return (
     <div className="sticky top-0 w-64 bg-white border-r border-gray-200 h-screen flex flex-col justify-between">
