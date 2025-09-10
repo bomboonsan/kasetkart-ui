@@ -8,6 +8,7 @@ import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
 import { orgAPI } from '@/lib/api/lookup'
 import { userAPI, uploadAPI } from '@/lib/api/admin'
+import { profileAPI } from '@/lib/api/profile'
 import { API_BASE, api } from '@/lib/api-base'
 import SweetAlert2 from 'react-sweetalert2'
 
@@ -25,9 +26,10 @@ export default function AdminUserEditForm({ userId }) {
   const [form, setForm] = useState({
     email: '',
     role: 'USER',
-    organizationID: '',
-    facultyId: '',
-    departmentId: '',
+  // เปลี่ยนเป็นเก็บ documentId แบบเดียวกับหน้า /profile/edit
+  organizationID: '', // documentId ของ organization
+  facultyId: '', // documentId ของ faculty
+  departmentId: '', // documentId ของ department
     firstName: '',
     lastName: '',
     firstNameEn: '',
@@ -47,16 +49,18 @@ export default function AdminUserEditForm({ userId }) {
   const onChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
   // ดึงข้อมูลด้วย SWR
-  const { data: u, error: uErr } = useSWR(userId ? `/users/${userId}` : null, (k) => api.get(k))
+  // ดึงข้อมูล user โดย populate ให้ได้ Profile และ relations (documentId) ให้มากที่สุด
+  const { data: u, error: uErr } = useSWR(userId ? `/users/${userId}?populate[profile][populate]=*&populate[organization]=*&populate[faculty]=*&populate[department]=*&populate[academic_type]=*&populate[participation_type]=*&populate[educations]=*` : null, (k) => api.get(k))
   const { data: orgRes } = useSWR('/organizations', (k) => api.get(k))
   const { data: facRes } = useSWR('/faculties', (k) => api.get(k))
   const { data: deptRes } = useSWR('/departments', (k) => api.get(k))
 
   useEffect(() => {
     try {
-      const orgOptions = [{ value: '', label: 'เลือกมหาวิทยาลัย' }].concat((orgRes?.data || []).map(o => ({ value: String(o.id), label: o.name })))
-      const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat((facRes?.data || []).map(f => ({ value: String(f.id), label: f.name })))
-      const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat((deptRes?.data || []).map(d => ({ value: String(d.id), label: d.name })))
+  // คอมเมนต์ (ไทย): ให้ใช้ documentId เป็น value ของ select เพื่อสอดคล้องกับหน้า /profile/edit
+  const orgOptions = [{ value: '', label: 'เลือกมหาวิทยาลัย' }].concat((orgRes?.data || []).map(o => ({ value: String(o.documentId || o.id), label: o.name })))
+  const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat((facRes?.data || []).map(f => ({ value: String(f.documentId || f.id), label: f.name })))
+  const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat((deptRes?.data || []).map(d => ({ value: String(d.documentId || d.id), label: d.name })))
       setOrgs(orgOptions); setFaculties(facultyOptions); setDepts(deptOptions)
     } catch {}
   }, [orgRes, facRes, deptRes])
@@ -65,22 +69,28 @@ export default function AdminUserEditForm({ userId }) {
     if (!u) return
     setLoading(true)
     try {
-      const p = u?.Profile?.[0] || {}
+      // คอมเมนต์ (ไทย): ใช้ข้อมูลจาก User entity เป็นหลัก (เหมือนหน้า /profile/edit)
+      const profileObj = u?.profile || u?.Profile?.[0] || {}
+      // ดึงค่า documentId ของ relations ถ้ามี (หน้า profile ใช้ documentId เป็นค่า select)
+      const orgDoc = u?.organization?.documentId || u?.organizationID || null
+      const facDoc = u?.faculty?.documentId || u?.facultyId || null
+      const depDoc = u?.department?.documentId || u?.departmentId || null
+
       setForm({
         email: u.email || '',
         role: u.role || 'USER',
-        organizationID: u.organizationID ? String(u.organizationID) : '',
-        facultyId: u.facultyId ? String(u.facultyId) : '',
-        departmentId: u.departmentId ? String(u.departmentId) : '',
-        firstName: p.firstName || '',
-        lastName: p.lastName || '',
-        firstNameEn: p.firstNameEn || '',
-        lastNameEn: p.lastNameEn || '',
-        highDegree: p.highDegree || '',
-        academicRank: p.academicRank || '',
-        jobType: p.jobType || '',
-        phone: p.phone || '',
-        avatarUrl: p.avatarUrl || '',
+        organizationID: orgDoc ? String(orgDoc) : '',
+        facultyId: facDoc ? String(facDoc) : '',
+        departmentId: depDoc ? String(depDoc) : '',
+        firstName: profileObj.firstName || profileObj.firstNameTH || '',
+        lastName: profileObj.lastName || profileObj.lastNameTH || '',
+        firstNameEn: profileObj.firstNameEn || profileObj.firstNameEN || '',
+        lastNameEn: profileObj.lastNameEn || profileObj.lastNameEN || '',
+        highDegree: profileObj.highDegree || '',
+        academicRank: profileObj.academicRank || profileObj.academicPosition || '',
+        jobType: profileObj.jobType || '',
+        phone: profileObj.phone || profileObj.telephoneNo || '',
+        avatarUrl: profileObj.avatarUrl || '',
       })
     } catch (e) {
       setError(e.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
@@ -93,25 +103,38 @@ export default function AdminUserEditForm({ userId }) {
     e.preventDefault()
     try {
       setError('')
-      // update user
+      // อัปเดต non-relation fields ของ User โดยไม่แตะ relations ตรงๆ
       await userAPI.updateUser(userId, {
         role: form.role,
-        organizationID: form.organizationID ? parseInt(form.organizationID) : undefined,
-        facultyId: form.facultyId ? parseInt(form.facultyId) : undefined,
-        departmentId: form.departmentId ? parseInt(form.departmentId) : undefined,
       })
-      // upsert profile
+
+      // upsert profile data (Profile entity) เหมือนหน้า /profile/edit
       await userAPI.upsertUserProfile(userId, {
-        firstName: form.firstName || undefined,
-        lastName: form.lastName || undefined,
-        firstNameEn: form.firstNameEn || undefined,
-        lastNameEn: form.lastNameEn || undefined,
+        firstNameTH: form.firstName || undefined,
+        lastNameTH: form.lastName || undefined,
+        firstNameEN: form.firstNameEn || undefined,
+        lastNameEN: form.lastNameEn || undefined,
         highDegree: form.highDegree || undefined,
-        academicRank: form.academicRank || undefined,
-        jobType: form.jobType || undefined,
-        phone: form.phone || undefined,
+        academicPosition: form.academicRank || undefined,
+        telephoneNo: form.phone || undefined,
         avatarUrl: form.avatarUrl || undefined,
       })
+
+      // อัปเดต relations ผ่าน endpoint ที่ออกแบบมาสำหรับ Strapi v5 (รองรับ documentId)
+      // รูปแบบ Strapi v5: to-one relation -> { set: [documentId] } , เคลียร์ -> { set: [] }
+      const toSet = (val) => (val ? { set: [val] } : { set: [] })
+      // คอมเมนต์ (ไทย): ส่ง payload แบบ Strapi v5 (to-one relations ใช้ { set: [documentId] })
+      const relationsPayload = {
+        userId: userId,
+        organization: form.organizationID ? toSet(form.organizationID) : toSet(null),
+        organization_documentId: form.organizationID ? form.organizationID : undefined,
+        faculty: form.facultyId ? toSet(form.facultyId) : toSet(null),
+        faculty_documentId: form.facultyId ? form.facultyId : undefined,
+        department: form.departmentId ? toSet(form.departmentId) : toSet(null),
+        department_documentId: form.departmentId ? form.departmentId : undefined,
+      }
+      // เรียก API เฉพาะสำหรับ relation เพื่อให้ backend map documentId -> id และอัปเดตอย่างปลอดภัย
+      await profileAPI.updateUserRelations(relationsPayload)
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกข้อมูลผู้ใช้สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (e) {
       setError(e.message || 'บันทึกไม่สำเร็จ')
