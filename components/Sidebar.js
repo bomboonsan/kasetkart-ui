@@ -211,7 +211,44 @@ export default function Sidebar() {
     setOpenGroups(prev => ({ ...prev, [id]: !prev[id] }))
   }
 
-  function handleLogout() { signOut({ callbackUrl: '/login' }) }
+  // ทำความสะอาดสถานะฝั่งไคลเอนต์ก่อนออกจากระบบ
+  // - ล้าง cache ของ SWR / localStorage / sessionStorage ที่เกี่ยวข้องกับการระบุตัวตน
+  // - เรียก signOut ของ next-auth เพื่อเคลียร์ session ที่ server-side แล้วสั่ง reload เพื่อให้ state ใหม่ถูกโหลด
+  function handleLogout() {
+    try {
+      // ล้าง localStorage keys ที่เป็นไปได้ซึ่งเก็บข้อมูลผู้ใช้/เมนู/การตั้งค่า
+      const maybeKeys = ['nextauth.token', 'next-auth.session-token', 'next-auth.callback-url', 'me', 'user', 'profile', 'swr-cache']
+      maybeKeys.forEach(k => {
+        try { localStorage.removeItem(k) } catch (e) { /* ignore */ }
+      })
+
+      // ล้าง sessionStorage ด้วย (กรณีเก็บข้อมูลชั่วคราวที่นี่)
+      try { sessionStorage.clear() } catch (e) { /* ignore */ }
+
+      // ล้าง SWR cache ถ้ามี (บางหน้าอาจใช้ swr/mutate และเก็บ key เป็น 'me' หรืออื่นๆ)
+      try {
+        // โหลด dynamic mutate จาก swr ถ้ามี (import ภายนอกหลีกเลี่ยง SSR issues)
+        // ใช้วิธี fallback: ถ้ามี window.__SWR_GLOBAL_MUTATE ให้เรียกหรือเรียก global mutate
+        if (typeof window !== 'undefined') {
+          const g = window.__SWR_GLOBAL_MUTATE || null
+          if (typeof g === 'function') {
+            // ล้างทุกคีย์ที่เป็นไปได้
+            g(null)
+          }
+        }
+      } catch (e) {
+        // ignore
+      }
+
+    } finally {
+      // เรียก signOut ของ next-auth และบังคับ reload หน้าไปที่ /login
+      // ใช้ redirect: false เพื่อให้เราควบคุมการเปลี่ยนหน้าเอง
+      signOut({ redirect: false }).finally(() => {
+        // บังคับ reload แบบ full reload เพื่อล้าง cache ต่างๆ ของ browser และแอป
+        window.location.href = '/login'
+      })
+    }
+  }
 
   return (
     <div className="sticky top-0 w-64 bg-white border-r border-gray-200 h-screen flex flex-col justify-between">
