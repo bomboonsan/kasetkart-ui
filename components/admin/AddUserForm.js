@@ -228,11 +228,11 @@ export default function AddUserForm() {
           required
         />
         <FormField
-          label="รหัสผ่าน (ไม่จำเป็น)"
+          label="รหัสผ่าน"
           type="password"
           value={form.password}
           onChange={(v) => onChange('password', v)}
-        // required
+        required
         />
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
