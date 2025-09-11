@@ -48,7 +48,7 @@ export default function FileUploadField({
       })
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:1337'}/api/upload`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'https://kasetbackend.bomboonsan.com'}/api/upload`, {
         method: 'POST',
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),

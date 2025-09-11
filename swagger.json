@@ -24,7 +24,7 @@
   },
   "servers": [
     {
-      "url": "http://localhost:1337/api",
+      "url": "https://kasetbackend.bomboonsan.com/api",
       "description": "Development server"
     }
   ],

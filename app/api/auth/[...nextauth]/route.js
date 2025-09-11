@@ -4,7 +4,7 @@ import axios from 'axios'
 
 // ตรวจสอบตัวแปรสภาพแวดล้อมหลายรูปแบบเพื่อให้เข้ากับโปรเจค
 // Strapi ตัวโปรเจคมักตั้งเป็น NEXT_PUBLIC_API_BASE_URL หรือ NEXT_PUBLIC_API_URL
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_URL || 'http://localhost:1337/api'
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_URL || 'https://kasetbackend.bomboonsan.com/api'
 
 export const authOptions = {
   session: {
