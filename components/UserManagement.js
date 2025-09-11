@@ -6,7 +6,10 @@ import useSWR, { mutate } from 'swr'
 import UserTable from "./UserTable";
 import UserFilters from "./UserFilters";
 import UserModal from "./UserModal";
-import { api } from "@/lib/api";
+import { api, API_BASE } from "@/lib/api";
+
+// คอมเมนต์ (ไทย): สร้าง Base URL สำหรับไฟล์โดยเฉพาะ
+const API_PUBLIC_URL = API_BASE.replace('/api', '');
 
 // User API functions for Strapi v5
 const userAPI = {
@@ -115,7 +118,8 @@ const UserManagement = forwardRef((props, ref) => {
           status: status,
           lastLogin: "Never", // Strapi doesn't track this by default
           avatar: toAvatar(displayName || u.email),
-          avatarUrl: profile?.avatarUrl?.url || '',
+          // คอมเมนต์ (ไทย): แก้ไขให้สร้าง URL ของรูปภาพให้สมบูรณ์
+          avatarUrl: profile?.avatarUrl?.url ? `${API_PUBLIC_URL}${profile.avatarUrl.url}` : '',
           blocked: u.blocked,
           confirmed: u.confirmed,
           rawData: u,

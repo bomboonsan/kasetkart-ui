@@ -101,7 +101,7 @@ export default function AdminUserHeader({ userId }) {
 
           {/* Action Button */}
           <div className="flex-shrink-0">
-            <Link href={`/dashboard/admin/user/edit/${profileRes?.documentId || userId}`} passHref>
+            <Link href={`/dashboard/admin/user/edit/${userId}`} passHref>
               <Button variant="outline">Edit user</Button>
             </Link>
           </div>
