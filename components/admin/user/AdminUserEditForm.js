@@ -49,6 +49,7 @@ export default function AdminUserEditForm({ userId }) {
   const [orgs, setOrgs] = useState([])
   const [faculties, setFaculties] = useState([])
   const [depts, setDepts] = useState([])
+  const [academicTypes, setAcademicTypes] = useState([])
   const [roles, setRoles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -60,6 +61,7 @@ export default function AdminUserEditForm({ userId }) {
   const { data: orgRes } = useSWR('/organizations', (k) => api.get(k))
   const { data: facRes } = useSWR('/faculties', (k) => api.get(k))
   const { data: deptRes } = useSWR('/departments', (k) => api.get(k))
+  const { data: academicTypeRes } = useSWR('/academic-types', (k) => api.get(k))
   const { data: rolesRes } = useSWR('/users-permissions/roles', (k) => api.get(k))
 
   // --- useEffects ---
@@ -68,14 +70,17 @@ export default function AdminUserEditForm({ userId }) {
       const orgOptions = [{ value: '', label: 'เลือกมหาวิทยาลัย' }].concat((orgRes?.data || []).map(o => ({ value: String(o.documentId || o.id), label: o.name })))
       const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat((facRes?.data || []).map(f => ({ value: String(f.documentId || f.id), label: f.name })))
       const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat((deptRes?.data || []).map(d => ({ value: String(d.documentId || d.id), label: d.name })))
+  // คอมเมนต์ (ไทย): เตรียม options สำหรับ Academic Type เพื่อแสดงใน SelectField และรองรับการแก้ไข relation
+  const academicTypeOptions = [{ value: '', label: 'เลือกประเภทอาจารย์ (Academic Type)' }].concat((academicTypeRes?.data || []).map(a => ({ value: String(a.documentId || a.id), label: a.name })))
       const rolesOptions = (rolesRes?.roles || []).map(r => ({ value: r.id, label: r.name }))
       
       setOrgs(orgOptions)
       setFaculties(facultyOptions)
       setDepts(deptOptions)
+  setAcademicTypes(academicTypeOptions)
       setRoles(rolesOptions)
     } catch {}
-  }, [orgRes, facRes, deptRes, rolesRes])
+  }, [orgRes, facRes, deptRes, academicTypeRes, rolesRes])
 
   useEffect(() => {
     if (!u) return
@@ -86,6 +91,7 @@ export default function AdminUserEditForm({ userId }) {
       const orgDoc = user?.organization?.documentId || null
       const facDoc = user?.faculty?.documentId || null
       const depDoc = user?.department?.documentId || null
+  const atDoc = user?.academic_type?.documentId || null
 
       setForm(prev => ({
         ...prev,
@@ -94,6 +100,8 @@ export default function AdminUserEditForm({ userId }) {
         organizationID: orgDoc ? String(orgDoc) : '',
         facultyId: facDoc ? String(facDoc) : '',
         departmentId: depDoc ? String(depDoc) : '',
+  // คอมเมนต์ (ไทย): เซ็ตค่าเริ่มต้นของ academic_type ให้มาจาก User.academic_type (documentId หรือ id)
+  academic_type: atDoc ? String(atDoc) : '',
         firstName: profileObj.firstNameTH || '',
         lastName: profileObj.lastNameTH || '',
         firstNameEn: profileObj.firstNameEN || '',
@@ -150,11 +158,13 @@ export default function AdminUserEditForm({ userId }) {
 
       // 3. อัปเดต Relations
       const toSet = (val) => (val ? { set: [val] } : { set: [] })
+      // คอมเมนต์ (ไทย): เพิ่ม academic_type เข้าไปใน payload สำหรับ endpoint /user-relations/update
       const relationsPayload = {
         userId: userId,
         organization: toSet(form.organizationID),
         faculty: toSet(form.facultyId),
         department: toSet(form.departmentId),
+        academic_type: toSet(form.academic_type || form.jobType || ''), // ถ้าผู้ใช้เลือกจาก Academic Type จะใช้ค่านั้น, ถ้าไม่มีก็ fallback ไปที่ jobType (ค่าเดิม)
       }
       await profileAPI.updateUserRelations(relationsPayload)
 
@@ -271,7 +281,11 @@ export default function AdminUserEditForm({ userId }) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <FormField label="เบอร์ติดต่อ" value={form.phone} onChange={(v) => onChange('phone', v)} />
-        <SelectField label="ประเภทอาจารย์" value={form.jobType} onChange={(v) => onChange('jobType', v)} options={JOB_TYPES} />
+        {/* คอมเมนต์ (ไทย): แสดง Select สำหรับ Academic Type (relation จริงใน Strapi) และสำรอง JOB_TYPES ไว้ถ้าจำเป็น */}
+        <div>
+          <SelectField label="ประเภทอาจารย์ (Academic Type)" value={form.academic_type || ''} onChange={(v) => onChange('academic_type', v)} options={academicTypes.length ? academicTypes : JOB_TYPES} />
+          {/* คอมเมนต์ (ไทย): ถ้า backend ยังเก็บค่าแบบ jobType ไว้ด้วย จะ fallback ไปใช้ JOB_TYPES */}
+        </div>
       </div>
 
       {/* คอมเมนต์ (ไทย): แก้ไขช่อง "ตำแหน่งทางวิชาการ" ที่ซ้ำซ้อน เป็นช่องสำหรับเปลี่ยนรหัสผ่าน */}
