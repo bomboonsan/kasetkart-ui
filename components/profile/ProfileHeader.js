@@ -24,6 +24,10 @@ export default function ProfileHeader({ profileData }) {
     profileData ? null : 'profile', 
     () => profileAPI.getMyProfile()
   )
+
+  console.log('ProfileHeader profileData:', profileData)
+  console.log('ProfileHeader profileRes:', profileRes)
+  console.log('ProfileHeader swrError:', swrError)
   
   const actualProfileData = profileData || profileRes
   if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
