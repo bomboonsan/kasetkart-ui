@@ -1,6 +1,4 @@
-'use client'
-
-import { useState } from 'react'
+import Image from 'next/image';
 
 export default function ProfileImageUpload() {
   const [imagePreview, setImagePreview] = useState(null)
@@ -21,9 +19,11 @@ export default function ProfileImageUpload() {
       <div className="relative">
         <div className="w-24 h-24 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
           {imagePreview ? (
-            <img 
+            <Image 
               src={imagePreview} 
               alt="Profile preview" 
+              width={96} 
+              height={96} 
               className="w-full h-full object-cover"
             />
           ) : (

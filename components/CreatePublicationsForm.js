@@ -25,7 +25,9 @@ import FileUploadField from "./FileUploadField";
 import ResearchTeamTable from "./ResearchTeamTable";
 import EditableResearchTeamSection from './EditableResearchTeamSection'
 import Button from "./Button";
-import SweetAlert2 from 'react-sweetalert2'
+import dynamic from 'next/dynamic'
+
+const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 
 export default function CreatePublicationsForm({ mode = 'create', workId, initialData }) {
   const [swalProps, setSwalProps] = useState({})

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import useSWR from 'swr'
 // คอมโพเนนต์ UI ของ Dashboard
 import StatsCard from '@/components/dashboard/StatsCard'
@@ -22,25 +22,53 @@ export default function DashboardHome() {
   const [selectedDept, setSelectedDept] = useState('all')
   const [researchStats, setResearchStats] = useState({ icTypes: [], impacts: [], sdgs: [] })
 
-  useEffect(() => {
-    // initial data comes from SWR; we'll map it into state below
-  }, [])
-
-  useEffect(() => {
-    // When selectedDept changes, reload personnel-by-department and research stats
-    loadPersonnelForDepartment(selectedDept)
-    loadResearchStatsForDepartment(selectedDept)
-  }, [selectedDept])
-
-  // Use SWR to load initial dashboard data (departments, counts, faculty personnel, overall research stats)
+  // Use SWR to load initial dashboard data
   const { data: deptsRes, error: deptError, isLoading: loadingDepts } = useSWR('departments', () => valueFromAPI.getDepartments(), { revalidateOnFocus: false, dedupingInterval: 60000 })
   const { data: statsRes, error: statsError, isLoading: loadingStats } = useSWR('dashboardStats', () => dashboardAPI.getStats(), { revalidateOnFocus: false, dedupingInterval: 60000 })
   const { data: facultyPersonnelRes, error: facultyError, isLoading: loadingFaculty } = useSWR('facultyPersonnel', () => dashboardAPI.getPersonnelByAcademicType(), { revalidateOnFocus: false, dedupingInterval: 60000 })
   const { data: researchStatsRes, error: researchError, isLoading: loadingResearch } = useSWR('researchStats', () => dashboardAPI.getResearchStatsByTypes(), { revalidateOnFocus: false, dedupingInterval: 60000 })
 
+  const loadResearchStatsForDepartment = useCallback(async (departmentId) => {
+    try {
+      const stats = await dashboardAPI.getResearchStatsByTypes(departmentId)
+      setResearchStats(stats)
+    } catch (err) {
+      setError('ไม่สามารถโหลดสถิติการวิจัยสำหรับภาควิชานี้ได้')
+    }
+  }, [])
+
+  const loadPersonnelForDepartment = useCallback(async (departmentId) => {
+    try {
+      if (!departmentId || departmentId === 'all') {
+        return
+      }
+      const deptPersonnel = await dashboardAPI.getPersonnelByAcademicType(departmentId)
+      const keys = ['SA', 'PA', 'SP', 'IP', 'A']
+      const normalized = {}
+      keys.forEach(k => {
+        const foundKey = Object.keys(deptPersonnel || {}).find(rk => String(rk).toUpperCase() === k)
+        normalized[k] = Number(foundKey ? deptPersonnel[foundKey] : 0)
+      })
+      const total = Object.values(normalized).reduce((s, v) => s + v, 0) || 1
+      const deptChartData = Object.entries(normalized).map(([type, count]) => ({
+        category: type,
+        personnel: count,
+        percentage: ((count / total) * 100).toFixed(1)
+      }))
+      setDepartmentPersonnelData(deptChartData)
+    } catch (err) {
+      setError('ไม่สามารถโหลดข้อมูลบุคลากรสำหรับภาควิชานี้ได้')
+    }
+  }, [])
+
+  // When selectedDept changes, reload personnel-by-department and research stats
+  useEffect(() => {
+    loadPersonnelForDepartment(selectedDept)
+    loadResearchStatsForDepartment(selectedDept)
+  }, [selectedDept, loadPersonnelForDepartment, loadResearchStatsForDepartment])
+
   // When SWR data becomes available map into local state
   useEffect(() => {
-    // departments
     if (deptsRes) {
       const departmentsData = (deptsRes?.data || deptsRes || []).map(d => {
         const rawId = d?.id ?? d?.attributes?.id ?? null
@@ -49,12 +77,17 @@ export default function DashboardHome() {
         return { id: rawId, documentId: rawDoc, name }
       })
       setDepartments(departmentsData)
-      if (departmentsData.length && selectedDept === 'all') {
-        setSelectedDept(departmentsData[0].documentId || departmentsData[0].id || 'all')
+      // คอมเมนต์ (ไทย): แก้ไขให้ใช้ functional update เพื่อหลีกเลี่ยงการใส่ selectedDept ใน dependency array
+      if (departmentsData.length > 0) {
+        setSelectedDept(currentSelectedDept => {
+          if (currentSelectedDept === 'all') {
+            return departmentsData[0].documentId || departmentsData[0].id || 'all';
+          }
+          return currentSelectedDept;
+        });
       }
     }
 
-    // stats (projects, fundings, publications, conferences, books)
     if (statsRes) {
       const [projectsRes, fundingsRes, publicationsRes, conferencesRes, booksRes] = statsRes
       const projectsCount = projectsRes?.meta?.pagination?.total || projectsRes?.data?.length || 0
@@ -74,7 +107,6 @@ export default function DashboardHome() {
       setStats(statsData)
     }
 
-    // faculty personnel (donut)
     if (facultyPersonnelRes) {
       const normalizePersonnelCounts = (raw = {}) => {
         const keys = ['SA', 'PA', 'SP', 'IP', 'A']
@@ -104,66 +136,16 @@ export default function DashboardHome() {
       setDepartmentPersonnelData(departmentChartData)
     }
 
-    // overall research stats
     if (researchStatsRes) {
       setResearchStats(researchStatsRes)
     }
 
-    // set loading & error states from SWR
     setLoading(Boolean(loadingDepts || loadingStats || loadingFaculty || loadingResearch))
     if (deptError || statsError || facultyError || researchError) {
       setError('ไม่สามารถโหลดข้อมูล Dashboard ได้')
     }
   }, [deptsRes, statsRes, facultyPersonnelRes, researchStatsRes, loadingDepts, loadingStats, loadingFaculty, loadingResearch, deptError, statsError, facultyError, researchError])
 
-  const loadResearchStatsForDepartment = async (departmentId) => {
-    try {
-      if (!departmentId || departmentId === 'all') {
-        // load overall
-        const stats = await dashboardAPI.getResearchStatsByTypes()
-        setResearchStats(stats)
-        return
-      }
-      // loading research stats for department
-      const stats = await dashboardAPI.getResearchStatsByTypes(departmentId)
-      setResearchStats(stats)
-    } catch (err) {
-      setError('ไม่สามารถโหลดสถิติการวิจัยสำหรับภาควิชานี้ได้')
-    }
-  }
-
-  const loadPersonnelForDepartment = async (departmentId) => {
-    try {
-      // departmentId could be 'all' meaning overall
-      if (!departmentId || departmentId === 'all') {
-        // use facultyPersonnelData already set
-        return
-      }
-
-      const deptPersonnel = await dashboardAPI.getPersonnelByAcademicType(departmentId)
-
-      // Ensure keys exist (SA,PA,SP,IP,A) and default to 0
-      const keys = ['SA', 'PA', 'SP', 'IP', 'A']
-      const normalized = {}
-      keys.forEach(k => {
-        const foundKey = Object.keys(deptPersonnel || {}).find(rk => String(rk).toUpperCase() === k)
-        normalized[k] = Number(foundKey ? deptPersonnel[foundKey] : 0)
-      })
-
-      const total = Object.values(normalized).reduce((s, v) => s + v, 0) || 1
-      const deptChartData = Object.entries(normalized).map(([type, count]) => ({
-        category: type,
-        personnel: count,
-        percentage: ((count / total) * 100).toFixed(1)
-      }))
-
-      setDepartmentPersonnelData(deptChartData)
-    } catch (err) {
-      setError('ไม่สามารถโหลดข้อมูลบุคลากรสำหรับภาควิชานี้ได้')
-    }
-  }
-
-  // แสดงสถานะ Loading
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -173,13 +155,11 @@ export default function DashboardHome() {
     )
   }
 
-  // แสดง Error (ถ้ามี)
   if (error) {
     return (
       <div className="p-4 rounded bg-red-50 text-red-700 border border-red-200">
         {error}
         <button
-          // onClick={loadDashboardData}
           className="ml-4 px-3 py-1 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
         >
           ลองใหม่
@@ -188,16 +168,13 @@ export default function DashboardHome() {
     )
   }
 
-  // UI หลักของหน้า Dashboard
   return (
     <div className="space-y-6">
       <div className='grid grid-cols-6 gap-5'>
-        {/* สรุปจำนวน Project / Works แยกประเภท */}
         <div className='col-span-6'>
           <StatsCard title="สรุปจำนวนผลงานวิชาการทั้งหมดของคณะ" stats={stats} />
         </div>
 
-        {/* ภาพรวมประเภทบุคคลากรของคณะ (DonutChart) */}
         <div className='col-span-6 md:col-span-2 h-full'>
           <DonutChart
             title="ภาพรวมประเภทบุคคลากรของคณะ"
@@ -208,7 +185,6 @@ export default function DashboardHome() {
           />
         </div>
 
-        {/* ภาพรวมประเภทบุคคลากรของภาควิชา (เลือกภายในคอมโพเนนต์) */}
         <div className='col-span-6 md:col-span-4 h-full'>
           <PersonnelChart
             title="ภาพรวมประเภทบุคคลากรของภาควิชา"
@@ -219,7 +195,6 @@ export default function DashboardHome() {
           />
         </div>
 
-        {/* Scholarship Statistics Table */}
         <div className='col-span-6 md:col-span-6'>
           <ScholarshipTable
             title="สถิติงานวิจัยตาม IC Types, Impact และ SDG"

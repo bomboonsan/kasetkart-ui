@@ -9,7 +9,9 @@ import { orgAPI } from '@/lib/api/lookup'
 import { userAPI, uploadAPI } from '@/lib/api/admin'
 import { profileAPI } from '@/lib/api/profile'
 import { API_BASE, api } from '@/lib/api-base'
-import SweetAlert2 from 'react-sweetalert2'
+import Image from 'next/image';
+import dynamic from 'next/dynamic'
+const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 
 const API_PUBLIC_URL = API_BASE.replace('/api', '');
 
@@ -179,7 +181,7 @@ export default function AdminUserEditForm({ userId }) {
         <div className="relative">
           <div className="w-24 h-24 bg-gray-100 rounded-full overflow-hidden border border-gray-200 flex items-center justify-center">
             {form.avatarUrl ? (
-              <img src={form.avatarUrl} alt="preview" className="w-full h-full object-cover" />
+              <Image src={form.avatarUrl} alt="preview" width={96} height={96} className="w-full h-full object-cover" />
             ) : (
               <svg className="w-10 h-10 text-gray-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />

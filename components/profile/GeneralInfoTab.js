@@ -10,7 +10,8 @@ import FormSelect from '@/components/FormSelect'
 import SelectField from '@/components/SelectField'
 import Button from '@/components/Button'
 import { Trash2 } from 'lucide-react'
-import SweetAlert2 from 'react-sweetalert2'
+import dynamic from 'next/dynamic'
+const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 import { createHandleChange } from '@/utils/form'
 
 // คอมเมนต์ (ไทย): แก้ไข Component ให้รับ userId เพื่อให้ Admin แก้ไขโปรไฟล์คนอื่นได้

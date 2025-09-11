@@ -5,6 +5,7 @@ import Button from '@/components/Button'
 
 function Manager({ title, path }) {
   // Mock data แทน API calls
+  const [error, setError] = useState(null)
   const mockData = {
     '/organizations': [
       { id: 1, name: 'มหาวิทยาลัยเกษตรศาสตร์' },

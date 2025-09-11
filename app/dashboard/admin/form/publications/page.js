@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { worksAPI } from '@/lib/api/works'
@@ -13,22 +13,17 @@ export default function AdminPublicationsPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [pageSize] = useState(10)
   
-  // Filter states
   const [searchTitle, setSearchTitle] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
 
-  useEffect(() => {
-    fetchPublications()
-  }, [currentPage, searchTitle, sortBy, sortOrder])
-
-  const fetchPublications = async () => {
+  // คอมเมนต์ (ไทย): แก้ไขโดยการห่อ fetchPublications ด้วย useCallback และเพิ่มเข้าไปใน dependency array ของ useEffect
+  const fetchPublications = useCallback(async () => {
     setLoading(true)
     setError('')
     
@@ -40,7 +35,6 @@ export default function AdminPublicationsPage() {
         populate: '*'
       }
 
-      // Add search filter if provided
       if (searchTitle.trim()) {
         params['filters[$or][0][titleTh][$containsi]'] = searchTitle.trim()
         params['filters[$or][1][titleEn][$containsi]'] = searchTitle.trim()
@@ -48,7 +42,6 @@ export default function AdminPublicationsPage() {
 
       const response = await worksAPI.getPublications(params)
       
-      // Handle different response structures
       const data = response?.data || response || []
       const meta = response?.meta || {}
       const pagination = meta.pagination || {}
@@ -58,11 +51,15 @@ export default function AdminPublicationsPage() {
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
       
     } catch (err) {
-  setError('ไม่สามารถโหลดข้อมูลบทความได้')
+      setError('ไม่สามารถโหลดข้อมูลบทความได้')
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, pageSize, searchTitle, sortBy, sortOrder])
+
+  useEffect(() => {
+    fetchPublications()
+  }, [fetchPublications])
 
   const handleSearch = (e) => {
     e.preventDefault()

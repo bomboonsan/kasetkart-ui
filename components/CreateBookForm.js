@@ -21,10 +21,16 @@ import FormCheckbox from './FormCheckbox'
 import FormTextarea from './FormTextarea'
 import FormDateSelect from './FormDateSelect'
 import FormSelect from "./FormSelect";
-import FileUploadField from './FileUploadField'
-import EditableResearchTeamSection from './EditableResearchTeamSection'
+import dynamic from 'next/dynamic'
+
+const FileUploadField = dynamic(() => import('./FileUploadField'), { ssr: false });
+const EditableResearchTeamSection = dynamic(() => import('./EditableResearchTeamSection'), { ssr: false });
+
 import Button from './Button'
-import SweetAlert2 from 'react-sweetalert2'
+
+// คอมเมนต์ (ไทย): แก้ไขให้ SweetAlert2 โหลดแบบ dynamic เฉพาะฝั่ง client เท่านั้น
+const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false });
+
 
 export default function CreateBookForm({ mode = 'create', workId, initialData }) {
   const router = useRouter()

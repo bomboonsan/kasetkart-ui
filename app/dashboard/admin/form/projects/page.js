@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { projectAPI } from '@/lib/api/project'
@@ -12,24 +12,18 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  console.log('AdminProjectsPage render', projects)
   
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [pageSize] = useState(10)
   
-  // Filter states
   const [searchTitle, setSearchTitle] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
 
-  useEffect(() => {
-    fetchProjects()
-  }, [currentPage, searchTitle, sortBy, sortOrder])
-
-  const fetchProjects = async () => {
+  // คอมเมนต์ (ไทย): แก้ไขโดยการห่อ fetchProjects ด้วย useCallback และเพิ่มเข้าไปใน dependency array ของ useEffect
+  const fetchProjects = useCallback(async () => {
     setLoading(true)
     setError('')
     
@@ -41,7 +35,6 @@ export default function AdminProjectsPage() {
         populate: '*'
       }
 
-      // Add search filter if provided
       if (searchTitle.trim()) {
         params['filters[$or][0][nameTH][$containsi]'] = searchTitle.trim()
         params['filters[$or][1][nameEN][$containsi]'] = searchTitle.trim()
@@ -49,7 +42,6 @@ export default function AdminProjectsPage() {
 
       const response = await projectAPI.getProjects(params)
       
-      // Handle different response structures
       const data = response?.data || response || []
       const meta = response?.meta || {}
       const pagination = meta.pagination || {}
@@ -59,11 +51,15 @@ export default function AdminProjectsPage() {
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
       
     } catch (err) {
-  setError('ไม่สามารถโหลดข้อมูลโครงการได้')
+      setError('ไม่สามารถโหลดข้อมูลโครงการได้')
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, pageSize, searchTitle, sortBy, sortOrder])
+
+  useEffect(() => {
+    fetchProjects()
+  }, [fetchProjects])
 
   const handleSearch = (e) => {
     e.preventDefault()

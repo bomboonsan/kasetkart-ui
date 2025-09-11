@@ -1,6 +1,6 @@
-"use client"
+'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { fundingAPI } from '@/lib/api/project'
@@ -10,26 +10,20 @@ import PageHeader from '@/components/PageHeader'
 export default function AdminFundsPage() {
   const router = useRouter()
   const [funds, setFunds] = useState([])
-  console.log('AdminFundsPage render', funds)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   
-  // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [pageSize] = useState(10)
   
-  // Filter states
   const [searchTitle, setSearchTitle] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
 
-  useEffect(() => {
-    fetchFunds()
-  }, [currentPage, searchTitle, sortBy, sortOrder])
-
-  const fetchFunds = async () => {
+  // คอมเมนต์ (ไทย): แก้ไขโดยการห่อ fetchFunds ด้วย useCallback และเพิ่มเข้าไปใน dependency array ของ useEffect
+  const fetchFunds = useCallback(async () => {
     setLoading(true)
     setError('')
     
@@ -41,7 +35,6 @@ export default function AdminFundsPage() {
         populate: '*'
       }
 
-      // Add search filter if provided
       if (searchTitle.trim()) {
         params['filters[$or][0][nameTh][$containsi]'] = searchTitle.trim()
         params['filters[$or][1][nameEn][$containsi]'] = searchTitle.trim()
@@ -49,7 +42,6 @@ export default function AdminFundsPage() {
 
       const response = await fundingAPI.getFundings(params)
       
-      // Handle different response structures
       const data = response?.data || response || []
       const meta = response?.meta || {}
       const pagination = meta.pagination || {}
@@ -59,11 +51,15 @@ export default function AdminFundsPage() {
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
       
     } catch (err) {
-  setError('ไม่สามารถโหลดข้อมูลทุนได้')
+      setError('ไม่สามารถโหลดข้อมูลทุนได้')
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentPage, pageSize, searchTitle, sortBy, sortOrder])
+
+  useEffect(() => {
+    fetchFunds()
+  }, [fetchFunds])
 
   const handleSearch = (e) => {
     e.preventDefault()

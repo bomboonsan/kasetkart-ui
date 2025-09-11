@@ -14,7 +14,8 @@ import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from './Button'
 import Link from 'next/link'
-import SweetAlert2 from 'react-sweetalert2'
+import dynamic from 'next/dynamic'
+const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 // ใช้ path alias (@/) เพื่อให้ import ชัดเจนและลดความซ้ำซ้อนของ path
 import { projectAPI } from '@/lib/api/project'
 import { api } from '@/lib/api-base'

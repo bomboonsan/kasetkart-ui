@@ -5,7 +5,8 @@ import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) แทน relative path
 import { projectAPI } from '@/lib/api/project'
 import Button from './Button'
-import SweetAlert2 from 'react-sweetalert2'
+import dynamic from 'next/dynamic'
+const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 
 export default function EditableResearchTeamSection({ project }) {
   const [swalProps, setSwalProps] = useState({})

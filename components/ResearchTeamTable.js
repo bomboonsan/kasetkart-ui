@@ -6,7 +6,8 @@ import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
 import FormCheckbox from './FormCheckbox';
 import { useEffect, useMemo, useState } from 'react'
-import SweetAlert2 from 'react-sweetalert2'
+import dynamic from 'next/dynamic'
+const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 import {
   ChevronUp,
   ChevronDown

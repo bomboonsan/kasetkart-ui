@@ -22,7 +22,8 @@ import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
 import EditableResearchTeamSection from './EditableResearchTeamSection'
 import Button from './Button'
-import SweetAlert2 from 'react-sweetalert2'
+import dynamic from 'next/dynamic'
+const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 
 export default function CreateConferenceForm({ mode = 'create', workId, initialData }) {
   const router = useRouter()
