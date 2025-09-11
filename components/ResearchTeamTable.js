@@ -125,6 +125,17 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     loadMe()
   }, [])
 
+  // ถ้ามี partnersLocal ถูกส่งมาจาก Parent (`formData.partnersLocal`) ให้ใช้ค่านั้นเป็นค่าเริ่มต้น
+  // (ใช้เมื่อไม่มี `project` โหลดมาจาก API เช่นในกรณี Create หรือเมื่อ Edit ใช้ parent เป็นแหล่งข้อมูล)
+  // เพิ่ม effect นี้เพื่อให้ EditResearchForm ที่ตั้งค่า `formData.partnersLocal` สามารถทำให้ตารางแสดงได้ทันที
+  useEffect(() => {
+    if (!project && Array.isArray(formData?.partnersLocal) && formData.partnersLocal.length > 0) {
+      // ใช้ recomputeProportions เพื่อคำนวณสัดส่วนให้ถูกต้องก่อนแสดง
+      setLocalPartners(recomputeProportions(formData.partnersLocal))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData?.partnersLocal, project])
+
   // Keep parent formData in sync with local partners (so CreateResearchForm can read them)
   useEffect(() => {
     if (typeof setFormData === 'function') {
