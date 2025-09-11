@@ -277,7 +277,11 @@ export default function CreateResearchForm({ mode = 'create', projectId: propPro
         ['durationEnd', 'วันที่สิ้นสุด'],
         ['budget', 'งบวิจัย'],
   ['keywords', 'คำสำคัญ'],
-  // หมายเหตุ: icTypes, impact, sdg ไม่บังคับ แต่ถ้าเลือกจะผูกความสัมพันธ์ M2M ให้
+  // คอมเมนต์ (ไทย): บังคับเลือกความสัมพันธ์ M2M เพื่อให้บันทึกได้ครบถ้วน
+  // สอดคล้องกับ requirement: ic_types, impacts, sdgs ต้องบันทึกได้จริง
+  ['icTypes', 'IC Types'],
+  ['impact', 'Impact'],
+  ['sdg', 'SDG'],
       ]
       const missing = required.filter(([k]) => !formData[k] || String(formData[k]).trim() === '')
       if (missing.length > 0) {
@@ -324,7 +328,7 @@ export default function CreateResearchForm({ mode = 'create', projectId: propPro
         if (mePartner) partnersArray.push(mePartner)
       }
 
-      // Map to API payload matching Strapi content-type `project-research`
+  // Map to API payload matching Strapi content-type `project-research`
       // Only include fields that exist in the schema
       const payload = {
         fiscalYear: parseInt(formData.fiscalYear) || 2568,
@@ -342,7 +346,7 @@ export default function CreateResearchForm({ mode = 'create', projectId: propPro
         budget: formData.budget ? String(formData.budget) : undefined,
         keywords: formData.keywords || undefined,
         // คอมเมนต์ (ไทย): ผูกความสัมพันธ์ M2M ตาม schema ของ Strapi v5
-        // UX เลือกได้ 1 ค่า แต่ API ต้องส่งเป็น array ของ id
+        // UX ตอนนี้เป็น single select แต่ API ต้องส่งเป็น array ของ id
         ic_types: formData.icTypes ? [Number(formData.icTypes)] : undefined,
         impacts: formData.impact ? [Number(formData.impact)] : undefined,
         sdgs: formData.sdg ? [Number(formData.sdg)] : undefined,
@@ -350,8 +354,14 @@ export default function CreateResearchForm({ mode = 'create', projectId: propPro
         attachments: Array.isArray(formData.attachments) && formData.attachments.length > 0 
           ? formData.attachments.map(att => att.id || att.documentId).filter(Boolean) 
           : undefined,
-      }      // Create project on backend
-      const resp = await projectAPI.createProject(payload)
+      }
+
+      // คอมเมนต์ (ไทย): ใช้ endpoint ใหม่ที่รองรับ M2M relations แทนการทำ 2 ขั้นตอน
+      // หมายเหตุ: endpoint /project-researches/create-with-relations จัดการ M2M ให้อัตโนมัติ
+      // สรุปสั้นๆ: เปลี่ยนจาก create + update เป็น createWithRelations ขั้นเดียว
+      // --------------------------------------------------------------
+      // Create project with M2M relations on backend
+      const resp = await projectAPI.createProjectWithRelations(payload)
       // parse created id from Strapi response shape
       const createdProjectId = resp?.data?.id || resp?.id || (resp?.data && resp.data.documentId) || null
 
