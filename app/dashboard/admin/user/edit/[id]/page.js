@@ -1,16 +1,18 @@
-"use client"
+'use client'
 
-import { useParams } from 'next/navigation'
 import AdminUserEditForm from '@/components/admin/user/AdminUserEditForm'
+import { useParams } from 'next/navigation'
 
-export default function AdminUserEditPage() {
+export default function UserEditPage() {
   const params = useParams()
-  const userId = params?.id
+  const { id } = params
 
   return (
     <div className="space-y-6">
-      <AdminUserEditForm userId={userId} />
+      {/* คอมเมนต์ (ไทย): เปลี่ยนไปใช้ฟอร์มสำหรับ Admin โดยเฉพาะ */}
+      <AdminUserEditForm userId={id} />
     </div>
   )
 }
+
 

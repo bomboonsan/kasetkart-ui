@@ -13,10 +13,10 @@ import { Trash2 } from 'lucide-react'
 import SweetAlert2 from 'react-sweetalert2'
 import { createHandleChange } from '@/utils/form'
 
-export default function GeneralInfoTab() {
+// คอมเมนต์ (ไทย): แก้ไข Component ให้รับ userId เพื่อให้ Admin แก้ไขโปรไฟล์คนอื่นได้
+export default function GeneralInfoTab({ userId: propUserId }) {
   const [swalProps, setSwalProps] = useState({})
   const [formData, setFormData] = useState({
-    // คอมเมนต์ (ไทย): ฟิลด์สำหรับฟอร์มโปรไฟล์ จะแม็ปเข้ากับ schema ใน Strapi ตามชนิดฟิลด์
     firstName: '',
     lastName: '',
     firstNameEn: '',
@@ -42,83 +42,80 @@ export default function GeneralInfoTab() {
 
   const handleInputChange = createHandleChange(setFormData)
 
+  // คอมเมนต์ (ไทย): แก้ไข handleSave ให้รองรับการบันทึกข้อมูลของ user อื่นโดย Admin
   const handleSave = async () => {
-  try {
-    setError('')
-    setLoading(true)
+    try {
+      setError('')
+      setLoading(true)
 
-    const res = profileRes?.data || profileRes || {}
-    const userId = res?.id
-    if (!userId) throw new Error('ไม่พบข้อมูลผู้ใช้ (userId)')
+      const res = profileRes?.data || profileRes || {}
+      // คอมเมนต์ (ไทย): กำหนด userId เป้าหมาย ถ้ามี propUserId (Admin) ให้ใช้ค่าจาก prop, ถ้าไม่มีให้ใช้ id ของคนที่ล็อกอิน
+      const targetUserId = propUserId || res?.id
+      if (!targetUserId) throw new Error('ไม่พบข้อมูลผู้ใช้ (userId)')
 
-    // 1) อัปเดต Profile (ฟิลด์ non-relation) ตามเดิม
-    const profileBody = {
-      firstNameTH: formData.firstName?.trim() || '',
-      lastNameTH: formData.lastName?.trim() || '',
-      firstNameEN: formData.firstNameEn?.trim() || '',
-      lastNameEN: formData.lastNameEn?.trim() || '',
-      telephoneNo: formData.phone?.trim() || '',
-      academicPosition: formData.academicPosition?.trim() || '',
-      highDegree: formData.highDegree?.trim() || '',
+      // 1) อัปเดต Profile (ฟิลด์ non-relation)
+      const profileBody = {
+        firstNameTH: formData.firstName?.trim() || '',
+        lastNameTH: formData.lastName?.trim() || '',
+        firstNameEN: formData.firstNameEn?.trim() || '',
+        lastNameEN: formData.lastNameEn?.trim() || '',
+        telephoneNo: formData.phone?.trim() || '',
+        academicPosition: formData.academicPosition?.trim() || '',
+        highDegree: formData.highDegree?.trim() || '',
+      }
+
+      let profileDocumentId =
+        res?.profile?.documentId ||
+        res?.profile?.data?.documentId ||
+        res?.Profile?.[0]?.documentId
+
+      if (!profileDocumentId) {
+        const existingProfile = await profileAPI.findProfileByUserId(targetUserId)
+        profileDocumentId = existingProfile?.documentId
+      }
+
+      if (profileDocumentId) {
+        await profileAPI.updateProfileData(profileDocumentId, profileBody)
+      } else {
+        // สร้างโปรไฟล์ใหม่ถ้ายังไม่มี และผูกกับ user ที่ถูกต้อง
+        await profileAPI.createProfile({ ...profileBody, user: targetUserId })
+      }
+
+      // 2) อัปเดต User + Relations ผ่าน custom endpoint
+      const toSet = (val) => ({ set: val ? [val] : [] })
+      const userBody = {
+        // คอมเมนต์ (ไทย): ส่ง userId ที่ถูกต้อง (ของ user ที่ถูกแก้) ไปให้ backend
+        userId: targetUserId,
+        ...(formData.email ? { email: formData.email } : {}),
+        department: toSet(formData.department),
+        faculty: toSet(formData.faculty),
+        organization: toSet(formData.organization),
+        academic_type: toSet(formData.academic_type),
+        participation_type: toSet(formData.participation_type),
+      }
+      await profileAPI.updateUserRelations(userBody)
+
+      // refresh ข้อมูล
+      mutate(propUserId ? ['profile', propUserId] : 'profile')
+
+      setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
+    } catch (err) {
+      setError(err?.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกโปรไฟล์ไม่สำเร็จ', text: err?.message || '', timer: 2200 })
+    } finally {
+      setLoading(false)
     }
-
-    let profileDocumentId =
-      res?.profile?.documentId ||
-      res?.profile?.data?.documentId ||
-      res?.Profile?.[0]?.documentId ||
-      res?.Profile?.[0]?.data?.documentId
-
-    if (!profileDocumentId) {
-      const existingProfile = await profileAPI.findProfileByUserId(userId)
-      profileDocumentId = existingProfile?.documentId
-    }
-
-    if (profileDocumentId) {
-      // หมายเหตุ: ฟังก์ชันใน lib ของคุณควรห่อ { data: profileBody } ให้แล้วตาม v5
-      await profileAPI.updateProfileData(profileDocumentId, profileBody)
-    } else {
-      await profileAPI.createProfile({ ...profileBody, user: userId })
-    }
-
-    // 2) อัปเดต User + ความสัมพันธ์ ผ่าน endpoint custom (/user-relations/update) ด้วยรูปแบบ set
-    //    - Strapi v5 to-one: ใช้ { set: [documentId] }, เคลียร์ใช้ { set: [] }
-    const toSet = (val) => ({ set: val ? [val] : [] })
-    const userBody = {
-      userId,
-      ...(formData.email ? { email: formData.email } : {}),
-      department: toSet(formData.department),
-      faculty: toSet(formData.faculty),
-      organization: toSet(formData.organization),
-      academic_type: toSet(formData.academic_type),
-      participation_type: toSet(formData.participation_type),
-    }
-    // คอมเมนต์ (ไทย): ใช้ endpoint เดิม (updateUserRelations) เพื่อให้ backend map documentId -> id
-    await profileAPI.updateUserRelations(userBody)
-
-    // refresh
-    mutate('profile')
-
-    setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
-  } catch (err) {
-    setError(err?.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
-    setSwalProps({ show: true, icon: 'error', title: 'บันทึกโปรไฟล์ไม่สำเร็จ', text: err?.message || '', timer: 2200 })
-  } finally {
-    setLoading(false)
   }
-}
 
   const handleCancel = () => {
-    // TODO: Implement cancel logic or navigate back
-  // no-op cancel for now
+    // no-op
   }
 
-  // คอมเมนต์ (ไทย): โครงสร้าง state สำหรับวุฒิการศึกษาจริง (Strapi: education)
   const [educations, setEducations] = useState([])
   const [originalEducations, setOriginalEducations] = useState([])
   const [removedEducationIds, setRemovedEducationIds] = useState([])
 
   const addEducation = () => {
-    // คอมเมนต์ (ไทย): เพิ่มรายการการศึกษาใหม่แบบว่าง ตรงตาม schema ของ Strapi v5 (ใช้ documentId)
     const tempId = `temp_${Date.now()}_${Math.random()}`
     setEducations(prev => [...prev, {
       documentId: undefined,
@@ -130,8 +127,14 @@ export default function GeneralInfoTab() {
     }])
   }
 
-  // Load profile and populate form fields
-  const { data: profileRes, error: swrError } = useSWR('profile', () => profileAPI.getMyProfile())
+  // คอมเมนต์ (ไทย): แก้ไข SWR hook ให้ดึงข้อมูลตาม userId ที่ได้รับมา
+  // ถ้ามี propUserId (Admin) -> เรียก getUserById
+  // ถ้าไม่มี (User ทั่วไป) -> เรียก getMyProfile
+  const { data: profileRes, error: swrError } = useSWR(
+    propUserId ? ['profile', propUserId] : 'profile',
+    () => propUserId ? profileAPI.getUserById(propUserId) : profileAPI.getMyProfile()
+  )
+
   const { data: organizationsRes, error: orgError } = useSWR('organizations', () => orgAPI.getOrganizations())
   const { data: facultiesRes, error: facError } = useSWR('faculties', () => orgAPI.getFaculties())
   const { data: departmentsRaw, error: depError } = useSWR('departments', () => orgAPI.getDepartments())
@@ -146,8 +149,6 @@ export default function GeneralInfoTab() {
     const profObj = res.profile || res.Profile?.[0] || res
     if (!profileRes) return
 
-    // คอมเมนต์ (ไทย): map ฟิลด์จาก profile และ user
-    // แก้ไข: ดึง relations จาก User entity เท่านั้น เพื่อป้องกันความขัดแย้งของข้อมูล
     setFormData(prev => ({
       ...prev,
       firstName: profObj?.firstNameTH || profObj?.firstName || '',
@@ -159,7 +160,6 @@ export default function GeneralInfoTab() {
       nameEn: profObj ? `${profObj?.firstNameEN || profObj?.firstNameEn || profObj?.firstName || ''} ${profObj?.lastNameEN || profObj?.lastNameEn || profObj?.lastName || ''}`.trim() : '',
       academicPosition: profObj?.academicPosition || profObj?.position || '',
       highDegree: profObj?.highDegree || '',
-      // คอมเมนต์ (ไทย): ดึง relations จาก User entity เท่านั้น เพื่อรักษาความถูกต้องของข้อมูล
       academic_type: res?.academic_type?.documentId || '',
       participation_type: res?.participation_type?.documentId || '',
       department: res?.department?.documentId || '',
@@ -167,14 +167,10 @@ export default function GeneralInfoTab() {
       organization: res?.organization?.documentId || '',
     }))
 
-    // คอมเมนต์ (ไทย): ดึงวุฒิการศึกษาที่ populate มาด้วย (ยังคงอยู่ใน User entity)
     const eduArr = res?.educations || []
-
-    // Normalize and dedupe educations from various Strapi shapes
     const normalizeAndDedupe = (arr) => {
       const mapped = (arr || []).map((e, index) => {
         const documentId = e?.documentId || e?.id || undefined
-        // education_level may be an object or a documentId string
         const education_level = typeof e?.education_level === 'object'
           ? (e.education_level.documentId || e.education_level.id || '')
           : (e?.education_level || '')
@@ -189,8 +185,6 @@ export default function GeneralInfoTab() {
           _tempId: documentId ? `edu_${documentId}` : `edu_temp_${Date.now()}_${index}`
         }
       })
-
-      // dedupe by documentId when present, otherwise by composite key
       const map = new Map()
       for (const item of mapped) {
         const key = item.documentId || `${item.education_level}||${item.name}||${item.year}`
@@ -198,65 +192,33 @@ export default function GeneralInfoTab() {
       }
       return Array.from(map.values())
     }
-
     const normalized = normalizeAndDedupe(eduArr)
-
-    // อัพเดตเฉพาะเมื่อข้อมูลเปลี่ยนแปลงจริงๆ เพื่อป้องกัน duplicate
-    setEducations(prev => {
-      const prevString = JSON.stringify(prev.map(e => ({ documentId: e.documentId, education_level: e.education_level, name: e.name, faculty: e.faculty, year: e.year })))
-      const newString = JSON.stringify(normalized.map(e => ({ documentId: e.documentId, education_level: e.education_level, name: e.name, faculty: e.faculty, year: e.year })))
-      return prevString !== newString ? normalized : prev
-    })
+    setEducations(normalized)
     setOriginalEducations(normalized)
     setRemovedEducationIds([])
   }, [profileRes])
 
   useEffect(() => {
-    // คอมเมนต์ (ไทย): แปลงรูปแบบ response ของ Strapi v5
-    // ใช้ documentId สำหรับ value ใน select และ id สำหรับบันทึกข้อมูล
     const normalize = (raw) => {
       const arr = raw?.data || raw || []
       return arr.map(x => ({
-        id: x?.documentId, // ใช้ documentId เป็น value ใน select
-        name: x?.name, // Strapi v5 ไม่มี attributes แล้ว
-        realId: x?.id // เก็บ id จริงไว้สำหรับบันทึก
+        id: x?.documentId,
+        name: x?.name,
+        realId: x?.id
       }))
     }
-
-    // Departments
-    const departments = normalize(departmentsRaw)
-  if (depError) setError(prev => prev || (depError?.message || 'Failed to load departments'))
-    setDepartments(departments)
-
-    // Academic Types
-    const academicTypes = normalize(academicTypesRaw)
-  if (acadError) setError(prev => prev || (acadError?.message || 'Failed to load academic types'))
-    setAcademicTypes(academicTypes)
-
-    // Participation Types
-    const participationTypes = normalize(participationTypesRaw)
-  if (partError) setError(prev => prev || (partError?.message || 'Failed to load participation types'))
-    setParticipationTypes(participationTypes)
-
-    // Faculties
-    const faculties = normalize(facultiesRes)
-  if (facError) setError(prev => prev || (facError?.message || 'Failed to load faculties'))
-    setFaculties(faculties)
-
-    // Organizations
-    const organizations = normalize(organizationsRes)
-  if (orgError) setError(prev => prev || (orgError?.message || 'Failed to load organizations'))
-    setOrganizations(organizations)
-
+    setDepartments(normalize(departmentsRaw))
+    setAcademicTypes(normalize(academicTypesRaw))
+    setParticipationTypes(normalize(participationTypesRaw))
+    setFaculties(normalize(facultiesRes))
+    setOrganizations(normalize(organizationsRes))
   }, [departmentsRaw, academicTypesRaw, participationTypesRaw, facultiesRes, organizationsRes])
 
   const updateEducation = (index, field, value) => {
-
     setEducations(prev => prev.map((e, i) => i === index ? { ...e, [field]: value } : e))
   }
 
   const removeEducation = (index) => {
-    // คอมเมนต์ (ไทย): ถ้ามี documentId แสดงว่าเป็นข้อมูลเดิม ให้จำ documentId ไว้เพื่อลบที่ backend ด้วย (Strapi v5)
     setEducations(prev => {
       const target = prev[index]
       if (target?.documentId) {
@@ -266,135 +228,53 @@ export default function GeneralInfoTab() {
     })
   }
 
-  // debug logs removed
-
   return (
     <>
       <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <div className='bg-white rounded-lg shadow-sm'>
-
         <div className="space-y-8 p-6">
           {error && (
             <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
           )}
-          {loading ? (
-            <div className="text-sm text-gray-500">กำลังโหลด...</div>
+          {loading && !profileRes ? (
+            <div className="text-sm text-gray-500">กำลังโหลดข้อมูลผู้ใช้...</div>
           ) : (
             <>
-              {/* Profile Image Section */}
               <div className="space-y-4 lg:space-y-0 lg:space-x-8">
                 <div className="">
                   <ProfileImageUpload />
                 </div>
-
                 <div className="flex-1 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      label="ชื่อ"
-                      value={formData.firstName}
-                      onChange={(value) => handleInputChange('firstName', value)}
-                      placeholder="กรุณาระบุชื่อ"
-                    />
-                    <FormField
-                      label="นามสกุล"
-                      value={formData.lastName}
-                      onChange={(value) => handleInputChange('lastName', value)}
-                      placeholder="กรุณาระบุนามสกุล"
-                    />
+                    <FormField label="ชื่อ" value={formData.firstName} onChange={(value) => handleInputChange('firstName', value)} placeholder="กรุณาระบุชื่อ" />
+                    <FormField label="นามสกุล" value={formData.lastName} onChange={(value) => handleInputChange('lastName', value)} placeholder="กรุณาระบุนามสกุล" />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      label="First Name (EN)"
-                      value={formData.firstNameEn}
-                      onChange={(value) => handleInputChange('firstNameEn', value)}
-                      placeholder="First name in English"
-                    />
-                    <FormField
-                      label="Last Name (EN)"
-                      value={formData.lastNameEn}
-                      onChange={(value) => handleInputChange('lastNameEn', value)}
-                      placeholder="Last name in English"
-                    />
+                    <FormField label="First Name (EN)" value={formData.firstNameEn} onChange={(value) => handleInputChange('firstNameEn', value)} placeholder="First name in English" />
+                    <FormField label="Last Name (EN)" value={formData.lastNameEn} onChange={(value) => handleInputChange('lastNameEn', value)} placeholder="Last name in English" />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      label="เบอร์ติดต่อ"
-                      value={formData.phone}
-                      onChange={(value) => handleInputChange('phone', value)}
-                      placeholder=""
-                    />
-                    <FormField
-                      label="อีเมล"
-                      type="email"
-                      value={formData.email}
-                      onChange={(value) => handleInputChange('email', value)}
-                      placeholder="กรุณาระบุอีเมล"
-                    />
+                    <FormField label="เบอร์ติดต่อ" value={formData.phone} onChange={(value) => handleInputChange('phone', value)} placeholder="" />
+                    <FormField label="อีเมล" type="email" value={formData.email} onChange={(value) => handleInputChange('email', value)} placeholder="กรุณาระบุอีเมล" />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      label="ตำแหน่งทางวิชาการ"
-                      value={formData.academicPosition}
-                      onChange={(value) => handleInputChange('academicPosition', value)}
-                      placeholder=""
-                    />
-                    <FormField
-                      label="HighDegree"
-                      value={formData.highDegree}
-                      onChange={(value) => handleInputChange('highDegree', value)}
-                      placeholder="เช่น Ph.D., M.Sc., B.Eng."
-                    />
+                    <FormField label="ตำแหน่งทางวิชาการ" value={formData.academicPosition} onChange={(value) => handleInputChange('academicPosition', value)} placeholder="" />
+                    <FormField label="HighDegree" value={formData.highDegree} onChange={(value) => handleInputChange('highDegree', value)} placeholder="เช่น Ph.D., M.Sc., B.Eng." />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <SelectField
-                      label="ประเภทอาจารย์"
-                      value={formData.academic_type}
-                      onChange={(value) => handleInputChange('academic_type', value)}
-                      options={[{ value: '', label: 'เลือกประเภทอาจารย์' }, ...academicTypes.map(at => ({ value: at.id, label: at.name }))]}
-                    />
-                    <SelectField
-                      label="ประเภทการเข้าร่วม"
-                      value={formData.participation_type}
-                      onChange={(value) => handleInputChange('participation_type', value)}
-                      options={[{ value: '', label: 'เลือกประเภทการเข้าร่วม' }, ...participationTypes.map(pt => ({ value: pt.id, label: pt.name }))]}
-                    />
+                    <SelectField label="ประเภทอาจารย์" value={formData.academic_type} onChange={(value) => handleInputChange('academic_type', value)} options={[{ value: '', label: 'เลือกประเภทอาจารย์' }, ...academicTypes.map(at => ({ value: at.id, label: at.name }))]} />
+                    <SelectField label="ประเภทการเข้าร่วม" value={formData.participation_type} onChange={(value) => handleInputChange('participation_type', value)} options={[{ value: '', label: 'เลือกประเภทการเข้าร่วม' }, ...participationTypes.map(pt => ({ value: pt.id, label: pt.name }))]} />
                   </div>
-
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <SelectField
-                      label="ภาควิชา"
-                      value={formData.department}
-                      onChange={(value) => handleInputChange('department', value)}
-                      options={[{ value: '', label: 'เลือกภาควิชา' }, ...departments.map(dep => ({ value: dep.id, label: dep.name }))]}
-                    />
-                    <SelectField
-                      label="คณะ"
-                      value={formData.faculty}
-                      onChange={(value) => handleInputChange('faculty', value)}
-                      options={[{ value: '', label: 'เลือกคณะ' }, ...faculties.map(fac => ({ value: fac.id, label: fac.name }))]}
-                    />
-                    <SelectField
-                      label="มหาวิทยาลัย/หน่วยงาน"
-                      value={formData.organization}
-                      onChange={(value) => handleInputChange('organization', value)}
-                      options={[{ value: '', label: 'เลือกมหาวิทยาลัย/หน่วยงาน' }, ...organizations.map(org => ({ value: org.id, label: org.name }))]}
-                    />
+                    <SelectField label="ภาควิชา" value={formData.department} onChange={(value) => handleInputChange('department', value)} options={[{ value: '', label: 'เลือกภาควิชา' }, ...departments.map(dep => ({ value: dep.id, label: dep.name }))]} />
+                    <SelectField label="คณะ" value={formData.faculty} onChange={(value) => handleInputChange('faculty', value)} options={[{ value: '', label: 'เลือกคณะ' }, ...faculties.map(fac => ({ value: fac.id, label: fac.name }))]} />
+                    <SelectField label="มหาวิทยาลัย/หน่วยงาน" value={formData.organization} onChange={(value) => handleInputChange('organization', value)} options={[{ value: '', label: 'เลือกมหาวิทยาลัย/หน่วยงาน' }, ...organizations.map(org => ({ value: org.id, label: org.name }))]} />
                   </div>
                 </div>
               </div>
-
-              {/* Action Buttons */}
               <div className="flex justify-start space-x-4">
-                <Button variant="primary" onClick={handleSave}>
-                  บันทึก
-                </Button>
-                <Button variant="outline" onClick={handleCancel}>
-                  ยกเลิก
-                </Button>
+                <Button variant="primary" onClick={handleSave} disabled={loading}>{loading ? 'กำลังบันทึก...' : 'บันทึก'}</Button>
+                <Button variant="outline" onClick={handleCancel}>ยกเลิก</Button>
               </div>
             </>
           )}
@@ -404,137 +284,78 @@ export default function GeneralInfoTab() {
       <div className='bg-white rounded-lg shadow-sm mt-6'>
         <div className="space-y-6 p-6">
           <h2 className='text-lg text-gray-900'>วุฒิการศึกษา</h2>
-
           <div className="space-y-4">
             {educations.map((edu, idx) => (
               <div key={edu.documentId || edu._tempId || `edu-${idx}`} className="grid grid-cols-12 gap-4 items-end pb-4 border-b last:border-b-0">
                 <div className="col-span-12 md:col-span-3">
                   <label className="block text-sm text-gray-600 mb-1">ระดับวุฒิการศึกษา</label>
-                  <select
-                    value={edu.education_level}
-                    onChange={(e) => updateEducation(idx, 'education_level', e.target.value)}
-                    className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-white"
-                  >
+                  <select value={edu.education_level} onChange={(e) => updateEducation(idx, 'education_level', e.target.value)} className="w-full border border-gray-200 rounded-md px-3 py-2 text-sm bg-white">
                     <option value="">เลือกระดับวุฒิการศึกษา</option>
-                    {(eduLevelsRaw?.data || eduLevelsRaw || []).map((lv) => (
-                      <option key={lv.documentId} value={lv.documentId}>
-                        {lv.name}
-                      </option>
-                    ))}
+                    {(eduLevelsRaw?.data || eduLevelsRaw || []).map((lv) => (<option key={lv.documentId} value={lv.documentId}>{lv.name}</option>))}
                   </select>
                 </div>
-
                 <div className="col-span-12 md:col-span-4">
-                  <FormField
-                    label="ชื่อสถาบันการศึกษา"
-                    value={edu.name}
-                    onChange={(value) => updateEducation(idx, 'name', value)}
-                    placeholder="กรุณาระบุชื่อสถาบันการศึกษา"
-                  />
+                  <FormField label="ชื่อสถาบันการศึกษา" value={edu.name} onChange={(value) => updateEducation(idx, 'name', value)} placeholder="กรุณาระบุชื่อสถาบันการศึกษา" />
                 </div>
-
                 <div className="col-span-12 md:col-span-3">
-                  <FormField
-                    label="คณะ/สาขา"
-                    value={edu.faculty}
-                    onChange={(value) => updateEducation(idx, 'faculty', value)}
-                    placeholder="กรุณาระบุสาขาวิชา"
-                  />
+                  <FormField label="คณะ/สาขา" value={edu.faculty} onChange={(value) => updateEducation(idx, 'faculty', value)} placeholder="กรุณาระบุสาขาวิชา" />
                 </div>
-
                 <div className="col-span-9 md:col-span-1">
-                  <FormField
-                    label="ปีที่สำเร็จ"
-                    value={edu.year}
-                    onChange={(value) => updateEducation(idx, 'year', value)}
-                    placeholder="ปี"
-                  />
+                  <FormField label="ปีที่สำเร็จ" value={edu.year} onChange={(value) => updateEducation(idx, 'year', value)} placeholder="ปี" />
                 </div>
-
                 <div className="col-span-3 md:col-span-1 flex justify-end">
-                  <button
-                    type="button"
-                    onClick={() => removeEducation(idx)}
-                    className="w-10 h-10 inline-flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200"
-                    aria-label={`ลบวุฒิการศึกษา ${idx + 1}`}
-                  >
-                    <Trash2 className="h-4 w-4 text-gray-600" />
-                  </button>
+                  <button type="button" onClick={() => removeEducation(idx)} className="w-10 h-10 inline-flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200" aria-label={`ลบวุฒิการศึกษา ${idx + 1}`}><Trash2 className="h-4 w-4 text-gray-600" /></button>
                 </div>
               </div>
             ))}
           </div>
-
           <div className="flex items-center space-x-4 pt-2">
-            <button
-              type="button"
-              onClick={addEducation}
-              className="inline-flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-              </svg>
+            <button type="button" onClick={addEducation} className="inline-flex items-center space-x-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-md text-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" /></svg>
               <span>เพิ่มวุฒิการศึกษา</span>
             </button>
+            <Button variant="primary" onClick={async () => {
+              try {
+                setLoading(true)
+                setError('')
+                const res = profileRes?.data || profileRes || {}
+                // คอมเมนต์ (ไทย): แก้ไขให้ใช้ userId ที่ถูกต้องสำหรับบันทึกวุฒิการศึกษา
+                const targetUserId = propUserId || res?.id
+                if (!targetUserId) throw new Error('ไม่พบผู้ใช้ (userId) สำหรับบันทึกวุฒิการศึกษา')
 
-            <Button
-              variant="primary"
-              onClick={async () => {
-                try {
-                  setLoading(true)
-                  setError('')
-                  const res = profileRes?.data || profileRes || {}
-                  const userId = res?.id
-                  if (!userId) throw new Error('ไม่พบผู้ใช้ (userId) สำหรับบันทึกวุฒิการศึกษา')
-
-                  // อัปเดต/สร้างทีละรายการ - Strapi v5: แปลง documentId กลับเป็น id สำหรับบันทึก
-                  for (const e of educations) {
-                    // หา id จริงของ education_level จาก documentId
-                    let educationLevelId = e.education_level
-                    if (e.education_level) {
-                      const eduLevel = (eduLevelsRaw?.data || eduLevelsRaw || []).find(lv => lv.documentId === e.education_level)
-                      educationLevelId = eduLevel?.id || e.education_level
-                    }
-
-                    const payload = {
-                      education_level: educationLevelId || null,
-                      name: e.name?.trim() || '',
-                      faculty: e.faculty?.trim() || '',
-                      year: e.year ? Number(e.year) : null,
-                      users_permissions_user: userId,
-                    }
-                    if (e.documentId) {
-                      await eduAPI.update(e.documentId, payload)
-                    } else {
-                      await eduAPI.create(payload)
-                    }
+                for (const e of educations) {
+                  let educationLevelId = e.education_level
+                  if (e.education_level) {
+                    const eduLevel = (eduLevelsRaw?.data || eduLevelsRaw || []).find(lv => lv.documentId === e.education_level)
+                    educationLevelId = eduLevel?.id || e.education_level
                   }
-
-                  // ลบรายการที่ถูกลบใน UI - ใช้ documentId
-                  for (const removedDocumentId of removedEducationIds) {
-                    await eduAPI.remove(removedDocumentId)
+                  const payload = {
+                    education_level: educationLevelId || null,
+                    name: e.name?.trim() || '',
+                    faculty: e.faculty?.trim() || '',
+                    year: e.year ? Number(e.year) : null,
+                    users_permissions_user: targetUserId, // <-- ใช้ userId ที่ถูกต้อง
                   }
-
-                  // Refresh profile data to get updated educations
-                  mutate('profile')
-
-                  // Reset removed education IDs
-                  setRemovedEducationIds([])
-
-                  setSwalProps({ show: true, icon: 'success', title: 'บันทึกวุฒิการศึกษาสำเร็จ', timer: 1600, showConfirmButton: false })
-                } catch (err) {
-                  setError(err?.message || 'บันทึกวุฒิการศึกษาไม่สำเร็จ')
-                  setSwalProps({ show: true, icon: 'error', title: 'บันทึกวุฒิการศึกษาไม่สำเร็จ', text: err?.message || '', timer: 2200 })
-                } finally {
-                  setLoading(false)
+                  if (e.documentId) {
+                    await eduAPI.update(e.documentId, payload)
+                  } else {
+                    await eduAPI.create(payload)
+                  }
                 }
-              }}
-            >
-              บันทึก
-            </Button>
-            <Button variant="outline" onClick={() => { /* cancel edit */ }}>
-              ยกเลิก
-            </Button>
+                for (const removedDocumentId of removedEducationIds) {
+                  await eduAPI.remove(removedDocumentId)
+                }
+                mutate(propUserId ? ['profile', propUserId] : 'profile')
+                setRemovedEducationIds([])
+                setSwalProps({ show: true, icon: 'success', title: 'บันทึกวุฒิการศึกษาสำเร็จ', timer: 1600, showConfirmButton: false })
+              } catch (err) {
+                setError(err?.message || 'บันทึกวุฒิการศึกษาไม่สำเร็จ')
+                setSwalProps({ show: true, icon: 'error', title: 'บันทึกวุฒิการศึกษาไม่สำเร็จ', text: err?.message || '', timer: 2200 })
+              } finally {
+                setLoading(false)
+              }
+            }} disabled={loading}>{loading ? 'กำลังบันทึก...' : 'บันทึกวุฒิการศึกษา'}</Button>
+            <Button variant="outline" onClick={() => { /* cancel */ }}>ยกเลิก</Button>
           </div>
         </div>
       </div>

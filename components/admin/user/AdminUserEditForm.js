@@ -1,6 +1,5 @@
-"use client"
+'use client'
 
-// ใช้ SWR ดึงข้อมูล user/organizations/faculties/departments
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import FormField from '@/components/FormField'
@@ -11,6 +10,9 @@ import { userAPI, uploadAPI } from '@/lib/api/admin'
 import { profileAPI } from '@/lib/api/profile'
 import { API_BASE, api } from '@/lib/api-base'
 import SweetAlert2 from 'react-sweetalert2'
+
+// คอมเมนต์ (ไทย): สร้าง Base URL สำหรับไฟล์โดยเฉพาะ โดยการตัด /api ออก
+const API_PUBLIC_URL = API_BASE.replace('/api', '');
 
 const JOB_TYPES = [
   { value: '', label: 'เลือกประเภทอาจารย์' },
@@ -25,11 +27,10 @@ export default function AdminUserEditForm({ userId }) {
   const [swalProps, setSwalProps] = useState({})
   const [form, setForm] = useState({
     email: '',
-    role: 'USER',
-  // เปลี่ยนเป็นเก็บ documentId แบบเดียวกับหน้า /profile/edit
-  organizationID: '', // documentId ของ organization
-  facultyId: '', // documentId ของ faculty
-  departmentId: '', // documentId ของ department
+    role: '',
+    organizationID: '', 
+    facultyId: '', 
+    departmentId: '', 
     firstName: '',
     lastName: '',
     firstNameEn: '',
@@ -38,60 +39,69 @@ export default function AdminUserEditForm({ userId }) {
     academicRank: '',
     jobType: '',
     phone: '',
-    avatarUrl: '',
+    avatarUrl: '', // คอมเมนต์ (ไทย): State นี้ใช้สำหรับแสดง URL ของรูปภาพตัวอย่าง
   })
+  // คอมเมนต์ (ไทย): เพิ่ม state สำหรับเก็บ ID ของ avatar โดยเฉพาะ
+  const [avatarId, setAvatarId] = useState(null)
   const [orgs, setOrgs] = useState([])
   const [faculties, setFaculties] = useState([])
   const [depts, setDepts] = useState([])
+  const [roles, setRoles] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
   const onChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
-  // ดึงข้อมูลด้วย SWR
-  // ดึงข้อมูล user โดย populate ให้ได้ Profile และ relations (documentId) ให้มากที่สุด
-  const { data: u, error: uErr } = useSWR(userId ? `/users/${userId}?populate[profile][populate]=*&populate[organization]=*&populate[faculty]=*&populate[department]=*&populate[academic_type]=*&populate[participation_type]=*&populate[educations]=*` : null, (k) => api.get(k))
+  // --- SWR Hooks ---
+  const { data: u, error: uErr } = useSWR(userId ? `/users/${userId}?populate[profile][populate]=*&populate[organization]=*&populate[faculty]=*&populate[department]=*&populate[academic_type]=*&populate[participation_type]=*&populate[role]=*` : null, (k) => api.get(k))
   const { data: orgRes } = useSWR('/organizations', (k) => api.get(k))
   const { data: facRes } = useSWR('/faculties', (k) => api.get(k))
   const { data: deptRes } = useSWR('/departments', (k) => api.get(k))
+  const { data: rolesRes } = useSWR('/users-permissions/roles', (k) => api.get(k))
 
+  // --- useEffects ---
   useEffect(() => {
     try {
-  // คอมเมนต์ (ไทย): ให้ใช้ documentId เป็น value ของ select เพื่อสอดคล้องกับหน้า /profile/edit
-  const orgOptions = [{ value: '', label: 'เลือกมหาวิทยาลัย' }].concat((orgRes?.data || []).map(o => ({ value: String(o.documentId || o.id), label: o.name })))
-  const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat((facRes?.data || []).map(f => ({ value: String(f.documentId || f.id), label: f.name })))
-  const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat((deptRes?.data || []).map(d => ({ value: String(d.documentId || d.id), label: d.name })))
-      setOrgs(orgOptions); setFaculties(facultyOptions); setDepts(deptOptions)
+      const orgOptions = [{ value: '', label: 'เลือกมหาวิทยาลัย' }].concat((orgRes?.data || []).map(o => ({ value: String(o.documentId || o.id), label: o.name })))
+      const facultyOptions = [{ value: '', label: 'เลือกคณะ (Faculty)' }].concat((facRes?.data || []).map(f => ({ value: String(f.documentId || f.id), label: f.name })))
+      const deptOptions = [{ value: '', label: 'เลือกภาควิชา' }].concat((deptRes?.data || []).map(d => ({ value: String(d.documentId || d.id), label: d.name })))
+      const rolesOptions = (rolesRes?.roles || []).map(r => ({ value: r.id, label: r.name }))
+      
+      setOrgs(orgOptions)
+      setFaculties(facultyOptions)
+      setDepts(deptOptions)
+      setRoles(rolesOptions)
     } catch {}
-  }, [orgRes, facRes, deptRes])
+  }, [orgRes, facRes, deptRes, rolesRes])
 
   useEffect(() => {
     if (!u) return
     setLoading(true)
     try {
-      // คอมเมนต์ (ไทย): ใช้ข้อมูลจาก User entity เป็นหลัก (เหมือนหน้า /profile/edit)
-      const profileObj = u?.profile || u?.Profile?.[0] || {}
-      // ดึงค่า documentId ของ relations ถ้ามี (หน้า profile ใช้ documentId เป็นค่า select)
-      const orgDoc = u?.organization?.documentId || u?.organizationID || null
-      const facDoc = u?.faculty?.documentId || u?.facultyId || null
-      const depDoc = u?.department?.documentId || u?.departmentId || null
+      const user = u?.data || u
+      const profileObj = user?.profile || {}
+      const orgDoc = user?.organization?.documentId || null
+      const facDoc = user?.faculty?.documentId || null
+      const depDoc = user?.department?.documentId || null
 
       setForm({
-        email: u.email || '',
-        role: u.role || 'USER',
+        email: user.email || '',
+        role: user.role?.id || '',
         organizationID: orgDoc ? String(orgDoc) : '',
         facultyId: facDoc ? String(facDoc) : '',
         departmentId: depDoc ? String(depDoc) : '',
-        firstName: profileObj.firstName || profileObj.firstNameTH || '',
-        lastName: profileObj.lastName || profileObj.lastNameTH || '',
-        firstNameEn: profileObj.firstNameEn || profileObj.firstNameEN || '',
-        lastNameEn: profileObj.lastNameEn || profileObj.lastNameEN || '',
+        firstName: profileObj.firstNameTH || '',
+        lastName: profileObj.lastNameTH || '',
+        firstNameEn: profileObj.firstNameEN || '',
+        lastNameEn: profileObj.lastNameEN || '',
         highDegree: profileObj.highDegree || '',
-        academicRank: profileObj.academicRank || profileObj.academicPosition || '',
+        academicRank: profileObj.academicPosition || '',
         jobType: profileObj.jobType || '',
-        phone: profileObj.phone || profileObj.telephoneNo || '',
-        avatarUrl: profileObj.avatarUrl || '',
+        phone: profileObj.telephoneNo || '',
+        // คอมเมนต์ (ไทย): ตั้งค่า URL สำหรับแสดงผลโดยใช้ API_PUBLIC_URL ที่ถูกต้อง
+        avatarUrl: profileObj.avatarUrl?.url ? `${API_PUBLIC_URL}${profileObj.avatarUrl.url}` : '',
       })
+      setAvatarId(profileObj.avatarUrl?.id || null)
     } catch (e) {
       setError(e.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
     } finally {
@@ -99,16 +109,23 @@ export default function AdminUserEditForm({ userId }) {
     }
   }, [u])
 
+  // --- Handle Save ---
   async function handleSave(e) {
     e.preventDefault()
     try {
       setError('')
-      // อัปเดต non-relation fields ของ User โดยไม่แตะ relations ตรงๆ
-      await userAPI.updateUser(userId, {
-        role: form.role,
-      })
+      
+      // 1. อัปเดต User
+      const userPayload = {}
+      if (form.role && !isNaN(form.role)) {
+        userPayload.role = form.role
+      }
+      if (Object.keys(userPayload).length > 0) {
+        await userAPI.updateUser(userId, userPayload)
+      }
 
-      // upsert profile data (Profile entity) เหมือนหน้า /profile/edit
+      // 2. Upsert Profile Data
+      // คอมเมนต์ (ไทย): ส่ง avatarUrl เป็น ID ที่เก็บไว้ใน state (avatarId)
       await userAPI.upsertUserProfile(userId, {
         firstNameTH: form.firstName || undefined,
         lastNameTH: form.lastName || undefined,
@@ -117,24 +134,19 @@ export default function AdminUserEditForm({ userId }) {
         highDegree: form.highDegree || undefined,
         academicPosition: form.academicRank || undefined,
         telephoneNo: form.phone || undefined,
-        avatarUrl: form.avatarUrl || undefined,
+        avatarUrl: avatarId, // ส่ง ID ของรูปภาพแทน URL
       })
 
-      // อัปเดต relations ผ่าน endpoint ที่ออกแบบมาสำหรับ Strapi v5 (รองรับ documentId)
-      // รูปแบบ Strapi v5: to-one relation -> { set: [documentId] } , เคลียร์ -> { set: [] }
+      // 3. อัปเดต Relations ผ่าน Custom Endpoint
       const toSet = (val) => (val ? { set: [val] } : { set: [] })
-      // คอมเมนต์ (ไทย): ส่ง payload แบบ Strapi v5 (to-one relations ใช้ { set: [documentId] })
       const relationsPayload = {
         userId: userId,
-        organization: form.organizationID ? toSet(form.organizationID) : toSet(null),
-        organization_documentId: form.organizationID ? form.organizationID : undefined,
-        faculty: form.facultyId ? toSet(form.facultyId) : toSet(null),
-        faculty_documentId: form.facultyId ? form.facultyId : undefined,
-        department: form.departmentId ? toSet(form.departmentId) : toSet(null),
-        department_documentId: form.departmentId ? form.departmentId : undefined,
+        organization: toSet(form.organizationID),
+        faculty: toSet(form.facultyId),
+        department: toSet(form.departmentId),
       }
-      // เรียก API เฉพาะสำหรับ relation เพื่อให้ backend map documentId -> id และอัปเดตอย่างปลอดภัย
       await profileAPI.updateUserRelations(relationsPayload)
+
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกข้อมูลผู้ใช้สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (e) {
       setError(e.message || 'บันทึกไม่สำเร็จ')
@@ -162,7 +174,6 @@ export default function AdminUserEditForm({ userId }) {
             )}
           </div>
 
-          {/* Hidden file input - keeping existing upload logic */}
           <input
             id="avatar-input"
             type="file"
@@ -172,16 +183,17 @@ export default function AdminUserEditForm({ userId }) {
               const f = e.target.files?.[0]
               if (!f) return
               try {
+                // คอมเมนต์ (ไทย): เมื่ออัปโหลดสำเร็จ ให้เก็บทั้ง ID และ URL
                 const [att] = await uploadAPI.uploadFiles([f])
-                const full = `${API_BASE}${att.url}`
-                onChange('avatarUrl', full)
+                const fullUrl = `${API_BASE}${att.url}`
+                onChange('avatarUrl', fullUrl) // สำหรับแสดงผล
+                setAvatarId(att.id) // สำหรับส่งไปบันทึก
               } catch (err) {
                 setError(err.message || 'อัปโหลดรูปไม่สำเร็จ')
               }
             }}
           />
 
-          {/* Camera icon overlay button */}
           <label htmlFor="avatar-input" className="absolute -bottom-2 -right-2 bg-white p-1.5 rounded-full shadow-md cursor-pointer border border-gray-200 hover:bg-gray-50 transition-colors" title="อัปโหลดรูปโปรไฟล์">
             <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -208,7 +220,8 @@ export default function AdminUserEditForm({ userId }) {
               <button
                 type="button"
                 className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                onClick={() => onChange('avatarUrl', '')}
+                // คอมเมนต์ (ไทย): แก้ไขให้ล้างค่าทั้ง URL และ ID ของรูปภาพ
+                onClick={() => { onChange('avatarUrl', ''); setAvatarId(null); }}
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <polyline points="3,6 5,6 21,6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
@@ -259,32 +272,8 @@ export default function AdminUserEditForm({ userId }) {
       </div>     
       
       <div>
-        <SelectField label="สิทธิ์ (Role)" value={form.role} onChange={(v) => onChange('role', v)} required options={[{ value: 'USER', label: 'USER' }, { value: 'ADMIN', label: 'ADMIN' }, { value: 'SUPERADMIN', label: 'SUPERADMIN' }]} />
+        <SelectField label="สิทธิ์ (Role)" value={form.role} onChange={(v) => onChange('role', v)} required options={roles} />
       </div>
-
-      {/* <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">รูปโปรไฟล์</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={async (e) => {
-            const f = e.target.files?.[0]
-            if (!f) return
-            try {
-              const [att] = await uploadAPI.uploadFiles([f])
-              const full = `${API_BASE}${att.url}`
-              onChange('avatarUrl', full)
-            } catch (err) {
-              setError(err.message || 'อัปโหลดรูปไม่สำเร็จ')
-            }
-          }}
-        />
-        {form.avatarUrl && (
-          <img src={form.avatarUrl} alt="preview" className="mt-2 w-16 h-16 rounded-full object-cover" />
-        )}
-      </div> */}
-
-      
 
       <div className="flex justify-end">
         <Button type="submit" variant="primary">บันทึก</Button>
