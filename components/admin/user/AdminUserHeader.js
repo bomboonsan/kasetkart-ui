@@ -57,7 +57,7 @@ export default function AdminUserHeader({ userId }) {
     }
 
     if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
-      const mediaBase = (API_BASE || 'https://kasetbackend.bomboonsan.com/api').replace(/\/api\/?$/, '')
+      const mediaBase = (API_BASE || 'http://localhost:1337/api').replace(/\/api\/?$/, '')
       avatarUrl = `${mediaBase}${avatarUrl}`
     }
   } catch (e) {

@@ -4,8 +4,8 @@ import axios from 'axios'
 
 // กำหนด URL ของ Strapi API จาก Environment Variables
 // เพิ่มการแจ้งเตือนหากไม่ได้ตั้งค่า เพื่อช่วยในการดีบัก
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://kasetbackend.bomboonsan.com/api'
-if (API_BASE === 'https://kasetbackend.bomboonsan.com/api') {
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337/api'
+if (API_BASE === 'http://localhost:1337/api') {
   console.warn('Warning: Using fallback Strapi API URL. Please set NEXT_PUBLIC_API_URL in your .env file.');
 }
 
