@@ -1,5 +1,11 @@
 "use client";
 
+// สรุปการแก้ไข (ไทย):
+// - ทำให้คอมโพเนนต์นี้ทำงานเหมือนหน้า EditResearchForm
+// - เปลี่ยนชื่อคอมโพเนนต์เป็น EditPublicationsForm และบังคับโหมด edit
+// - เพิ่ม helper `resolveNumericWorkId` เพื่อรองรับทั้ง numeric id และ documentId (UUID)
+// - เพิ่มคอมเมนต์ภาษาไทยบริเวณที่แก้ไขเพื่อให้อ่านและแก้ต่อได้ง่าย
+
 import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
@@ -8,9 +14,9 @@ import { worksAPI } from '@/lib/api/works'
 import { projectAPI } from '@/lib/api/project'
 import { profileAPI } from '@/lib/api/profile'
 import { stripUndefined, getDocumentId } from '@/utils/strapi'
-import { createHandleChange } from '@/utils/form'
-// นำเข้า api base เพื่อช่วยค้นหา record เมื่อรับ documentId (UUID)
+// นำเข้า helper สำหรับเรียก API แบบ base (ใช้ในการค้นหา record เมื่อได้รับ documentId)
 import { api } from '@/lib/api-base'
+import { createHandleChange } from '@/utils/form'
 import FormSection from "./FormSection";
 import FormFieldBlock from "./FormFieldBlock";
 import FormField from "./FormField";
@@ -31,10 +37,9 @@ import dynamic from 'next/dynamic'
 
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 
-// สรุปการแก้ไข (ไทย):
-// - รองรับโหมด edit โดยพยายามแปลง workId (documentId/UUID) เป็น numeric id
-// - เพิ่ม helper `resolveNumericWorkId` เพื่อความเข้ากันได้กับ Strapi v5 ที่ใช้ทั้ง id และ documentId
-export default function CreatePublicationsForm({ mode = 'create', workId, initialData }) {
+// เปลี่ยนชื่อฟังก์ชันเป็น EditPublicationsForm เพื่อให้สอดคล้องกับไฟล์และการใช้งานหน้าแก้ไข
+// ปรับพฤติกรรมให้ทำงานเหมือน EditResearchForm: ถ้าเป็นโหมดแก้ไข จะพยายามแปลง documentId -> numeric id
+export default function EditPublicationsForm({ mode = 'edit', workId, initialData }) {
   const [swalProps, setSwalProps] = useState({})
 
   // Fetch existing work-publication when editing
@@ -478,6 +483,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
   useEffect(() => {
     if (existingWorkPublication?.data) {
       const data = existingWorkPublication.data
+      console.log('Existing work publication data:', data)
       setFormData(prev => ({
         ...prev,
         project_research: data.project_research?.documentId || null,
@@ -514,6 +520,10 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         isCorrespondingAuthor: data.isCorrespondingAuthor || false,
         scopusGrade: data.scopusGrade || 0,
         impactFactor: data.impactFactor || 0,
+        keywords: data.keywords || '',
+        fundName: data.fundName || '',
+        abstractTH: data.abstractTH || '',
+        abstractEN: data.abstractEN || '',
         attachments: data.attachments || [],
         team: data.team || [],
       }))
@@ -529,7 +539,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
   }, [existingWorkPublication, initialData])
 
   // หาก workId เป็น documentId (UUID) ให้ค้นหา numeric id ที่เกี่ยวข้อง
-  // คอมเมนต์ (ไทย): helper นี้ช่วยให้หน้าแก้ไขรองรับทั้ง numeric id และ documentId
+  // สรุปการแก้ไข (ไทย): helper ตัวนี้ช่วยให้หน้าแก้ไขรองรับทั้ง numeric id และ documentId
   async function resolveNumericWorkId(maybeId) {
     if (!maybeId) throw new Error('workId หายไป')
     const s = String(maybeId)
@@ -593,7 +603,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         wosType: formData.wosType ? parseInt(formData.wosType, 10) : undefined,
         fundName: formData.fundName || undefined,
         keywords: formData.keywords || undefined,
-        abstractTH: formData.abstractTH || undefined,
+        abstractTH: formData.abstractEN || undefined,
         abstractEN: formData.abstractEN || undefined,
         // attachments as media relations
         attachments: (formData.attachments || []).map(a => ({ id: a.id })),
@@ -601,15 +611,16 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
   // Clean payload using shared helper (removes undefined keys)
   const cleanPayload = stripUndefined(payload)
 
-      // ถ้าเป็นโหมดแก้ไข ให้แปลง workId เป็น numeric id ถ้าจำเป็น แล้วเรียก update
-      if (mode === 'edit' && workId) {
-        const targetId = await resolveNumericWorkId(workId)
-        await worksAPI.updatePublication(targetId, cleanPayload)
-        setSwalProps({ show: true, icon: 'success', title: 'อัปเดตผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
-      } else {
-        await worksAPI.createPublication(cleanPayload)
-        setSwalProps({ show: true, icon: 'success', title: 'บันทึกผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
+      // การแก้ไข (ไทย): หน้านี้เป็นหน้าแก้ไข (edit) เท่านั้น ทำการอัปเดตเรคคอร์ด
+      // รองรับทั้งกรณีที่ workId เป็น numeric id หรือ documentId (UUID)
+      if (mode !== 'edit' || !workId) {
+        throw new Error('หน้าแก้ไขต้องอยู่ในโหมด edit และต้องมี workId')
       }
+      // แปลง documentId -> numeric id ถ้าจำเป็น
+      const targetId = await resolveNumericWorkId(workId)
+      // เรียก API อัปเดตงานตีพิมพ์
+      await worksAPI.updatePublication(targetId, cleanPayload)
+      setSwalProps({ show: true, icon: 'success', title: 'อัปเดตผลงานตีพิมพ์สำเร็จ', timer: 1600, showConfirmButton: false })
 
       // Refresh list and navigate back
       mutate('work-publications')

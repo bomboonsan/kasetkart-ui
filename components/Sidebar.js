@@ -1,5 +1,6 @@
 "use client"
 
+import { useSWRConfig } from 'swr'
 import { useState , useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -79,6 +80,15 @@ const menuItems = [
 ];
 
 export default function Sidebar() {
+
+  const { cache, mutate } = useSWRConfig()
+
+  const clearAll = () => {
+    for (const key of cache.keys()) {
+      mutate(key, null, { revalidate: false })
+    }
+  }
+
   const router = useRouter()
   const [openGroups, setOpenGroups] = useState({})
 
@@ -216,6 +226,9 @@ export default function Sidebar() {
   // - เรียก signOut ของ next-auth เพื่อเคลียร์ session ที่ server-side แล้วสั่ง reload เพื่อให้ state ใหม่ถูกโหลด
   function handleLogout() {
     try {
+      // ล้าง SWR cache ทั้งหมด (ถ้ามี)
+      clearAll()
+
       // ล้าง localStorage keys ที่เป็นไปได้ซึ่งเก็บข้อมูลผู้ใช้/เมนู/การตั้งค่า
       const maybeKeys = ['nextauth.token', 'next-auth.session-token', 'next-auth.callback-url', 'me', 'user', 'profile', 'swr-cache']
       maybeKeys.forEach(k => {

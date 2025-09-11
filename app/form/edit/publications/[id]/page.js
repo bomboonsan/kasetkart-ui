@@ -1,7 +1,7 @@
 'use client'
 
-import CreatePublicationsForm from '@/components/CreatePublicationsForm'
+import EditPublicationsForm from '@/components/EditPublicationsForm'
 
 export default function EditPublicationPage({ params }) {
-  return <CreatePublicationsForm mode="edit" workId={params.id} />
+  return <EditPublicationsForm mode="edit" workId={params.id} />
 }
