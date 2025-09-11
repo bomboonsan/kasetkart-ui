@@ -11,7 +11,6 @@ import { profileAPI } from '@/lib/api/profile'
 import { API_BASE, api } from '@/lib/api-base'
 import SweetAlert2 from 'react-sweetalert2'
 
-// คอมเมนต์ (ไทย): สร้าง Base URL สำหรับไฟล์โดยเฉพาะ โดยการตัด /api ออก
 const API_PUBLIC_URL = API_BASE.replace('/api', '');
 
 const JOB_TYPES = [
@@ -39,9 +38,11 @@ export default function AdminUserEditForm({ userId }) {
     academicRank: '',
     jobType: '',
     phone: '',
-    avatarUrl: '', // คอมเมนต์ (ไทย): State นี้ใช้สำหรับแสดง URL ของรูปภาพตัวอย่าง
+    avatarUrl: '',
+    // คอมเมนต์ (ไทย): เพิ่ม state สำหรับรหัสผ่านใหม่
+    password: '',
+    confirmPassword: '',
   })
-  // คอมเมนต์ (ไทย): เพิ่ม state สำหรับเก็บ ID ของ avatar โดยเฉพาะ
   const [avatarId, setAvatarId] = useState(null)
   const [orgs, setOrgs] = useState([])
   const [faculties, setFaculties] = useState([])
@@ -84,7 +85,8 @@ export default function AdminUserEditForm({ userId }) {
       const facDoc = user?.faculty?.documentId || null
       const depDoc = user?.department?.documentId || null
 
-      setForm({
+      setForm(prev => ({
+        ...prev,
         email: user.email || '',
         role: user.role?.id || '',
         organizationID: orgDoc ? String(orgDoc) : '',
@@ -98,9 +100,8 @@ export default function AdminUserEditForm({ userId }) {
         academicRank: profileObj.academicPosition || '',
         jobType: profileObj.jobType || '',
         phone: profileObj.telephoneNo || '',
-        // คอมเมนต์ (ไทย): ตั้งค่า URL สำหรับแสดงผลโดยใช้ API_PUBLIC_URL ที่ถูกต้อง
         avatarUrl: profileObj.avatarUrl?.url ? `${API_PUBLIC_URL}${profileObj.avatarUrl.url}` : '',
-      })
+      }))
       setAvatarId(profileObj.avatarUrl?.id || null)
     } catch (e) {
       setError(e.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
@@ -115,17 +116,25 @@ export default function AdminUserEditForm({ userId }) {
     try {
       setError('')
       
-      // 1. อัปเดต User
+      // 1. อัปเดต User (role, password)
       const userPayload = {}
       if (form.role && !isNaN(form.role)) {
         userPayload.role = form.role
       }
+
+      // คอมเมนต์ (ไทย): เพิ่ม Logic การตรวจสอบและเพิ่มรหัสผ่านใหม่ใน payload
+      if (form.password) {
+        if (form.password !== form.confirmPassword) {
+          throw new Error('รหัสผ่านใหม่และการยืนยันรหัสผ่านไม่ตรงกัน');
+        }
+        userPayload.password = form.password;
+      }
+
       if (Object.keys(userPayload).length > 0) {
         await userAPI.updateUser(userId, userPayload)
       }
 
       // 2. Upsert Profile Data
-      // คอมเมนต์ (ไทย): ส่ง avatarUrl เป็น ID ที่เก็บไว้ใน state (avatarId)
       await userAPI.upsertUserProfile(userId, {
         firstNameTH: form.firstName || undefined,
         lastNameTH: form.lastName || undefined,
@@ -134,10 +143,10 @@ export default function AdminUserEditForm({ userId }) {
         highDegree: form.highDegree || undefined,
         academicPosition: form.academicRank || undefined,
         telephoneNo: form.phone || undefined,
-        avatarUrl: avatarId, // ส่ง ID ของรูปภาพแทน URL
+        avatarUrl: avatarId,
       })
 
-      // 3. อัปเดต Relations ผ่าน Custom Endpoint
+      // 3. อัปเดต Relations
       const toSet = (val) => (val ? { set: [val] } : { set: [] })
       const relationsPayload = {
         userId: userId,
@@ -146,6 +155,10 @@ export default function AdminUserEditForm({ userId }) {
         department: toSet(form.departmentId),
       }
       await profileAPI.updateUserRelations(relationsPayload)
+
+      // คอมเมนต์ (ไทย): ล้างค่ารหัสผ่านในฟอร์มหลังบันทึกสำเร็จ
+      onChange('password', '')
+      onChange('confirmPassword', '')
 
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกข้อมูลผู้ใช้สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (e) {
@@ -161,6 +174,7 @@ export default function AdminUserEditForm({ userId }) {
       <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       {error && <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>}
 
+      {/* ... ส่วนของรูปภาพเหมือนเดิม ... */}
       <div className="flex items-start gap-6">
         <div className="relative">
           <div className="w-24 h-24 bg-gray-100 rounded-full overflow-hidden border border-gray-200 flex items-center justify-center">
@@ -183,11 +197,10 @@ export default function AdminUserEditForm({ userId }) {
               const f = e.target.files?.[0]
               if (!f) return
               try {
-                // คอมเมนต์ (ไทย): เมื่ออัปโหลดสำเร็จ ให้เก็บทั้ง ID และ URL
                 const [att] = await uploadAPI.uploadFiles([f])
-                const fullUrl = `${API_BASE}${att.url}`
-                onChange('avatarUrl', fullUrl) // สำหรับแสดงผล
-                setAvatarId(att.id) // สำหรับส่งไปบันทึก
+                const fullUrl = `${API_PUBLIC_URL}${att.url}`
+                onChange('avatarUrl', fullUrl)
+                setAvatarId(att.id)
               } catch (err) {
                 setError(err.message || 'อัปโหลดรูปไม่สำเร็จ')
               }
@@ -220,7 +233,6 @@ export default function AdminUserEditForm({ userId }) {
               <button
                 type="button"
                 className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-300 rounded-md text-sm text-gray-700 hover:bg-gray-50 transition-colors"
-                // คอมเมนต์ (ไทย): แก้ไขให้ล้างค่าทั้ง URL และ ID ของรูปภาพ
                 onClick={() => { onChange('avatarUrl', ''); setAvatarId(null); }}
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -260,9 +272,22 @@ export default function AdminUserEditForm({ userId }) {
         <SelectField label="ประเภทอาจารย์" value={form.jobType} onChange={(v) => onChange('jobType', v)} options={JOB_TYPES} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField label="วุฒิสูงสุด (High Degree)" value={form.highDegree} onChange={(v) => onChange('highDegree', v)} />
-        <FormField label="ตำแหน่งทางวิชาการ" value={form.academicRank} onChange={(v) => onChange('academicRank', v)} />
+      {/* คอมเมนต์ (ไทย): แก้ไขช่อง "ตำแหน่งทางวิชาการ" ที่ซ้ำซ้อน เป็นช่องสำหรับเปลี่ยนรหัสผ่าน */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6 mt-6 border-gray-200">
+        <FormField 
+          label="ตั้งรหัสผ่านใหม่" 
+          type="password"
+          value={form.password} 
+          onChange={(v) => onChange('password', v)} 
+          placeholder="ปล่อยว่างไว้หากไม่ต้องการเปลี่ยน"
+        />
+        <FormField 
+          label="ยืนยันรหัสผ่านใหม่" 
+          type="password"
+          value={form.confirmPassword} 
+          onChange={(v) => onChange('confirmPassword', v)} 
+          placeholder="กรอกรหัสผ่านใหม่อีกครั้ง"
+        />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

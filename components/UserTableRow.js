@@ -113,15 +113,12 @@ export default function UserTableRow({ user, onAction }) {
                 <Link href={`/dashboard/admin/user/view/${user.documentId}`} className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">                
                   ดูรายละเอียด
                 </Link>
-                <button
-                  onClick={() => {
-                    onAction("edit", user);
-                    setShowDropdown(false);
-                  }}
+                <Link
+                  href={`/dashboard/admin/user/view/${user.id}`}
                   className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left"
                 >
                   แก้ไข
-                </button>
+                </Link>
                 {user.status === "Active" ? (
                   <button
                     onClick={() => {

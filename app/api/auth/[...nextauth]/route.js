@@ -84,7 +84,8 @@ export const authOptions = {
           // บันทึกข้อผิดพลาดเพื่อการดีบั๊ก (จะไม่แสดงใน production logs โดยไม่ตั้งค่า)
           console.error('NextAuth authorize error:', err?.message || err)
           // โยน error ให้ NextAuth คืน 401 กับ client และส่งข้อความกลับใน result.error
-          throw new Error(err?.response?.data?.message || err?.message || 'Authentication failed')
+          // คอมเมนต์ (ไทย): แก้ไขการเข้าถึง message ของ error ให้ถูกต้องตามโครงสร้างของ Strapi v4/v5
+          throw new Error(err?.response?.data?.error?.message || err?.message || 'Authentication failed')
         }
       }
     })
