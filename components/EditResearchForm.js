@@ -110,6 +110,31 @@ export default function EditResearchForm({ mode = 'create', projectId: propProje
   const [submitting, setSubmitting] = useState(false)
   const [meData, setMeData] = useState(null);
 
+  // Helper: ถ้า projectId อาจเป็น documentId (UUID) ให้ค้นหา numeric id ของ record
+  // บางครั้ง Strapi ใช้ทั้ง numeric `id` และ `documentId` ในระบบ ถ้าเราเรียก PUT ด้วย UUID
+  // endpoint `/project-researches/:id` อาจไม่จับคู่กับ UUID -> ทำให้เกิดการสร้าง resource ใหม่ได้
+  async function resolveNumericProjectId(maybeId) {
+    if (!maybeId) throw new Error('projectId missing')
+    const s = String(maybeId)
+    // ถ้ามี '-' ให้ถือว่าเป็น UUID/documentId และค้นหา numeric id ที่เกี่ยวข้อง
+    if (s.includes('-')) {
+      try {
+        const q = `/project-researches?filters[documentId][$eq]=${encodeURIComponent(s)}&pagination[pageSize]=1`
+        const res = await api.get(q)
+        // res shape อาจมี .data array
+        const found = (res && (res.data || res)) ? (res.data?.[0] || (res?.data && res.data[0]) || res[0] || res) : null
+        const id = found?.id || found?.data?.id || found?.documentId || found?.attributes?.id
+        if (!id) throw new Error('ไม่พบ project ด้วย documentId นี้')
+        return id
+      } catch (e) {
+        // ให้ error กลับไปเพื่อให้ caller ตัดสินใจ
+        throw e
+      }
+    }
+    // ถ้าไม่ใช่ UUID ให้คืนค่าเดิม (numeric assumed)
+    return maybeId
+  }
+
   // ถ้าเป็นโหมดแก้ไข ให้โหลดข้อมูลโครงการจาก API และเติมค่าใน formData
   useEffect(() => {
     async function loadProjectForEdit() {
@@ -350,13 +375,22 @@ export default function EditResearchForm({ mode = 'create', projectId: propProje
         attachments: Array.isArray(formData.attachments) && formData.attachments.length > 0 
           ? formData.attachments.map(att => att.id || att.documentId).filter(Boolean) 
           : undefined,
-      }      // Create project on backend
-      const resp = await projectAPI.createProject(payload)
-      // parse created id from Strapi response shape
-      const createdProjectId = resp?.data?.id || resp?.id || (resp?.data && resp.data.documentId) || null
+      }
 
-      if (!createdProjectId) {
-        throw new Error('ไม่สามารถสร้างโครงการได้ (no id returned)')
+      // แก้ไข: โหมดนี้เป็นการแก้ไขเท่านั้น (edit-only)
+      // - เรียก updateProject แทน createProject
+      // - ซิงค์ partner โดยการลบ partner เก่าแล้วสร้างใหม่ตาม partnersArray
+      if (mode !== 'edit' || !projectId) {
+        throw new Error('ไม่สามารถบันทึก: หน้าแก้ไขต้องมี projectId และอยู่ในโหมด edit')
+      }
+
+  // เรียก API อัปเดตโครงการ: แปลง documentId -> numeric id ถ้าจำเป็น
+  const targetId = await resolveNumericProjectId(projectId)
+  const resp = await projectAPI.updateProject(targetId, { ...payload })
+  const updatedId = resp?.data?.id || resp?.id || targetId
+
+      if (!updatedId) {
+        throw new Error('ไม่สามารถอัปเดตโครงการได้ (no id returned)')
       }
 
       // Helper: map partnerType label -> integer for backend `participant_type`
@@ -368,10 +402,19 @@ export default function EditResearchForm({ mode = 'create', projectId: propProje
         'อื่นๆ': 99,
       }
 
-      // สร้างข้อมูล project-partner สำหรับสมาชิกแต่ละคน
-  const partnerErrors = []
-  for (const p of partnersArray) {
-        // หมายเหตุ: Normalize ชื่อคีย์จากตาราง (userID vs userId, partnerComment vs comment)
+      // ลบ partners เก่าที่เชื่อมโยงกับ project นี้ แล้วสร้าง partners ใหม่ตาม form
+      try {
+        const existingPartners = await api.get(`/project-partners?filters[project_researches][documentId][$eq]=${updatedId}`)
+        const partnersToDelete = existingPartners?.data || []
+        for (const partner of partnersToDelete) {
+          await api.delete(`/project-partners/${partner.documentId || partner.id}`)
+        }
+      } catch (e) {
+        // ignore delete errors but continue
+      }
+
+      const partnerErrors = []
+      for (const p of partnersArray) {
         const userIdField = p.userId || p.userID || p.User?.id || undefined
         const commentField = p.partnerComment || p.comment || ''
         const fullnameField = p.fullname || p.partnerFullName || ''
@@ -379,7 +422,7 @@ export default function EditResearchForm({ mode = 'create', projectId: propProje
         const proportionField = p.partnerProportion !== undefined && p.partnerProportion !== null ? parseFloat(p.partnerProportion) : undefined
         const proportionCustomField = p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '' ? parseFloat(p.partnerProportion_percentage_custom) : undefined
 
-  const partnerData = stripUndefined({
+        const partnerData = stripUndefined({
           fullname: fullnameField || undefined,
           orgName: orgField || undefined,
           participation_percentage: proportionField,
@@ -388,19 +431,17 @@ export default function EditResearchForm({ mode = 'create', projectId: propProje
           isFirstAuthor: String(commentField).includes('First Author') || false,
           isCoreespondingAuthor: String(commentField).includes('Corresponding Author') || false,
           users_permissions_user: userIdField,
-          project_researches: [createdProjectId]
-  })
-
+          project_researches: [updatedId]
+        })
 
         try {
           await api.post('/project-partners', { data: partnerData })
         } catch (err) {
-          // collect partner creation errors silently
           partnerErrors.push({ partner: partnerData, error: err?.message || String(err) })
         }
       }
 
-      setSwalProps({ show: true, icon: 'success', title: 'สร้างโครงการสำเร็จ', timer: 1600, showConfirmButton: false })
+      setSwalProps({ show: true, icon: 'success', title: 'อัปเดตโครงการสำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (err) {
       setError(err.message || 'บันทึกโครงการไม่สำเร็จ')
       setSwalProps({ show: true, icon: 'error', title: 'บันทึกโครงการไม่สำเร็จ', text: err.message || '', timer: 2200 })
