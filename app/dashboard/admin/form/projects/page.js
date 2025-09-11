@@ -251,7 +251,7 @@ export default function AdminProjectsPage() {
                           ดู
                         </Link>
                         <Link 
-                          href={`/form/edit/project/${project.documentId || project.id}`}
+                          href={`/form/edit/research/${project.documentId || project.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           แก้ไข

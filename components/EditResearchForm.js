@@ -29,7 +29,7 @@ import { use } from 'react'
 import useSWR, { mutate } from 'swr'
 import { createHandleChange } from '@/utils/form'
 
-export default function CreateResearchForm({ mode = 'create', projectId: propProjectId, workId }) {
+export default function EditResearchForm({ mode = 'create', projectId: propProjectId, workId }) {
   // รับ props: mode และ projectId (รองรับ workId เดิมด้วย)
   const projectId = propProjectId || workId || null
 
