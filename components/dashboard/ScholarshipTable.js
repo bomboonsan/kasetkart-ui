@@ -25,9 +25,12 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
   const handleCheckboxChange = (e) => {
     const value = parseInt(e.target.value)
     if (e.target.checked) {
-      setSelectedItems([...selectedItems, value])
+      setSelectedItems(prev => {
+        if (prev.includes(value)) return prev
+        return [...prev, value]
+      })
     } else {
-      setSelectedItems(selectedItems.filter(i => i !== value))
+      setSelectedItems(prev => prev.filter(i => i !== value))
     }
   }
 
@@ -162,8 +165,32 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
             </button>
           ))}
         </div>
+        <div className="flex items-center gap-4 mb-0 px-4">
+          {/* Checkbox toggle check all / unchecked all */}
+          <div className="flex items-center gap-3">
+            <input
+              id="select-all-toggle"
+              type="checkbox"
+              ref={el => {
+                if (!el) return
+                // set indeterminate state based on selection
+                el.indeterminate = selectedItems.length > 0 && selectedItems.length < (activeData || []).length
+              }}
+              checked={Array.isArray(activeData) && activeData.length > 0 && selectedItems.length === activeData.length}
+              onChange={(e) => {
+                if (e.target.checked) {
+                  setSelectedItems(Array.isArray(activeData) ? activeData.map((_, i) => i) : [])
+                } else {
+                  setSelectedItems([])
+                }
+              }}
+              className="w-3 h-3"
+            />
+            <label htmlFor="select-all-toggle" className="text-sm text-gray-600 font-bold">เลือกทั้งหมด</label>
+          </div>
+        </div>        
 
-  {/* Table Content */}
+        {/* Table Content */}
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
@@ -247,22 +274,23 @@ export default function ScholarshipTable({ title, subtitle, researchStats = {} }
           </table>
         </div>
 
+        {/* Summary */}
+        {activeData.length > 0 && (
+          <div className="mt-4 pt-4 border-t border-t-gray-300 px-4">
+            <div className="text-sm text-gray-600">
+              รวม {activeType === 'icTypes' ? 'IC Types' : activeType === 'impacts' ? 'Impact' : 'SDG'}:
+              <span className="font-semibold text-gray-900 ml-1">
+                {selectedSum.toLocaleString()} โครงการ
+              </span>
+            </div>
+          </div>
+        )}
+
           {/* subtle fetching indicator */}
           {(isFetching || isPending) && (
             <div className="mt-2 text-xs text-gray-500">อัปเดตข้อมูล...</div>
-          )}
-
-        {/* Summary */}
-        {activeData.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-t-gray-300">
-              <div className="text-sm text-gray-600">
-                รวม {activeType === 'icTypes' ? 'IC Types' : activeType === 'impacts' ? 'Impact' : 'SDG'}: 
-                <span className="font-semibold text-gray-900 ml-1">
-                  {selectedSum.toLocaleString()} โครงการ
-                </span>
-              </div>
-            </div>
-        )}
+          )}    
+              
       </div>
     </div>
   )

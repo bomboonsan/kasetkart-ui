@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { API_BASE } from '@/lib/api-base'
 
 export default function FileUploadField({ 
   label, 
@@ -48,7 +49,7 @@ export default function FileUploadField({
       })
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:1337'}/api/upload`, {
+      const response = await fetch(`${API_BASE}/upload`, {
         method: 'POST',
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),
