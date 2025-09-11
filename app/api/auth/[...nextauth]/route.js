@@ -2,9 +2,12 @@ import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import axios from 'axios'
 
-// ตรวจสอบตัวแปรสภาพแวดล้อมหลายรูปแบบเพื่อให้เข้ากับโปรเจค
-// Strapi ตัวโปรเจคมักตั้งเป็น NEXT_PUBLIC_API_BASE_URL หรือ NEXT_PUBLIC_API_URL
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || process.env.NEXT_PUBLIC_API_BASE_URL || process.env.API_URL || 'https://kasetbackend.bomboonsan.com/api'
+// กำหนด URL ของ Strapi API จาก Environment Variables
+// เพิ่มการแจ้งเตือนหากไม่ได้ตั้งค่า เพื่อช่วยในการดีบัก
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'https://kasetbackend.bomboonsan.com/api'
+if (API_BASE === 'https://kasetbackend.bomboonsan.com/api') {
+  console.warn('Warning: Using fallback Strapi API URL. Please set NEXT_PUBLIC_API_URL in your .env file.');
+}
 
 export const authOptions = {
   session: {
@@ -21,98 +24,97 @@ export const authOptions = {
         password: { label: 'Password', type: 'password' }
       },
       async authorize(credentials) {
-        // ตรวจสอบ input เบื้องต้น
+        // 1. ตรวจสอบว่ามี identifier และ password ส่งมาหรือไม่
         if (!credentials?.identifier || !credentials?.password) {
-          // ส่งข้อความเป็นภาษาอังกฤษเพราะ NextAuth จะส่งกลับใน error field
-          throw new Error('Identifier and password are required')
+          throw new Error('กรุณากรอกอีเมลและรหัสผ่าน')
         }
 
         try {
-          // เรียก Strapi auth endpoint (จะต่อกับ API_BASE ซึ่งมักลงท้ายด้วย /api)
-          const res = await axios.post(`${API_BASE}/auth/local`, {
+          // 2. ส่ง Request ไปยัง Strapi เพื่อทำการล็อกอิน และรับ JWT กลับมา
+          const { data: loginData } = await axios.post(`${API_BASE}/auth/local`, {
             identifier: credentials.identifier,
             password: credentials.password,
-          }, { headers: { 'Content-Type': 'application/json' } })
-
-          const data = res.data
-          if (!data || !data.jwt) {
-            // ให้รายละเอียดข้อผิดพลาดเล็กน้อยแทนการคืนค่า null เงียบ ๆ
-            const msg = data?.message || 'Invalid credentials'
-            throw new Error(msg)
-          }
-
-          // ดึงข้อมูลผู้ใช้ที่ enrich จาก Strapi โดยส่ง JWT ที่ได้จากการล็อกอิน
-          const meRes = await axios.get(`${API_BASE}/users/me`, {
-            params: {
-              'populate[profile][populate]': 'avatarUrl',
-              'populate[role]': '*',
-              'populate[organization]': '*',
-              'populate[faculty]': '*',
-              'populate[department]': '*',
-              'populate[academic_type]': '*',
-              'populate[participation_type]': '*',
-            },
-            headers: { Authorization: `Bearer ${data.jwt}` }
           })
 
-          const me = meRes.data
+          if (!loginData.jwt) {
+            throw new Error('Invalid JWT response from Strapi')
+          }
 
-          // สร้างอ็อบเจ็กต์ผู้ใช้ขนาดเล็กสำหรับเก็บใน session
-          // หมายเหตุ: Strapi คืนค่า role เป็น relation object (มี id และ name)
-          // แต่บางครั้งอาจได้ค่า role เป็นตัวเลขหรือตัวอักษรได้ด้วย
-          // ดังนั้นให้เก็บทั้ง roleId และ role (ชื่อ) เพื่อให้ฝั่ง client ใช้งานได้ยืดหยุ่น
-          const roleId = me.role?.id ?? (typeof me.role === 'number' ? me.role : null)
-          const roleName = me.role?.name || (typeof me.role === 'string' ? me.role : null) || 'authenticated'
+          const { jwt, user: strapiUser } = loginData
 
+          // 3. ใช้ JWT ที่ได้ ไปดึงข้อมูล user ฉบับเต็ม (พร้อมข้อมูล relations ทั้งหมด)
+          // ปรับปรุง `populate` ให้เป็นแบบ Object Syntax ของ Strapi v4/v5 เพื่อความชัดเจน
+          const { data: me } = await axios.get(`${API_BASE}/users/me`, {
+            params: {
+              populate: {
+                profile: { populate: 'avatarUrl' },
+                role: '*',
+                organization: '*',
+                faculty: '*',
+                department: '*',
+                academic_type: '*',
+                participation_type: '*',
+              }
+            },
+            headers: { Authorization: `Bearer ${jwt}` }
+          })
+
+          // 4. จัดรูปแบบข้อมูล (Flatten) เพื่อส่งกลับไปให้ NextAuth callback
+          // ทำให้โครงสร้างข้อมูลฝั่ง Client ใช้งานง่ายขึ้น
           return {
             id: me.id,
             email: me.email,
             username: me.username,
-            role: roleName,
-            roleId: roleId,
-            jwt: data.jwt,
+            role: me.role?.name || 'authenticated',
+            roleId: me.role?.id || null,
+            jwt: jwt, // ส่ง JWT ไปด้วยเพื่อเก็บใน token
             profile: {
-              firstNameTH: me.profile?.firstNameTH || '',
-              lastNameTH: me.profile?.lastNameTH || '',
-              academicPosition: me.profile?.academicPosition || '',
-              // avatarUrl อาจเป็น media object หรือ string URL
-              avatarUrl: me.profile?.avatarUrl || (me.profile?.avatarUrl?.data?.attributes?.url) || null,
+              firstNameTH: me.profile?.firstNameTH || null,
+              lastNameTH: me.profile?.lastNameTH || null,
+              academicPosition: me.profile?.academicPosition || null,
+              // ดึง URL ของ avatar จากโครงสร้าง media library ของ Strapi v4
+              avatarUrl: me.profile?.avatarUrl?.data?.attributes?.url || null,
               department: me.department?.name || null,
             }
           }
-        } catch (err) {
-          // บันทึกข้อผิดพลาดเพื่อการดีบั๊ก (จะไม่แสดงใน production logs โดยไม่ตั้งค่า)
-          console.error('NextAuth authorize error:', err?.message || err)
-          // โยน error ให้ NextAuth คืน 401 กับ client และส่งข้อความกลับใน result.error
-          // คอมเมนต์ (ไทย): แก้ไขการเข้าถึง message ของ error ให้ถูกต้องตามโครงสร้างของ Strapi v4/v5
-          throw new Error(err?.response?.data?.error?.message || err?.message || 'Authentication failed')
+
+        } catch (error) {
+          // ดักจับ Error จาก axios และส่งต่อข้อความที่ Strapi ส่งกลับมา
+          // ทำให้หน้าบ้าน (Client) สามารถแสดงข้อความ Error ที่ถูกต้องได้ เช่น "Invalid identifier or password"
+          const strapiError = error.response?.data?.error?.message || error.message || 'Authentication Failed'
+          console.error('Authorize Error:', strapiError);
+          throw new Error(strapiError)
         }
       }
     })
   ],
   callbacks: {
+    // Callback นี้จะถูกเรียกหลังจาก authorize สำเร็จ
+    // ข้อมูลจาก `user` (ที่ return จาก authorize) จะถูกส่งมาเพื่อเก็บใน token
     async jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.role = user.role
-  token.roleId = user.roleId ?? null
-        token.jwt = user.jwt
-        token.profile = user.profile
-        token.email = user.email
-        token.username = user.username
+        token.id = user.id;
+        token.role = user.role;
+        token.roleId = user.roleId;
+        token.jwt = user.jwt;
+        token.profile = user.profile;
+        token.username = user.username;
       }
       return token
     },
+    // Callback นี้จะถูกเรียกเมื่อมีการเรียกใช้ `useSession` หรือ `getSession`
+    // เราจะคัดลอกข้อมูลจาก token มาใส่ใน session object
     async session({ session, token }) {
       session.user = {
         id: token.id,
         email: token.email,
         username: token.username,
-  role: token.role,
-  roleId: token.roleId ?? null,
+        role: token.role,
+        roleId: token.roleId,
         profile: token.profile,
       }
-      session.jwt = token.jwt
+      // ส่ง JWT ไปพร้อมกับ session เพื่อให้ Client สามารถใช้ยิง request ตรงไปหา Strapi ได้
+      session.jwt = token.jwt;
       return session
     }
   }
