@@ -142,7 +142,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       setFormData(prev => ({ ...prev, partnersLocal: localPartners }))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [localPartners])
+  }, [])
 
   async function syncToServer(partnersList) {
   // หมายเหตุ: ซิงค์ข้อมูลทีมขึ้น Strapi ด้วยแนวทาง replace ทั้งชุด
@@ -599,7 +599,11 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         )}
         {/* Header */}
         <div className="flex justify-end gap-4 mb-5">
-          <button className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" onClick={() => {
+          {/*
+            แก้บั๊ก: ปุ่มเปิด modal อยู่ภายในฟอร์มหลัก ถ้าไม่กำหนด type จะเป็นค่า default "submit"
+            ทำให้เมื่อกดแล้วฟอร์มใหญ่ถูก submit ไปด้วย --> กำหนด type="button" เพื่อป้องกัน
+          */}
+          <button type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" onClick={() => {
             resetForm();
             document.getElementById('my_modal_2').showModal();
           }}>
@@ -713,8 +717,11 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     <td className="px-4 py-4 whitespace-nowrap">
                       {p.partnerProportion && (
                         <div className="text-sm text-gray-900">
-                          {/* {(parseFloat(p.partnerProportion) * 100).toFixed(1)}% */}
-                          {Number(p.partnerProportion).toFixed(1)}
+                          {/*
+                            แก้แสดงผล: คอลัมน์นี้เป็น "สัดส่วนการวิจัย (%)" ดังนั้น
+                            ต้องแปลงค่า fraction (เช่น 0.333) -> percent (33.3%)
+                          */}
+                          {((Number(p.partnerProportion) * 100).toFixed(1))}%
                         </div>
                       )}
                     </td>
