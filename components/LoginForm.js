@@ -67,13 +67,12 @@ export default function LoginForm() {
       {/* Logo Section */}
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center">
-          <Image
+          <img
             src="/Logo.png"
             alt="Kasetsart University Logo"
             width={120}
             height={120}
             className="mb-4"
-            unoptimized
           />
         </div>
         <h1 className="text-2xl font-semibold text-gray-800">

@@ -717,11 +717,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     <td className="px-4 py-4 whitespace-nowrap">
                       {p.partnerProportion && (
                         <div className="text-sm text-gray-900">
-                          {/*
-                            แก้แสดงผล: คอลัมน์นี้เป็น "สัดส่วนการวิจัย (%)" ดังนั้น
-                            ต้องแปลงค่า fraction (เช่น 0.333) -> percent (33.3%)
-                          */}
-                          {((Number(p.partnerProportion) * 100).toFixed(1))}%
+                          {(Number(p.partnerProportion).toFixed(1))}
                         </div>
                       )}
                     </td>
