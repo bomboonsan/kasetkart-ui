@@ -15,17 +15,19 @@ export default async function AdminUserViewPage({ params }) {
   let fetchError = ''
 
   // คอมเมนต์ (ไทย): เปลี่ยนมาใช้ params.id โดยตรง และ resolve หา numeric id
-  let resolvedUserId = params.id
-  if (params.id && !/^[0-9]+$/.test(String(params.id))) {
+  // Next.js dynamic params may be a promise-like object — await it first
+  const resolvedParams = await params
+  let resolvedUserId = resolvedParams?.id
+  if (resolvedParams?.id && !/^[0-9]+$/.test(String(resolvedParams.id))) {
     try {
       const lookup = (typeof serverGet === 'function')
-        ? await serverGet(`/users?filters[documentId][$eq]=${encodeURIComponent(params.id)}&publicationState=preview&populate=`)
-        : await api.get(`/users?filters[documentId][$eq]=${encodeURIComponent(params.id)}&publicationState=preview&populate=`)
+        ? await serverGet(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams.id)}&publicationState=preview&populate=`)
+        : await api.get(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams.id)}&publicationState=preview&populate=`)
       const arr = lookup?.data || lookup || []
       const found = Array.isArray(arr) ? (arr[0] || null) : (arr || null)
       if (found && (found.id || found.data?.id)) resolvedUserId = found.id || found.data.id
     } catch (e) {
-      resolvedUserId = params.id
+      resolvedUserId = resolvedParams?.id
     }
   }
 
@@ -60,8 +62,8 @@ export default async function AdminUserViewPage({ params }) {
     } catch (e) {
       try {
         const r = (typeof serverGet === 'function')
-          ? await serverGet(`/users?filters[documentId][$eq]=${encodeURIComponent(params.id)}&populate=*&publicationState=preview`)
-          : await api.get(`/users?filters[documentId][$eq]=${encodeURIComponent(params.id)}&populate=*&publicationState=preview`)
+          ? await serverGet(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams?.id)}&populate=*&publicationState=preview`)
+          : await api.get(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams?.id)}&populate=*&publicationState=preview`)
         const arr = r?.data || r || []
         userData = Array.isArray(arr) ? (arr[0] || null) : (arr || null)
       } catch (e2) {
