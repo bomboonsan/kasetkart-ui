@@ -39,7 +39,7 @@ const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 
 // เปลี่ยนชื่อฟังก์ชันเป็น EditPublicationsForm เพื่อให้สอดคล้องกับไฟล์และการใช้งานหน้าแก้ไข
 // ปรับพฤติกรรมให้ทำงานเหมือน EditResearchForm: ถ้าเป็นโหมดแก้ไข จะพยายามแปลง documentId -> numeric id
-export default function EditPublicationsForm({ mode = 'edit', workId, initialData }) {
+export default function EditPublicationsForm({ mode = 'edit', workId, initialData, readonly = false }) {
   const [swalProps, setSwalProps] = useState({})
 
   // Fetch existing work-publication when editing
@@ -633,13 +633,19 @@ export default function EditPublicationsForm({ mode = 'edit', workId, initialDat
   };
 
   // standard input handler from utils/form
-  const handleInputChange = createHandleChange(setFormData)
+  const baseHandleInputChange = createHandleChange(setFormData)
+  // ถ้าเป็น readonly ให้เมธอดไม่ทำอะไร (ไม่แก้ state)
+  const handleInputChange = (field, value) => {
+    if (readonly) return
+    return baseHandleInputChange(field, value)
+  }
   const handleCheckboxChange = handleInputChange
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
-      <form onSubmit={handleSubmit} className="p-6 space-y-8">
+      {/* ถ้า readonly ให้ปิดการ submit และป้องกันการแก้ไข UI */}
+      <form onSubmit={handleSubmit} className={`p-6 space-y-8 ${readonly ? 'pointer-events-none opacity-90' : ''}`}>
         {error && (
           <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
         )}
@@ -1112,15 +1118,17 @@ export default function EditPublicationsForm({ mode = 'edit', workId, initialDat
           </div>
         )}
 
-        {/* Form Actions */}
-        <div className="flex justify-end space-x-3 pt-6 border-t">
-          <Button variant="outline" type="button">
-            ยกเลิก
-          </Button>
-          <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? 'กำลังบันทึก...' : (mode === 'edit' ? 'แก้ไข' : 'บันทึก')}
-          </Button>
-        </div>
+        {/* Form Actions: ถ้าเป็น readonly จะไม่แสดงปุ่ม */}
+        {!readonly && (
+          <div className="flex justify-end space-x-3 pt-6 border-t">
+            <Button variant="outline" type="button">
+              ยกเลิก
+            </Button>
+            <Button variant="primary" type="submit" disabled={submitting}>
+              {submitting ? 'กำลังบันทึก...' : (mode === 'edit' ? 'แก้ไข' : 'บันทึก')}
+            </Button>
+          </div>
+        )}
       </form>
     </div>
   );
