@@ -95,7 +95,7 @@ export default function AdminBooksPage() {
   return (
     <div className="space-y-6">
       <div className='flex justify-between items-center'>
-        <PageHeader title="จัดการหนังสือ" showAddButton={false} />
+        <PageHeader title="หนังสือและตำรา" showAddButton={false} />
         <Link href="/dashboard/admin">
           <Button variant="outline">กลับหน้าหลัก</Button>
         </Link>

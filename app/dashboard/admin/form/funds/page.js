@@ -95,7 +95,7 @@ export default function AdminFundsPage() {
   return (
     <div className="space-y-6">
       <div className='flex justify-between items-center'>
-        <PageHeader title="จัดการทุนวิจัย" showAddButton={false} />
+        <PageHeader title="ทุนตำราหนังสือ" showAddButton={false} />
         <Link href="/dashboard/admin">
           <Button variant="outline">กลับหน้าหลัก</Button>
         </Link>

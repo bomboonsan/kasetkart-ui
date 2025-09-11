@@ -95,7 +95,7 @@ export default function AdminPublicationsPage() {
   return (
     <div className="space-y-6">
       <div className='flex justify-between items-center'>
-        <PageHeader title="จัดการบทความวิจัย" showAddButton={false} />
+        <PageHeader title="การตีพิมพ์ทางวิชาการ" showAddButton={false} />
         <Link href="/dashboard/admin">
           <Button variant="outline">กลับหน้าหลัก</Button>
         </Link>

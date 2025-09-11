@@ -95,7 +95,7 @@ export default function AdminConferencesPage() {
   return (
     <div className="space-y-6">
       <div className='flex justify-between items-center'>
-        <PageHeader title="จัดการงานประชุม" showAddButton={false} />
+        <PageHeader title="ประชุมวิชาการ" showAddButton={false} />
         <Link href="/dashboard/admin">
           <Button variant="outline">กลับหน้าหลัก</Button>
         </Link>

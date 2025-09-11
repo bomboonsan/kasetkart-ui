@@ -97,11 +97,11 @@ export default function DashboardHome() {
       const booksCount = booksRes?.meta?.pagination?.total || booksRes?.data?.length || 0
 
       const statsData = [
-        { value: String(projectsCount), label: 'ทุนโครงการวิจัย', icon: () => <HandCoins className='size-8 text-gray-600' /> },
-        { value: String(fundingsCount), label: 'ทุนตำราหนังสือ', icon: () => <HandCoins className='size-8 text-gray-600' /> },
-        { value: String(publicationsCount), label: 'การตีพิมพ์ทางวิชาการ', icon: () => <FileBadge className='size-8 text-gray-600' /> },
-        { value: String(conferencesCount), label: 'การประชุมวิชาการ', icon: () => <Presentation className='size-8 text-gray-600' /> },
-        { value: String(booksCount), label: 'หนังสือและตำรา', icon: () => <BookOpen className='size-8 text-gray-600' /> },
+        { value: String(projectsCount), href: '/dashboard/admin/form/projects' , label: 'ทุนโครงการวิจัย', icon: () => <HandCoins className='size-8 text-gray-600' /> },
+        { value: String(fundingsCount), href: '/dashboard/admin/form/funds' , label: 'ทุนตำราหนังสือ', icon: () => <HandCoins className='size-8 text-gray-600' /> },
+        { value: String(publicationsCount), href: '/dashboard/admin/form/publications' , label: 'การตีพิมพ์ทางวิชาการ', icon: () => <FileBadge className='size-8 text-gray-600' /> },
+        { value: String(conferencesCount), href: '/dashboard/admin/form/conferents' , label: 'การประชุมวิชาการ', icon: () => <Presentation className='size-8 text-gray-600' /> },
+        { value: String(booksCount), href: '/dashboard/admin/form/books' , label: 'หนังสือและตำรา', icon: () => <BookOpen className='size-8 text-gray-600' /> },
       ]
 
       setStats(statsData)

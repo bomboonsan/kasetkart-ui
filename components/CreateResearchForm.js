@@ -206,8 +206,8 @@ export default function CreateResearchForm() {
         ['durationStart', 'วันที่เริ่มต้น'],
         ['durationEnd', 'วันที่สิ้นสุด'],
         ['budget', 'งบวิจัย'],
-        ['keywords', 'คำสำคัญ'],
-        // NOTE: icTypes, impact, sdg removed - not in project-research schema
+  ['keywords', 'คำสำคัญ'],
+  // หมายเหตุ: icTypes, impact, sdg ไม่บังคับ แต่ถ้าเลือกจะผูกความสัมพันธ์ M2M ให้
       ]
       const missing = required.filter(([k]) => !formData[k] || String(formData[k]).trim() === '')
       if (missing.length > 0) {
@@ -261,7 +261,8 @@ export default function CreateResearchForm() {
         projectType: formData.projectType || 0,
         projectMode: formData.projectMode || 0,
         subProjectCount: formData.subProjectCount ? parseInt(formData.subProjectCount) : undefined,
-        nameTE: formData.nameTE || undefined,
+        // แก้ไขฟิลด์ชื่อโครงการภาษาไทยให้ส่งตรงกับ schema (nameTH)
+        nameTH: formData.nameTH || undefined,
         nameEN: formData.nameEN || undefined,
         durationStart: formData.durationStart || undefined,
         durationEnd: formData.durationEnd || undefined,
@@ -270,6 +271,11 @@ export default function CreateResearchForm() {
         fundName: formData.fundName || undefined,
         budget: formData.budget ? String(formData.budget) : undefined,
         keywords: formData.keywords || undefined,
+        // คอมเมนต์ (ไทย): ผูกความสัมพันธ์ M2M ตาม schema ของ Strapi v5
+        // UX เลือกได้ 1 ค่า แต่ API ต้องส่งเป็น array ของ id
+        ic_types: formData.icTypes ? [Number(formData.icTypes)] : undefined,
+        impacts: formData.impact ? [Number(formData.impact)] : undefined,
+        sdgs: formData.sdg ? [Number(formData.sdg)] : undefined,
         // Include attachments if any files were uploaded
         attachments: Array.isArray(formData.attachments) && formData.attachments.length > 0 
           ? formData.attachments.map(att => att.id || att.documentId).filter(Boolean) 
