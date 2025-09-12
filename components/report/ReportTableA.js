@@ -18,12 +18,12 @@ export default function ReportTableA() {
       "%_Part",
       "%_All"
     ],
-    ["Accounting (19 members)", 19, 2, 17, 100.5, 41.8, 13, 155.3, 42.8, 100.5, 12, 155.3, 42.8, 155.3],
-    ["Finance (9 members)", 9, 9, 0, 12.5, 115, 0.5, 128, 42, 86, 0, 128, 42.8, 155.3],
-    ["Management (12 members)", 12, 12, 0, 12.5, 115, 0.5, 128, 101, 118.8, 0.3, 220.2, 42.8, 155.3],
-    ["Marketing (12 members)", 12, 12, 0, 12.5, 115, 0.5, 128, 95.7, 79.2, 0.3, 175.2, 42.8, 155.3],
-    ["Technology and Operation Management (10 members)", 10, 10, 0, 12.5, 115, 0.5, 128, 71.5, 61.5, 5.3, 138.3, 42.8, 155.3],
-    ["Total", 62, 62, 62, 12.5, 115, 0.5, 128, 353, 446, 18, 817, 42.8, 155.3]
+  ["Accounting (19 members)", 3.8, 0.4, 3.4, 20.1, 8.36, 2.6, 31.06, 8.56, 20.1, 2.4, 31.06, 8.56, 31.06],
+  ["Finance (9 members)", 1.8, 1.8, 0, 2.5, 23, 0.1, 25.6, 8.4, 17.2, 0, 25.6, 8.56, 31.06],
+  ["Management (12 members)", 2.4, 2.4, 0, 2.5, 23, 0.1, 25.6, 20.2, 23.76, 0.06, 44.04, 8.56, 31.06],
+  ["Marketing (12 members)", 2.4, 2.4, 0, 2.5, 23, 0.1, 25.6, 19.14, 15.84, 0.06, 35.04, 8.56, 31.06],
+  ["Technology and Operation Management (10 members)", 2.0, 2.0, 0, 2.5, 23, 0.1, 25.6, 14.3, 12.3, 1.06, 27.66, 8.56, 31.06],
+  ["Total", 12.4, 12.4, 12.4, 2.5, 23, 0.1, 25.6, 70.6, 89.2, 3.6, 163.4, 8.56, 31.06]
   ];
   const reportData = [
     {
@@ -111,19 +111,19 @@ export default function ReportTableA() {
 
   const totalRow = {
     discipline: "Total",
-    totalMembers: 62,
-    membersWithoutICs: 62,
-    membersWithICs: 62,
-    bds: 12.5,
-    ais: 115.0,
-    tls: 0.5,
-    total: 128.0,
-    bdsTypes: 353.0,
-    aprEr: 446.0,
-    allOther: 18.0,
-    totalTypes: 817.0,
-    part: 42.8,
-    all: 155.3
+  totalMembers: 12.4,
+  membersWithoutICs: 12.4,
+  membersWithICs: 12.4,
+  bds: 2.5,
+  ais: 23.0,
+  tls: 0.1,
+  total: 25.6,
+  bdsTypes: 70.6,
+  aprEr: 89.2,
+  allOther: 3.6,
+  totalTypes: 163.4,
+  part: 8.56,
+  all: 31.06
   }
 
   return (

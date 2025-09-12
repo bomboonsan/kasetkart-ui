@@ -141,9 +141,9 @@ export default function AddUserForm() {
   return (
     <form onSubmit={handleSubmit} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
       <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
-      {error && (
+      {/* {error && (
         <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
-      )}
+      )} */}
       <div className="flex items-start gap-6">
         <div className="relative">
           <div className="w-24 h-24 bg-gray-100 rounded-full overflow-hidden border border-gray-200 flex items-center justify-center">

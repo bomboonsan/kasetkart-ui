@@ -183,8 +183,8 @@ export default function AdminUserEditForm({ userId }) {
 
   return (
     <form onSubmit={handleSave} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
-      {error && <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>}
+      {/* <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} /> */}
+      {/* {error && <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>} */}
 
       {/* ... ส่วนของรูปภาพเหมือนเดิม ... */}
       <div className="flex items-start gap-6">
