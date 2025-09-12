@@ -2,12 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
-import { projectAPI } from '@/lib/api/project'
+import { projectAPI } from '@/lib/api'
 import PageHeader from '@/components/PageHeader'
-import FormSection from '@/components/ui/FormSection'
-import FormFieldBlock from '@/components/ui/FormFieldBlock'
-import FormInput from '@/components/ui/FormInput'
-import FormTextarea from '@/components/ui/FormTextarea'
+import { FormSection, FormFieldBlock, FormInput, FormTextarea } from '@/components/ui'
 import ResearchTeamReadonly from '@/components/ResearchTeamReadonly'
 
 function toDash(v) {

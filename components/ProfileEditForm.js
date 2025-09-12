@@ -8,8 +8,7 @@ import SystemAccessTab from './SystemAccessTab'
 import { Button } from '@/components/ui'
 // ใช้ path alias (@/) เพื่อลดความซับซ้อนของ relative path และคงความยืดหยุ่น
 // ปรับ import หลัง modular API
-import { profileAPI } from '@/lib/api/profile'
-import { orgAPI, eduAPI } from '@/lib/api/lookup'
+import { profileAPI, orgAPI, eduAPI } from '@/lib/api'
 
 // โครงสร้างข้อมูลเริ่มต้นสำหรับฟอร์ม
 const initialFormData = {

@@ -1,16 +1,10 @@
 'use client'
 
 import { useState } from 'react'
-import { createHandleChange } from '@/utils/form'
-import FormSection from '@/components/ui/FormSection'
-import FormField from '@/components/ui/FormField'
-import SelectField from '@/components/ui/SelectField'
-import TextAreaField from '@/components/ui/TextAreaField'
+import { createHandleChange } from '@/utils'
+import { FormSection, FormField, SelectField, TextAreaField, CheckboxGroup, RadioGroup, Button } from '@/components/ui'
 import FileUploadField from './FileUploadField'
-import CheckboxGroup from '@/components/ui/CheckboxGroup'
-import RadioGroup from '@/components/ui/RadioGroup'
 import PublicationTeamTable from './PublicationTeamTable'
-import { Button } from '@/components/ui'
 
 export default function PublicationForm() {
   const [formData, setFormData] = useState({

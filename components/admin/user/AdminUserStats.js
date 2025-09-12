@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { projectAPI } from '@/lib/api/project'
-import { worksAPI } from '@/lib/api/works'
+import { projectAPI, worksAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
 
 export default function AdminUserStats({ userId }) {

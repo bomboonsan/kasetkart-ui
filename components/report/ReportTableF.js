@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { worksAPI } from '@/lib/api/works'
+import { worksAPI } from '@/lib/api'
 import { CSVLink, CSVDownload } from "react-csv";
 import { Button } from '@/components/ui'
 

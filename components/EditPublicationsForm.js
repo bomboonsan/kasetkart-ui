@@ -10,19 +10,17 @@ import { useState, useEffect } from "react";
 import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) สำหรับ API
-import { worksAPI } from '@/lib/api/works'
-import { projectAPI } from '@/lib/api/project'
-import { profileAPI } from '@/lib/api/profile'
-import { stripUndefined, getDocumentId } from '@/utils/strapi'
+import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
+import { stripUndefined, getDocumentId } from '@/utils'
 // นำเข้า helper สำหรับเรียก API แบบ base (ใช้ในการค้นหา record เมื่อได้รับ documentId)
 import { api } from '@/lib/api-base'
-import { createHandleChange } from '@/utils/form'
+import { createHandleChange } from '@/utils'
 import FormSection from "./FormSection";
 import FormFieldBlock from "./FormFieldBlock";
 import FormField from "./FormField";
 import ProjectPicker from './ProjectPicker'
 import UserPicker from './UserPicker'
-import FormDoubleInput from '@/components/ui/FormDoubleInput'
+import { FormDoubleInput } from '@/components/ui'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from "./FormCheckbox";

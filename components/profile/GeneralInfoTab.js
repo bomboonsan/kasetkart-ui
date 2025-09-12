@@ -2,17 +2,14 @@
 
 import { useState, useEffect } from 'react'
 import useSWR, { mutate } from 'swr'
-import { profileAPI } from '@/lib/api/profile'
-import { orgAPI, eduAPI } from '@/lib/api/lookup'
+import { profileAPI, orgAPI, eduAPI } from '@/lib/api'
 import ProfileImageUpload from './ProfileImageUpload'
-import FormField from '@/components/ui/FormField'
-import FormSelect from '@/components/ui/FormSelect'
-import SelectField from '@/components/ui/SelectField'
+import { FormField, FormSelect, SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { Trash2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
-import { createHandleChange } from '@/utils/form'
+import { createHandleChange } from '@/utils'
 
 // คอมเมนต์ (ไทย): แก้ไข Component ให้รับ userId เพื่อให้ Admin แก้ไขโปรไฟล์คนอื่นได้
 export default function GeneralInfoTab({ userId: propUserId }) {

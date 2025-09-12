@@ -1,7 +1,5 @@
 import { useEffect, useState } from 'react'
-import { valueFromAPI } from '@/lib/api/lookup'
-import { projectAPI } from '@/lib/api/project'
-import { reportAPI } from '@/lib/api/dashboard'
+import { valueFromAPI, projectAPI, reportAPI } from '@/lib/api'
 
 export default function ReportTableB() {
   const [rows, setRows] = useState([])

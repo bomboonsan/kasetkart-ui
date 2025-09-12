@@ -8,8 +8,7 @@ import DonutChart from '@/components/dashboard/DonutChart'
 import PersonnelChart from '@/components/dashboard/PersonnelChart'
 import ScholarshipTable from '@/components/dashboard/ScholarshipTable'
 import ScholarshipTableAll from '@/components/dashboard/ScholarshipTableAll'
-import { dashboardAPI } from '@/lib/api/dashboard'
-import { valueFromAPI } from '@/lib/api/lookup'
+import { dashboardAPI, valueFromAPI } from '@/lib/api'
 import { FileSearch, FileBadge, Presentation, HandCoins, BookOpen } from "lucide-react";
 
 export default function DashboardHome() {

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 // ใช้ path alias (@/) เพื่อลดความซับซ้อนของโครง import
-import { projectAPI } from '@/lib/api/project'
+import { projectAPI } from '@/lib/api'
 import { Button } from '@/components/ui'
 
 export default function ProjectPicker({ label = 'โครงการวิจัย', onSelect, selectedProject, required = false }) {

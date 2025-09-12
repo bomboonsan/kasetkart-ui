@@ -1,10 +1,10 @@
 "use client";
 
-import FormFieldBlock from '@/components/ui/FormFieldBlock'
+import { FormFieldBlock } from '@/components/ui'
 import UserPicker from './UserPicker'
 import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
-import FormCheckbox from '@/components/ui/FormCheckbox';
+import { FormCheckbox } from '@/components/ui';
 import { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
@@ -13,10 +13,10 @@ import {
   ChevronDown
 } from "lucide-react";
 // ใช้ path alias (@/) เพื่อลด relative path และทำให้แก้ไขได้ง่ายขึ้น
-import { projectAPI } from '@/lib/api/project'
+import { projectAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
-import { authAPI } from '@/lib/api/auth'
-import { stripUndefined } from '@/utils/strapi'
+import { authAPI } from '@/lib/api'
+import { stripUndefined } from '@/utils'
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const [swalProps, setSwalProps] = useState({})

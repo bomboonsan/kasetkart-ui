@@ -2,10 +2,9 @@
 
 import { useState } from 'react'
 import ProfileImageUpload from './ProfileImageUpload'
-import FormField from '@/components/ui/FormField'
-import SelectField from '@/components/ui/SelectField'
+import { FormField, SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
-import { authAPI } from '@/lib/api/auth'
+import { authAPI } from '@/lib/api'
 
 export default function SecurityTab() {
 

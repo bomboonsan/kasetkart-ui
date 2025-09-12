@@ -5,7 +5,7 @@ import useSWR from 'swr'
 import ProfileHeader from '@/components/profile/ProfileHeader'
 import EducationSection from '@/components/profile/EducationSection'
 import ResearchPublicationsSection from '@/components/profile/ResearchPublicationsSection'
-import { profileAPI } from '@/lib/api/profile'
+import { profileAPI } from '@/lib/api'
 
 export default function Profile() {
   const [error, setError] = useState('')

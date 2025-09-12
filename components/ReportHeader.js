@@ -1,5 +1,5 @@
 'use client'
-import SelectField from '@/components/ui/SelectField'
+import { SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
 
 export default function ReportHeader() {

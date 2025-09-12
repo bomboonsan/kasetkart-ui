@@ -3,8 +3,7 @@
 import { useEffect, useState } from 'react'
 import useSWR, { mutate } from 'swr'
 import { Button } from '@/components/ui'
-import { uploadAPI } from '@/lib/api/admin'
-import { profileAPI } from '@/lib/api/profile'
+import { uploadAPI, profileAPI } from '@/lib/api'
 import { API_BASE } from '@/lib/api-base'
 
 export default function ProfileImageUpload() {

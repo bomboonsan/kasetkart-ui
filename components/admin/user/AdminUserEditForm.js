@@ -2,12 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import FormField from '@/components/ui/FormField'
-import SelectField from '@/components/ui/SelectField'
+import { FormField, SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
-import { orgAPI } from '@/lib/api/lookup'
-import { userAPI, uploadAPI } from '@/lib/api/admin'
-import { profileAPI } from '@/lib/api/profile'
+import { orgAPI, userAPI, uploadAPI, profileAPI } from '@/lib/api'
 import { API_BASE, api } from '@/lib/api-base'
 import Image from 'next/image';
 import dynamic from 'next/dynamic'

@@ -5,21 +5,16 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) สำหรับ API ทั้งหมด
-import { worksAPI } from '@/lib/api/works'
-import { projectAPI } from '@/lib/api/project'
-import { profileAPI } from '@/lib/api/profile'
+import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
-import { getDocumentId } from '@/utils/strapi'
-import { createHandleChange } from '@/utils/form'
-import FormSection from '@/components/ui/FormSection'
-import FormFieldBlock from '@/components/ui/FormFieldBlock'
-import FormField from '@/components/ui/FormField'
+import { getDocumentId, createHandleChange } from '@/utils'
+import { FormSection, FormFieldBlock, FormField } from '@/components/ui'
 import ProjectFundingPicker from './ProjectFundingPicker'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
-import FormCheckbox from '@/components/ui/FormCheckbox'
-import FormTextarea from '@/components/ui/FormTextarea'
-import FormDateSelect from '@/components/ui/FormDateSelect'
+import { FormCheckbox } from '@/components/ui'
+import { FormTextarea } from '@/components/ui'
+import { FormDateSelect } from '@/components/ui'
 import FormSelect from "./FormSelect";
 import dynamic from 'next/dynamic'
 

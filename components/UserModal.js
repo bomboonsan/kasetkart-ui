@@ -1,10 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import FormField from '@/components/ui/FormField'
-import SelectField from '@/components/ui/SelectField'
+import { FormField, SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
-import { createHandleChange } from '@/utils/form'
+import { createHandleChange } from '@/utils'
 
 export default function UserModal({ user, mode, onClose, onSave }) {
   const [formData, setFormData] = useState({

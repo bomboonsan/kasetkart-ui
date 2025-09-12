@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useState } from 'react'
 import useSWR from 'swr'
 import Image from 'next/image'
-import { profileAPI } from '@/lib/api/profile'
+import { profileAPI } from '@/lib/api'
 import { API_BASE } from '@/lib/api-base'
 
 function initials(name, fallback) {

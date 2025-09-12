@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from 'react'
-import { projectAPI } from '@/lib/api/project'
+import { projectAPI } from '@/lib/api'
 
 export default function ResearchTeamReadonly({ projectId }) {
   const [partners, setPartners] = useState([])

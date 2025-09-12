@@ -3,7 +3,7 @@ import AdminEducationSection from '@/components/admin/user/AdminEducationSection
 import AdminUserResearchPublicationsSection from '@/components/admin/user/AdminUserResearchPublicationsSection'
 import { SWRConfig } from 'swr'
 import { api, serverGet } from '@/lib/api-base'
-import { profileAPI } from '@/lib/api/profile'
+import { profileAPI } from '@/lib/api'
 
 // Server component: fetch user + works using Strapi v5 documentId (with fallback search)
 // คอมเมนต์ (ไทย): แก้ไข async function ให้ไม่ access params.id โดยตรงในทันที

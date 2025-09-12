@@ -1,8 +1,6 @@
 "use client"
 
-import FormSection from '@/components/ui/FormSection'
-import FormFieldBlock from '@/components/ui/FormFieldBlock'
-import DisplayField from '@/components/ui/DisplayField'
+import { FormSection, FormFieldBlock, DisplayField } from '@/components/ui'
 
 function Row({ children }) {
   return <div className="grid grid-cols-1 md:grid-cols-3 gap-6">{children}</div>

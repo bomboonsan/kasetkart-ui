@@ -3,8 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import SectionCard from '@/components/SectionCard'
 import PublicationItem from '@/components/PublicationItem'
-import { projectAPI, fundingAPI } from '@/lib/api/project'
-import { worksAPI } from '@/lib/api/works'
+import { projectAPI, fundingAPI, worksAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
 
 const TYPE_TABS = [

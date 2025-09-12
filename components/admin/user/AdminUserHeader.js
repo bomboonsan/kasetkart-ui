@@ -6,7 +6,7 @@ import { useState } from 'react'
 import useSWR from 'swr'
 import Image from 'next/image'
 import { API_BASE } from '@/lib/api-base'
-import { profileAPI } from '@/lib/api/profile'
+import { profileAPI } from '@/lib/api'
 import AdminUserStats from '@/components/admin/user/AdminUserStats'
 
 function initials(name, fallback) {

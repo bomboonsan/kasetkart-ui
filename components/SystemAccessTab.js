@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { createHandleChange } from '@/utils/form'
-import SelectField from '@/components/ui/SelectField'
+import { createHandleChange } from '@/utils'
+import { SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
 
 export default function SystemAccessTab() {

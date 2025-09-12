@@ -1,15 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import FormSection from '@/components/ui/FormSection'
+import { FormSection } from '@/components/ui'
 import FormFieldBlock from "./FormFieldBlock"
 import FormInput from "./FormInput"
 import FormTextarea from "./FormTextarea"
 import ResearchTeamSection from './ResearchTeamSection'
 import FileUploadSection from './FileUploadSection'
 import { Button } from '@/components/ui'
-import { projectAPI } from '@/lib/api/project'
-import { createHandleChange } from '@/utils/form'
+import { projectAPI } from '@/lib/api'
+import { createHandleChange } from '@/utils'
 
 export default function ProjectForm({ projectId, readonly = true }) {
   const [loading, setLoading] = useState(false)

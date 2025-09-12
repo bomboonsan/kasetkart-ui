@@ -1,6 +1,6 @@
 'use client'
 
-import TextAreaField from '@/components/ui/TextAreaField'
+import { TextAreaField } from '@/components/ui'
 import EducationSection from './EducationSection'
 
 /**

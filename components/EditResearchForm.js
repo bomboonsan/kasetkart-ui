@@ -1,15 +1,13 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import FormSection from '@/components/ui/FormSection'
-import FormFieldBlock from '@/components/ui/FormFieldBlock'
-import FormField from '@/components/ui/FormField'
+import { FormSection, FormFieldBlock, FormField } from '@/components/ui'
 import UserPicker from './UserPicker'
-import FormInput from '@/components/ui/FormInput'
+import { FormInput } from '@/components/ui'
 import FormRadio from "./FormRadio";
-import FormTextarea from '@/components/ui/FormTextarea'
-import FormDateSelect from '@/components/ui/FormDateSelect'
-import FormSelect from '@/components/ui/FormSelect'
+import { FormTextarea } from '@/components/ui'
+import { FormDateSelect } from '@/components/ui'
+import { FormSelect } from '@/components/ui'
 import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import { Button } from '@/components/ui'
@@ -17,17 +15,16 @@ import Link from 'next/link'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 // ใช้ path alias (@/) เพื่อให้ import ชัดเจนและลดความซ้ำซ้อนของ path
-import { projectAPI } from '@/lib/api/project'
+import { projectAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
-import { authAPI } from '@/lib/api/auth'
-import { valueFromAPI } from '@/lib/api/lookup'
+import { authAPI, valueFromAPI } from '@/lib/api'
 // ยูทิลิตี้สำหรับจัดการ payload ให้สะอาด
-import { stripUndefined } from '@/utils/strapi'
+import { stripUndefined } from '@/utils'
 // ใช้ path alias (@/) สำหรับ helper
-import { formatDateDMY } from '@/utils/date'
+import { formatDateDMY } from '@/utils'
 import { use } from 'react'
 import useSWR, { mutate } from 'swr'
-import { createHandleChange } from '@/utils/form'
+import { createHandleChange } from '@/utils'
 
 export default function EditResearchForm({ mode = 'create', projectId: propProjectId, workId }) {
   // รับ props: mode และ projectId (รองรับ workId เดิมด้วย)

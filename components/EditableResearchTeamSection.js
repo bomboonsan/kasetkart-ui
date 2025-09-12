@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) แทน relative path
-import { projectAPI } from '@/lib/api/project'
+import { projectAPI } from '@/lib/api'
 import { Button } from '@/components/ui'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })

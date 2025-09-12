@@ -1,4 +1,4 @@
-import SelectField from '@/components/ui/SelectField'
+import { SelectField } from '@/components/ui'
 
 export default function ReportFilters() {
   const yearOptions = [
