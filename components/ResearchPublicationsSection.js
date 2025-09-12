@@ -80,9 +80,7 @@ export default function ResearchPublicationsSection({ profileData = null }) {
     if (Array.isArray(rawProjects) && rawProjects.length > 0) {
       myProjects = rawProjects.map(p => ({ id: p.id || p.documentId || Math.random(), nameTh: p.nameTh || p.title || p.name || p.nameTh, nameEn: p.nameEn || p.titleEn || p.nameEn, fiscalYear: p.fiscalYear || p.year || '' }))
     }
-  } catch (e) {
-    console.warn('ResearchPublicationsSection: failed to normalize profileData', e)
-  }
+  } catch (e) { /* ignore */ }
 
   const counts = useMemo(() => {
     const c = { PROJECT: 0, CONFERENCE: 0, PUBLICATION: 0, FUNDING: 0, BOOK: 0 }

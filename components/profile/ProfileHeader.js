@@ -25,9 +25,7 @@ export default function ProfileHeader({ profileData }) {
     () => profileAPI.getMyProfile()
   )
 
-  console.log('ProfileHeader profileData:', profileData)
-  console.log('ProfileHeader profileRes:', profileRes)
-  console.log('ProfileHeader swrError:', swrError)
+  // debug logs removed
   
   const actualProfileData = profileData || profileRes
   if (swrError && !error) setError(swrError.message || 'โหลดโปรไฟล์ไม่สำเร็จ')
@@ -72,9 +70,7 @@ export default function ProfileHeader({ profileData }) {
       avatarUrl = `${mediaBase}${avatarUrl}`
     }
   // avatar URL resolved; keep silent in production
-  } catch (e) {
-    console.warn('avatar resolution failed', e)
-  }
+  } catch (e) { /* ignore avatar resolution errors */ }
 
   return (
     <div className="bg-white rounded-lg shadow-sm">

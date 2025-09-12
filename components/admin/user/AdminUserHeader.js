@@ -26,12 +26,12 @@ export default function AdminUserHeader({ userId }) {
     { revalidateOnMount: false, revalidateOnFocus: false }
   )
 
-  console.log('AdminUserHeader userId', userId, profileRes, swrError)
+  /* debug removed */
 
   if (swrError && !error) setError(swrError.message || 'โหลดข้อมูลผู้ใช้ไม่สำเร็จ')
 
   const res = profileRes?.data || profileRes || {}
-  console.log('AdminUserHeader profile res', res)
+  /* debug removed */
   const profObj = res.profile || res.Profile?.[0] || res
   
 

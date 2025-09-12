@@ -59,7 +59,7 @@ export default function ReportTableB() {
         } catch (err) {
           // fallback to client-side aggregation if server endpoint not available
           // ...existing client-side logic fallback...
-          console.warn('reportAPI.getImpactsByDepartment failed, falling back to client aggregation', err)
+          /* ignore aggregation error; fallback handled below */
           // reuse previous logic: fetch departments/impacts and projects
           const [deptsRes, impactsRes] = await Promise.all([
             valueFromAPI.getDepartments(),

@@ -481,7 +481,7 @@ export default function EditPublicationsForm({ mode = 'edit', workId, initialDat
   useEffect(() => {
     if (existingWorkPublication?.data) {
       const data = existingWorkPublication.data
-      console.log('Existing work publication data:', data)
+  /* debug removed */
       setFormData(prev => ({
         ...prev,
         project_research: data.project_research?.documentId || null,

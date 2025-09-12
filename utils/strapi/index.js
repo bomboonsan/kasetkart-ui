@@ -1,7 +1,7 @@
 // ยูทิลิตี้สำหรับช่วยจัดการข้อมูลกับ Strapi v5 (documentId, payload cleaning)
 
 // ตรวจว่าเป็นค่า non-empty (ยอมรับ 0, false แต่ไม่ยอมรับ undefined/null/'')
-export const isNonEmpty = (v) => v !== undefined && v !== null && String(v) !== ''
+// (removed) isNonEmpty was unused across the codebase; keep file focused on active helpers
 
 // ลบ key ที่เป็น undefined ออกจาก object (กัน payload สกปรก)
 export const stripUndefined = (obj = {}) => Object.fromEntries(

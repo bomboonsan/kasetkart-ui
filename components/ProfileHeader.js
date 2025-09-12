@@ -2,7 +2,7 @@
 // ไฟล์นี้ถูกลดรูปเพื่อหลีกเลี่ยงการ import ซ้ำ ใช้งานไฟล์ในโฟลเดอร์ profile แทน
 export default function ProfileHeader(){
   if (process.env.NODE_ENV !== 'production') {
-    console.warn('Legacy components/ProfileHeader.js loaded - use components/profile/ProfileHeader instead')
+  // legacy component loaded message removed
   }
   return null
 }

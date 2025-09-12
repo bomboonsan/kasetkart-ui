@@ -139,7 +139,7 @@ export default function EditResearchForm({ mode = 'create', projectId: propProje
       try {
         const resp = await projectAPI.getProject(projectId)
         const project = resp?.data || resp || null
-        console.log('Loaded project for edit:', project)
+  /* debug removed */
         if (!project) return
 
         // โครงสร้างอาจเป็น Strapi v5 shape: { data: { id, attributes: {...} } }

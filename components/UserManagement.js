@@ -252,7 +252,7 @@ const UserManagement = forwardRef((props, ref) => {
           });
           if (match) roleId = match.id;
         } catch (err) {
-          console.warn('Could not fetch roles list to resolve role id:', err);
+          /* ignore role resolution failure */
         }
 
         const payload = {

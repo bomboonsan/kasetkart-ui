@@ -100,7 +100,7 @@ export default function Sidebar() {
   const profile = user?.profile || {}
   useEffect(() => {
     if (status !== 'loading') {
-      console.debug('Session status:', status, 'user:', session?.user)
+  /* debug removed */
     }
   }, [status, session])
 

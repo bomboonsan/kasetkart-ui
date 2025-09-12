@@ -31,10 +31,7 @@ export default function ResearchPublicationsSection({ profileData = null }) {
 			if (uid) return uid
 			const me = await api.get('/users/me')
 			return me?.data?.id || me?.id || null
-		} catch (e) {
-			console.warn('getUserIdFromProfile failed', e)
-			return null
-		}
+		} catch (e) { return null }
 	}
 
 	useEffect(() => {
