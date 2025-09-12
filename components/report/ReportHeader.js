@@ -1,6 +1,6 @@
 "use client"
 import SelectField from '@/components/ui/SelectField'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 import { CSVLink, CSVDownload } from "react-csv";
 
 // คอมเมนต์ (ไทย): ข้อมูลตารางถอดจากรูปภาพ (อ่านค่าบางค่าจากภาพที่ความละเอียดต่ำ จึงประมาณ/อนุมานบางช่อง)

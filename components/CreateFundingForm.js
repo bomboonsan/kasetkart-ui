@@ -15,7 +15,7 @@ import FormFieldBlock from '@/components/ui/FormFieldBlock'
 import FormInput from "./FormInput";
 import FormTextarea from '@/components/ui/FormTextarea'
 import FileUploadField from './FileUploadField'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 

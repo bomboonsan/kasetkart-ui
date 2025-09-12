@@ -5,7 +5,7 @@ import useSWR from 'swr'
 import SectionCard from '@/components/SectionCard'
 import PublicationFilters from '@/components/PublicationFilters'
 import PublicationItem from '@/components/PublicationItem'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 import { api } from '@/lib/api-base'
 
 const TYPE_TABS = [

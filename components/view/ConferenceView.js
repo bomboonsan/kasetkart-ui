@@ -6,7 +6,7 @@ import { worksAPI } from '@/lib/api/works'
 import ViewFormSection from './ViewFormSection'
 import ViewFormField from './ViewFormField'
 // ใช้ path alias (@/) แทน relative path
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 
 export default function ConferenceView({ conferenceId }) {
   const router = useRouter()

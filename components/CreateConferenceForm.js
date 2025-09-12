@@ -21,7 +21,7 @@ import FormDateSelect from '@/components/ui/FormDateSelect'
 import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
 import EditableResearchTeamSection from './EditableResearchTeamSection'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 

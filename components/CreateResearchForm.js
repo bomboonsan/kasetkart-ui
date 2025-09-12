@@ -12,7 +12,7 @@ import FormDateSelect from '@/components/ui/FormDateSelect'
 import FormSelect from '@/components/ui/FormSelect'
 import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })

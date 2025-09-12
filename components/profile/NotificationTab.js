@@ -4,7 +4,7 @@ import { useState } from 'react'
 import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/ui/FormField'
 import SelectField from '@/components/ui/SelectField'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 
 export default function NotificationTab() {
 

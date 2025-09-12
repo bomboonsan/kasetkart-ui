@@ -1,6 +1,6 @@
 "use client"
 
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 import ProfileStats from "@/components/profile/ProfileStats";
 import Link from 'next/link';
 import { useState } from 'react'

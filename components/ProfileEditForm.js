@@ -5,7 +5,7 @@ import ProfileEditTabs from './ProfileEditTabs'
 import GeneralInfoTab from './GeneralInfoTab'
 import WorkInfoTab from './WorkInfoTab'
 import SystemAccessTab from './SystemAccessTab'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 // ใช้ path alias (@/) เพื่อลดความซับซ้อนของ relative path และคงความยืดหยุ่น
 // ปรับ import หลัง modular API
 import { profileAPI } from '@/lib/api/profile'

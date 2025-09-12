@@ -8,7 +8,7 @@ import ProfileImageUpload from './ProfileImageUpload'
 import FormField from '@/components/ui/FormField'
 import FormSelect from '@/components/ui/FormSelect'
 import SelectField from '@/components/ui/SelectField'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 import { Trash2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })

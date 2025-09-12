@@ -10,7 +10,7 @@ import FileUploadField from './FileUploadField'
 import CheckboxGroup from '@/components/ui/CheckboxGroup'
 import RadioGroup from '@/components/ui/RadioGroup'
 import PublicationTeamTable from './PublicationTeamTable'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 
 export default function PublicationForm() {
   const [formData, setFormData] = useState({
