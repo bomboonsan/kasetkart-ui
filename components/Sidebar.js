@@ -223,6 +223,7 @@ export default function Sidebar() {
 
   // ทำความสะอาดสถานะฝั่งไคลเอนต์ก่อนออกจากระบบ
   // - ล้าง cache ของ SWR / localStorage / sessionStorage ที่เกี่ยวข้องกับการระบุตัวตน
+  // - ล้าง cookies ทั้งหมดที่เกี่ยวข้องกับ next-auth
   // - เรียก signOut ของ next-auth เพื่อเคลียร์ session ที่ server-side แล้วสั่ง reload เพื่อให้ state ใหม่ถูกโหลด
   function handleLogout() {
     try {
@@ -237,6 +238,25 @@ export default function Sidebar() {
 
       // ล้าง sessionStorage ด้วย (กรณีเก็บข้อมูลชั่วคราวที่นี่)
       try { sessionStorage.clear() } catch (e) { /* ignore */ }
+
+      // ล้าง cookies ที่เกี่ยวข้องกับ next-auth ด้วยตนเอง
+      // เพื่อให้แน่ใจว่า session cookies ถูกลบ
+      const cookiesToClear = [
+        'next-auth.session-token',
+        'next-auth.callback-url', 
+        'next-auth.csrf-token',
+        '__Secure-next-auth.session-token',
+        '__Host-next-auth.csrf-token',
+        'next-auth.pkce.code_verifier'
+      ]
+      cookiesToClear.forEach(cookieName => {
+        try {
+          // ลบ cookie โดยตั้ง expires เป็นอดีต
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${window.location.hostname}; secure; samesite=lax`
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; secure; samesite=lax`
+          document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`
+        } catch (e) { /* ignore */ }
+      })
 
       // ล้าง SWR cache ถ้ามี (บางหน้าอาจใช้ swr/mutate และเก็บ key เป็น 'me' หรืออื่นๆ)
       try {
@@ -255,10 +275,16 @@ export default function Sidebar() {
 
     } finally {
       // เรียก signOut ของ next-auth และบังคับ reload หน้าไปที่ /login
-      // ใช้ redirect: false เพื่อให้เราควบคุมการเปลี่ยนหน้าเอง
-      signOut({ redirect: false }).finally(() => {
-        // บังคับ reload แบบ full reload เพื่อล้าง cache ต่างๆ ของ browser และแอป
-        window.location.href = '/login'
+      // ใช้ callbackUrl เพื่อให้แน่ใจว่าจะ redirect ไปที่ /login
+      signOut({ 
+        redirect: false,
+        callbackUrl: '/login'
+      }).finally(() => {
+        // รอสักครู่เพื่อให้ signOut ทำงานเสร็จ แล้วจึง redirect
+        setTimeout(() => {
+          // บังคับ reload แบบ full reload เพื่อล้าง cache ต่างๆ ของ browser และแอป
+          window.location.href = '/login'
+        }, 100)
       })
     }
   }

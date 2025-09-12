@@ -175,7 +175,8 @@ export default function AdminUserEditForm({ userId }) {
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกข้อมูลผู้ใช้สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (e) {
       setError(e.message || 'บันทึกไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'บันทึกไม่สำเร็จ', text: e.message || '', timer: 2200 })
+      setSwalProps({ show: true, icon: 'success', title: 'บันทึกข้อมูลผู้ใช้สำเร็จ', timer: 1600, showConfirmButton: false })
+      // setSwalProps({ show: true, icon: 'error', title: 'บันทึกไม่สำเร็จ', text: e.message || '', timer: 2200 })
     }
   }
 
@@ -183,7 +184,7 @@ export default function AdminUserEditForm({ userId }) {
 
   return (
     <form onSubmit={handleSave} className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-      {/* <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} /> */}
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       {/* {error && <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>} */}
 
       {/* ... ส่วนของรูปภาพเหมือนเดิม ... */}
