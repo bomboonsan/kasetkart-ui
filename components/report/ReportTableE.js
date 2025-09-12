@@ -85,7 +85,7 @@ export default function ReportTableE() {
                     const projectResearch = w.project_research || w.projectResearch || (w.data && w.data.attributes && w.data.attributes.project_research) || null
                     const partners = extractPartners(projectResearch)
                     const authors = partners.join(', ') || ''
-                    const level = mapLevelToLabel(w?.level)
+                    const level = mapLevelToLabel(w?.level || 1) 
                     const date = formatDate(w?.durationStart)
 
                     return {
