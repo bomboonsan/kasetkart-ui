@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { worksAPI } from '@/lib/api/works'
 import { CSVLink, CSVDownload } from "react-csv";
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 
 // Format ISO date to dd/mm/yyyy
 function formatDate(d) {

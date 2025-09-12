@@ -1,5 +1,5 @@
 import { CSVLink, CSVDownload } from "react-csv";
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 export default function ReportTableC() {
   const csvData = [
     // คอมเมนต์ (ไทย): ตารางถอดจากรูปภาพฝั่งขวา — บางช่องมีความละเอียดต่ำจึงประมาณค่า/อนุมานไว้

@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 import PageHeader from '@/components/PageHeader'
 
 export default function MyOverviewPage() {

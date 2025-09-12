@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { fundingAPI } from '@/lib/api/project'
-import Button from '@/components/ui/Button'
+import { Button } from '@/components/ui'
 import PageHeader from '@/components/PageHeader'
 
 export default function FundsPage() {
