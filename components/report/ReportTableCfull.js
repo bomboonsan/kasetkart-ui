@@ -1,5 +1,5 @@
 import { CSVLink, CSVDownload } from "react-csv";
-import Button from '@/components/Button'
+import Button from '@/components/ui/Button'
 export default function ReportTableC() {
   const csvData = [
     // คอมเมนต์ (ไทย): ตารางถอดจากรูปภาพฝั่งขวา — บางช่องมีความละเอียดต่ำจึงประมาณค่า/อนุมานไว้
@@ -457,7 +457,7 @@ export default function ReportTableC() {
         </table>
       </div>
       </div>
-      <CSVLink data={csvData}><Button 
+      <CSVLink filename={"export.xlsx"} data={csvData}><Button 
                     variant="success"
                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
                   >

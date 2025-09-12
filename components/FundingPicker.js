@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 // เปลี่ยนเป็น path alias (@/) สำหรับ import API
 import { projectAPI } from '@/lib/api/project'
-import Button from './Button'
+import Button from '@/components/ui/Button'
 
 export default function FundingPicker({ label = 'โครงการขอทุน', onSelect, selectedProject, required = false }) {
   const [open, setOpen] = useState(false)

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import useSWR, { mutate } from 'swr'
-import Button from '@/components/Button'
+import Button from '@/components/ui/Button'
 import { uploadAPI } from '@/lib/api/admin'
 import { profileAPI } from '@/lib/api/profile'
 import { API_BASE } from '@/lib/api-base'

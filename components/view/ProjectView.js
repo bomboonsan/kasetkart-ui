@@ -6,7 +6,7 @@ import { projectAPI } from '@/lib/api/project'
 import ViewFormSection from './ViewFormSection'
 import ViewFormField from './ViewFormField'
 // ใช้ path alias (@/) แทน relative path
-import Button from '@/components/Button'
+import Button from '@/components/ui/Button'
 
 export default function ProjectView({ projectId }) {
   const router = useRouter()

@@ -2,7 +2,7 @@
 
 import ProfileImageUpload from './ProfileImageUpload'
 import FormField from './FormField'
-import SelectField from './SelectField'
+import SelectField from '@/components/ui/SelectField'
 
 /**
  * GeneralInfoTab (Presentational Component)

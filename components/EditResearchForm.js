@@ -12,7 +12,7 @@ import FormDateSelect from './FormDateSelect'
 import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
-import Button from './Button'
+import Button from '@/components/ui/Button'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
@@ -24,7 +24,7 @@ import { valueFromAPI } from '@/lib/api/lookup'
 // ยูทิลิตี้สำหรับจัดการ payload ให้สะอาด
 import { stripUndefined } from '@/utils/strapi'
 // ใช้ path alias (@/) สำหรับ helper
-import { formatDateDMY } from '@/lib/helper'
+import { formatDateDMY } from '@/utils/date'
 import { use } from 'react'
 import useSWR, { mutate } from 'swr'
 import { createHandleChange } from '@/utils/form'

@@ -26,7 +26,7 @@ import dynamic from 'next/dynamic'
 const FileUploadField = dynamic(() => import('./FileUploadField'), { ssr: false });
 const EditableResearchTeamSection = dynamic(() => import('./EditableResearchTeamSection'), { ssr: false });
 
-import Button from './Button'
+import Button from '@/components/ui/Button'
 
 // คอมเมนต์ (ไทย): แก้ไขให้ SweetAlert2 โหลดแบบ dynamic เฉพาะฝั่ง client เท่านั้น
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false });

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 // ใช้ path alias (@/) เพื่อลดความซับซ้อนของโครง import
 import { projectAPI } from '@/lib/api/project'
-import Button from './Button'
+import Button from '@/components/ui/Button'
 
 export default function ProjectPicker({ label = 'โครงการวิจัย', onSelect, selectedProject, required = false }) {
   const [open, setOpen] = useState(false)

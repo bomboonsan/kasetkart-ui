@@ -7,7 +7,7 @@ import FormInput from "./FormInput"
 import FormTextarea from "./FormTextarea"
 import ResearchTeamSection from './ResearchTeamSection'
 import FileUploadSection from './FileUploadSection'
-import Button from './Button'
+import Button from '@/components/ui/Button'
 import { projectAPI } from '@/lib/api/project'
 import { createHandleChange } from '@/utils/form'
 

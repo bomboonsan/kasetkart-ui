@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { worksAPI } from '@/lib/api/works'
 import { CSVLink, CSVDownload } from "react-csv";
-import Button from '@/components/Button'
+import Button from '@/components/ui/Button'
 
 function formatDate(d) {
     if (!d) return ''
@@ -153,7 +153,7 @@ export default function ReportTableE() {
                 </table>
             </div>
             </div>
-            <CSVLink data={csvData}><Button 
+            <CSVLink filename={"export.xlsx"} data={csvData}><Button 
                                 variant="success"
                                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
                               >
