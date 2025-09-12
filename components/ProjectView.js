@@ -1,7 +1,7 @@
 "use client"
 
-import FormSection from './FormSection'
-import FormFieldBlock from './FormFieldBlock'
+import FormSection from '@/components/ui/FormSection'
+import FormFieldBlock from '@/components/ui/FormFieldBlock'
 import DisplayField from '@/components/ui/DisplayField'
 
 function formatDate(d) {

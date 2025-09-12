@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { createHandleChange } from '@/utils/form'
-import FormSection from './FormSection'
-import FormField from './FormField'
+import FormSection from '@/components/ui/FormSection'
+import FormField from '@/components/ui/FormField'
 import SelectField from '@/components/ui/SelectField'
 import TextAreaField from '@/components/ui/TextAreaField'
 import FileUploadField from './FileUploadField'

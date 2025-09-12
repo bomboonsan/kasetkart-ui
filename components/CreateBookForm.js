@@ -11,14 +11,14 @@ import { profileAPI } from '@/lib/api/profile'
 import { api } from '@/lib/api-base'
 import { getDocumentId } from '@/utils/strapi'
 import { createHandleChange } from '@/utils/form'
-import FormSection from './FormSection'
-import FormFieldBlock from './FormFieldBlock'
-import FormField from './FormField'
+import FormSection from '@/components/ui/FormSection'
+import FormFieldBlock from '@/components/ui/FormFieldBlock'
+import FormField from '@/components/ui/FormField'
 import ProjectFundingPicker from './ProjectFundingPicker'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from '@/components/ui/FormCheckbox'
-import FormTextarea from './FormTextarea'
+import FormTextarea from '@/components/ui/FormTextarea'
 import FormDateSelect from '@/components/ui/FormDateSelect'
 import FormSelect from "./FormSelect";
 import dynamic from 'next/dynamic'

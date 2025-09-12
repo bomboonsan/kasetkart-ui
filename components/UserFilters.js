@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import useSWR from 'swr'
-import FormField from './FormField'
+import FormField from '@/components/ui/FormField'
 import SelectField from '@/components/ui/SelectField'
 import Button from '@/components/ui/Button'
 import { api } from '@/lib/api-base'

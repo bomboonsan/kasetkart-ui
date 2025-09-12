@@ -1,6 +1,6 @@
 "use client";
 
-import FormFieldBlock from './FormFieldBlock'
+import FormFieldBlock from '@/components/ui/FormFieldBlock'
 import UserPicker from './UserPicker'
 import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";

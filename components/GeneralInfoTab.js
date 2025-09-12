@@ -1,7 +1,7 @@
 'use client'
 
 import ProfileImageUpload from './ProfileImageUpload'
-import FormField from './FormField'
+import FormField from '@/components/ui/FormField'
 import SelectField from '@/components/ui/SelectField'
 
 /**

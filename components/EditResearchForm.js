@@ -1,15 +1,15 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import FormSection from './FormSection'
-import FormFieldBlock from './FormFieldBlock'
-import FormField from './FormField'
+import FormSection from '@/components/ui/FormSection'
+import FormFieldBlock from '@/components/ui/FormFieldBlock'
+import FormField from '@/components/ui/FormField'
 import UserPicker from './UserPicker'
-import FormInput from "./FormInput";
+import FormInput from '@/components/ui/FormInput'
 import FormRadio from "./FormRadio";
-import FormTextarea from './FormTextarea'
+import FormTextarea from '@/components/ui/FormTextarea'
 import FormDateSelect from '@/components/ui/FormDateSelect'
-import FormSelect from "./FormSelect";
+import FormSelect from '@/components/ui/FormSelect'
 import FileUploadField from './FileUploadField'
 import ResearchTeamTable from './ResearchTeamTable'
 import Button from '@/components/ui/Button'

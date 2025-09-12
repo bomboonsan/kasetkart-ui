@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import FormField from './FormField'
+import FormField from '@/components/ui/FormField'
 import SelectField from '@/components/ui/SelectField'
 import Button from '@/components/ui/Button'
 import { createHandleChange } from '@/utils/form'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import FormSection from './FormSection'
+import FormSection from '@/components/ui/FormSection'
 import FormFieldBlock from "./FormFieldBlock"
 import FormInput from "./FormInput"
 import FormTextarea from "./FormTextarea"

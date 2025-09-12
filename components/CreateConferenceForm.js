@@ -9,14 +9,14 @@ import { projectAPI } from '@/lib/api/project'
 import { profileAPI } from '@/lib/api/profile'
 import { stripUndefined, getDocumentId } from '@/utils/strapi'
 import { createHandleChange } from '@/utils/form'
-import FormSection from './FormSection'
-import FormFieldBlock from './FormFieldBlock'
-import FormField from './FormField'
+import FormSection from '@/components/ui/FormSection'
+import FormFieldBlock from '@/components/ui/FormFieldBlock'
+import FormField from '@/components/ui/FormField'
 import ProjectPicker from './ProjectPicker'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from '@/components/ui/FormCheckbox'
-import FormTextarea from './FormTextarea'
+import FormTextarea from '@/components/ui/FormTextarea'
 import FormDateSelect from '@/components/ui/FormDateSelect'
 import FormSelect from "./FormSelect";
 import FileUploadField from './FileUploadField'
