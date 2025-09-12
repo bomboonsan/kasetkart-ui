@@ -4,7 +4,7 @@ import FormFieldBlock from './FormFieldBlock'
 import UserPicker from './UserPicker'
 import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
-import FormCheckbox from './FormCheckbox';
+import FormCheckbox from '@/components/ui/FormCheckbox';
 import { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })

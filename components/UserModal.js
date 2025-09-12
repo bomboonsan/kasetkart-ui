@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import FormField from './FormField'
-import SelectField from './SelectField'
-import Button from './Button'
+import SelectField from '@/components/ui/SelectField'
+import Button from '@/components/ui/Button'
 import { createHandleChange } from '@/utils/form'
 
 export default function UserModal({ user, mode, onClose, onSave }) {

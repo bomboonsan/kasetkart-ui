@@ -2,7 +2,7 @@
 
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
-import DisplayField from './DisplayField'
+import DisplayField from '@/components/ui/DisplayField'
 
 function Row({ children }) {
   return <div className="grid grid-cols-1 md:grid-cols-3 gap-6">{children}</div>

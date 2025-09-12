@@ -4,13 +4,13 @@ import { useState } from 'react'
 import { createHandleChange } from '@/utils/form'
 import FormSection from './FormSection'
 import FormField from './FormField'
-import SelectField from './SelectField'
-import TextAreaField from './TextAreaField'
+import SelectField from '@/components/ui/SelectField'
+import TextAreaField from '@/components/ui/TextAreaField'
 import FileUploadField from './FileUploadField'
-import CheckboxGroup from './CheckboxGroup'
-import RadioGroup from './RadioGroup'
+import CheckboxGroup from '@/components/ui/CheckboxGroup'
+import RadioGroup from '@/components/ui/RadioGroup'
 import PublicationTeamTable from './PublicationTeamTable'
-import Button from './Button'
+import Button from '@/components/ui/Button'
 
 export default function PublicationForm() {
   const [formData, setFormData] = useState({

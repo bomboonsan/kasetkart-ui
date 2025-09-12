@@ -1,8 +1,8 @@
 "use client"
 import Image from 'next/image'
-import InputField from './InputField'
-import Button from './Button'
-import Checkbox from './Checkbox'
+import InputField from '@/components/ui/InputField'
+import Button from '@/components/ui/Button'
+import Checkbox from '@/components/ui/Checkbox'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn, useSession } from 'next-auth/react'

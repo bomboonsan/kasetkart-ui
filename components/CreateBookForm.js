@@ -17,9 +17,9 @@ import FormField from './FormField'
 import ProjectFundingPicker from './ProjectFundingPicker'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
-import FormCheckbox from './FormCheckbox'
+import FormCheckbox from '@/components/ui/FormCheckbox'
 import FormTextarea from './FormTextarea'
-import FormDateSelect from './FormDateSelect'
+import FormDateSelect from '@/components/ui/FormDateSelect'
 import FormSelect from "./FormSelect";
 import dynamic from 'next/dynamic'
 

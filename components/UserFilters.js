@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react'
 import useSWR from 'swr'
 import FormField from './FormField'
-import SelectField from './SelectField'
-import Button from './Button'
+import SelectField from '@/components/ui/SelectField'
+import Button from '@/components/ui/Button'
 import { api } from '@/lib/api-base'
 
 export default function UserFilters({ onFilter }) {

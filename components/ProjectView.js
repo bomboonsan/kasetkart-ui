@@ -2,7 +2,7 @@
 
 import FormSection from './FormSection'
 import FormFieldBlock from './FormFieldBlock'
-import DisplayField from './DisplayField'
+import DisplayField from '@/components/ui/DisplayField'
 
 function formatDate(d) {
   if (!d) return '-'
