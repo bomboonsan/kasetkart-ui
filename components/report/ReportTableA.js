@@ -1,4 +1,30 @@
+import { CSVLink, CSVDownload } from "react-csv";
+import Button from '@/components/Button'
 export default function ReportTableA() {
+  const csvData = [
+    [
+      "Discipline",
+      "TotalMembers",
+      "MembersWithoutICS",
+      "MembersWithICS",
+      "Portfolio_BDS",
+      "Portfolio_AIS",
+      "Portfolio_TLS",
+      "Portfolio_Total",
+      "Types_BDS",
+      "Types_APR_ER_Proceeding",
+      "Types_AllOther",
+      "Types_Total",
+      "%_Part",
+      "%_All"
+    ],
+    ["Accounting (19 members)", 19, 2, 17, 100.5, 41.8, 13, 155.3, 42.8, 100.5, 12, 155.3, 42.8, 155.3],
+    ["Finance (9 members)", 9, 9, 0, 12.5, 115, 0.5, 128, 42, 86, 0, 128, 42.8, 155.3],
+    ["Management (12 members)", 12, 12, 0, 12.5, 115, 0.5, 128, 101, 118.8, 0.3, 220.2, 42.8, 155.3],
+    ["Marketing (12 members)", 12, 12, 0, 12.5, 115, 0.5, 128, 95.7, 79.2, 0.3, 175.2, 42.8, 155.3],
+    ["Technology and Operation Management (10 members)", 10, 10, 0, 12.5, 115, 0.5, 128, 71.5, 61.5, 5.3, 138.3, 42.8, 155.3],
+    ["Total", 62, 62, 62, 12.5, 115, 0.5, 128, 353, 446, 18, 817, 42.8, 155.3]
+  ];
   const reportData = [
     {
       discipline: "Accounting (19 members)",
@@ -101,6 +127,7 @@ export default function ReportTableA() {
   }
 
   return (
+    <>
     <div className="bg-white rounded-lg border overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
@@ -269,6 +296,16 @@ export default function ReportTableA() {
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+      <CSVLink data={csvData}><Button 
+        variant="success"
+        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+      >
+        <span>Export</span>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-3 3-3-3M12 12v9M5 20h14" />
+        </svg>
+      </Button></CSVLink>
+    </>
   );
 }

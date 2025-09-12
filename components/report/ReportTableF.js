@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
 import { worksAPI } from '@/lib/api/works'
+import { CSVLink, CSVDownload } from "react-csv";
+import Button from '@/components/Button'
 
 function formatDate(d) {
     if (!d) return ''
@@ -51,6 +53,7 @@ export default function ReportTableE() {
     const [rows, setRows] = useState([])
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
+    const [csvData, setCsvData] = useState([])
 
     useEffect(() => {
         let mounted = true
@@ -90,6 +93,11 @@ export default function ReportTableE() {
                     }
                 })
 
+                setCsvData([
+                    ['ลำดับ', 'ชื่อผลงานที่ตีพิมพ์', 'ชื่อวารสารวิชาการ', 'ชื่อคณะผู้วิจัย', 'ระดับการตีพิมพ์', 'วัน/เดือน/ปีที่ตีพิมพ์'],
+                    ...normalized.map(r => [r.no, r.title, r.meeting, r.authors, r.level, r.date])
+                ])
+
                 setRows(normalized)
             } catch (e) {
                 setError(e?.message || String(e))
@@ -103,6 +111,7 @@ export default function ReportTableE() {
     }, [])
 
     return (
+        <>
         <div className="bg-white rounded-lg border overflow-hidden">
             <div className="p-4 border-b">
                 <h3 className="text-center text-sm font-medium text-gray-800">รายละเอียดข้อมูลการนำเสนอผลงานทางวิชาการ</h3>
@@ -142,6 +151,16 @@ export default function ReportTableE() {
                     </tbody>
                 </table>
             </div>
-        </div>
+            </div>
+            <CSVLink data={csvData}><Button 
+                                variant="success"
+                                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+                              >
+                                <span>Export</span>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-3 3-3-3M12 12v9M5 20h14" />
+                                </svg>
+                              </Button></CSVLink>
+        </>
     );
 }

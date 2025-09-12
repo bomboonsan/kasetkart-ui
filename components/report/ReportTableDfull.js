@@ -1,4 +1,53 @@
+import { CSVLink, CSVDownload } from "react-csv";
+import Button from '@/components/Button'
 export default function ReportTableC() {
+  const csvData = [
+    // คอมเมนต์ (ไทย): ตารางถอดจากรูปภาพฝั่งขวา — บางช่องมีความละเอียดต่ำจึงประมาณค่า/อนุมานไว้
+    // คอลัมน์สรุป: Discipline, TCI_Tier1, TCI_Tier2, Non_TCI, Total_National,
+    // ACI, Q1, Q2, Q3, Q4, Delisted_Scopus, Total_Scopus, SCIE, SSCI, ESCI, ABCI,
+    // Total_Web_of_Science, A_star, A, B, C, Total_AB, AJG1, AJG2, AJG3, AJG4, AJG5,
+    // Total_AJG, Other_PJR, Total_International_MultiCount, Total_Publications_MultiCount
+    [
+      "Discipline",
+      "TCI_Tier1",
+      "TCI_Tier2",
+      "Non_TCI",
+      "Total_National",
+      "ACI",
+      "Q1",
+      "Q2",
+      "Q3",
+      "Q4",
+      "Delisted_Scopus",
+      "Total_Scopus",
+      "SCIE",
+      "SSCI",
+      "ESCI",
+      "ABCI",
+      "Total_Web_of_Science",
+      "A*",
+      "A",
+      "B",
+      "C",
+      "Total_AB",
+      "AJG1",
+      "AJG2",
+      "AJG3",
+      "AJG4",
+      "AJG5",
+      "Total_AJG",
+      "Other_PJR",
+      "Total_International_MultiCount",
+      "Total_Publications_MultiCount"
+    ],
+    // แถวข้อมูล (ค่าบางส่วนประมาณ/อนุมานจากภาพ)
+    ["Accounting", 22.5, 6, 0, 28.5, 5, 1, 1, 1, 10.5, 0, 2.3, 1.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 23.3, 51.8],
+    ["Finance", 13.5, 10.5, 0, 24, 2, 1, 0, 4, 3, 0, 6, 7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 15, 39],
+    ["Management", 17, 55.3, 2, 74.3, 3.3, 4.3, 5.3, 12, 0.8, 0, 1.3, 22.7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 4, 50.6, 124.8],
+    ["Marketing", 10.7, 24.5, 1, 36.2, 6.3, 0, 1.7, 3, 1.5, 0, 0.3, 12.5, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 10, 10, 37.8, 74],
+    ["Technology and Operation Management", 38.3, 18.7, 0, 57, 21.3, 0, 1.7, 3, 1, 0, 0.3, 12.5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 39.8, 96.8],
+    ["Total", 102, 115, 3, 220, 38, 7, 10.7, 32.5, 6.8, 0, 10.2, 117, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 19, 17, 175, 395]
+  ];
   const reportData = [
     {
       discipline: "Accounting",
@@ -202,7 +251,8 @@ export default function ReportTableC() {
   }
 
   return (
-    <div className="bg-white rounded-lg border overflow-hidden">
+    <>
+      <div className="bg-white rounded-lg border overflow-hidden">
       
       <div className="overflow-x-auto">
         <table className="w-full min-w-[2000px]">
@@ -406,6 +456,16 @@ export default function ReportTableC() {
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+      <CSVLink data={csvData}><Button 
+        variant="success"
+        className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center space-x-2"
+      >
+        <span>Export</span>
+        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-3 3-3-3M12 12v9M5 20h14" />
+        </svg>
+      </Button></CSVLink>
+    </>
   )
 }
