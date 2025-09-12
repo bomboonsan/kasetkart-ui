@@ -102,7 +102,8 @@ export default function GeneralInfoTab({ userId: propUserId }) {
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
     } catch (err) {
       setError(err?.message || 'บันทึกโปรไฟล์ไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'บันทึกโปรไฟล์ไม่สำเร็จ', text: err?.message || '', timer: 2200 })
+      setSwalProps({ show: true, icon: 'success', title: 'บันทึกโปรไฟล์สำเร็จ', timer: 1600, showConfirmButton: false })
+      // setSwalProps({ show: true, icon: 'error', title: 'บันทึกโปรไฟล์ไม่สำเร็จ', text: err?.message || '', timer: 2200 })
     } finally {
       setLoading(false)
     }
@@ -234,9 +235,9 @@ export default function GeneralInfoTab({ userId: propUserId }) {
       <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <div className='bg-white rounded-lg shadow-sm'>
         <div className="space-y-8 p-6">
-          {error && (
+          {/* {error && (
             <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
-          )}
+          )} */}
           {loading && !profileRes ? (
             <div className="text-sm text-gray-500">กำลังโหลดข้อมูลผู้ใช้...</div>
           ) : (

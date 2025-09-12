@@ -51,3 +51,4 @@ export const toUserOrgLine = (user) => {
 // แปลง Error จาก axios/Strapi -> ข้อความอ่านง่าย
 export const parseApiError = (err, fallback = 'เกิดข้อผิดพลาด') =>
   err?.response?.data?.error?.message || err?.message || fallback
+

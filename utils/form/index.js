@@ -13,3 +13,4 @@ export const withLoading = (setLoading, fn) => async (...args) => {
     setLoading(false)
   }
 }
+
