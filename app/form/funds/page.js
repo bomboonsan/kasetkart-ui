@@ -12,13 +12,13 @@ export default function FundsPage() {
   const [fundings, setFundings] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [pageSize] = useState(10)
-  
+
   // Filter states
   const [searchTitle, setSearchTitle] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
@@ -31,10 +31,11 @@ export default function FundsPage() {
   const fetchFundings = async () => {
     setLoading(true)
     setError('')
-    
+
     try {
       // Use API helper to get current user's fundings
       const response = await fundingAPI.getMyFundings()
+      console.log("Fetched fundings:", response)
       let list = response?.data || response || []
 
       // Client-side search on purpose
@@ -66,9 +67,9 @@ export default function FundsPage() {
       setFundings(paged)
       setTotalItems(total)
       setTotalPages(pageCount)
-      
+
     } catch (err) {
-  setError('ไม่สามารถโหลดข้อมูลทุนโครงการได้')
+      setError('ไม่สามารถโหลดข้อมูลทุนโครงการได้')
     } finally {
       setLoading(false)
     }
@@ -177,7 +178,7 @@ export default function FundsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('purpose')}
                   >
@@ -195,7 +196,7 @@ export default function FundsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     สถานะ
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('updatedAt')}
                   >
@@ -227,11 +228,10 @@ export default function FundsPage() {
                       {funding.targetGroup || '-'}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        funding.publishedAt 
-                          ? 'bg-green-100 text-green-800' 
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${funding.publishedAt
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                        }`}>
                         {funding.publishedAt ? 'เผยแพร่' : 'ร่าง'}
                       </span>
                     </td>
@@ -240,13 +240,13 @@ export default function FundsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Link 
+                        <Link
                           href={`/form/view/funding/${funding.documentId || funding.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
-                        <Link 
+                        <Link
                           href={`/form/edit/funding/${funding.documentId || funding.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
@@ -272,7 +272,7 @@ export default function FundsPage() {
           >
             ก่อนหน้า
           </Button>
-          
+
           <div className="flex space-x-1">
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum
@@ -285,7 +285,7 @@ export default function FundsPage() {
               } else {
                 pageNum = currentPage - 2 + i
               }
-              
+
               return (
                 <Button
                   key={pageNum}
@@ -298,7 +298,7 @@ export default function FundsPage() {
               )
             })}
           </div>
-          
+
           <Button
             variant="outline"
             disabled={currentPage === totalPages}

@@ -1,0 +1,745 @@
+"use client";
+
+import { FormFieldBlock } from '@/components/ui'
+import UserPicker from './UserPicker'
+import FormInput from "./FormInput";
+import FormSelect from "./FormSelect";
+import { FormCheckbox } from '@/components/ui';
+import { useEffect, useMemo, useState } from 'react'
+import dynamic from 'next/dynamic'
+const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
+import {
+  ChevronUp,
+  ChevronDown
+} from "lucide-react";
+// ใช้ path alias (@/) เพื่อลด relative path และทำให้แก้ไขได้ง่ายขึ้น
+import { projectAPI } from '@/lib/api'
+import { api } from '@/lib/api-base'
+import { authAPI } from '@/lib/api'
+import { stripUndefined } from '@/utils'
+
+export default function FundTeamTable({ projectId, formData, handleInputChange, setFormData }) {
+  const [swalProps, setSwalProps] = useState({})
+
+  // Real data from API
+  const [project, setProject] = useState(null)
+  const [me, setMe] = useState(null)
+  const [localPartners, setLocalPartners] = useState([])
+  const [editingIndex, setEditingIndex] = useState(null)
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+
+  // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
+  function recomputeProportions(list = []) {
+    // หมายเหตุ: ฟังก์ชันนี้รับลิสต์สมาชิก team แล้วคำนวณค่า partnerProportion ใหม่
+    // โดยแบ่งสัดส่วนเท่า ๆ กันเฉพาะสมาชิกที่เป็นภายใน (isInternal=true)
+    // และดูแลไม่ให้รวมกันเกิน/ขาด 1.000 (แก้จุดปัดเศษที่คนสุดท้าย)
+    const result = list.map(p => ({ ...p }))
+    const internalIdx = result.reduce((arr, p, idx) => (p.isInternal ? [...arr, idx] : arr), [])
+    const n = internalIdx.length
+    if (n === 0) return result.map(p => ({ ...p, partnerProportion: undefined }))
+
+    // แบ่งสัดส่วนเท่าๆ กันสำหรับผู้ใช้ภายในเท่านั้น
+    const base = 1 / n
+    let assigned = 0
+    internalIdx.forEach((idx, i) => {
+      if (i < n - 1) {
+        result[idx].partnerProportion = base.toFixed(3)
+        assigned += base
+      } else {
+        // คนสุดท้ายได้ส่วนที่เหลือ เพื่อให้รวมกันเป็น 1.000
+        const last = 1 - assigned
+        result[idx].partnerProportion = last.toFixed(3)
+      }
+    })
+
+    // ผู้ร่วมงานภายนอกไม่มีสัดส่วน
+    return result.map(p => (p.isInternal ? p : { ...p, partnerProportion: undefined }))
+  }
+
+  useEffect(() => {
+    // When project (from API) has research_partners, normalize into localPartners
+    if (!project) return
+    // project may be returned in different shapes: { data: { id, attributes: { research_partners: { data: [...] }}}} or plain object
+    let partners = []
+    if (project.data && project.data.attributes) {
+      partners = project.data.attributes.research_partners?.data || []
+    } else if (project.research_partners) {
+      partners = project.research_partners.data || project.research_partners
+    }
+
+    // Normalize Strapi partner entries to the UI shape
+    const norm = (partners || []).map(item => {
+      const p = item?.attributes ? item.attributes : item
+
+      // Map participant_type numbers to labels
+      const partnerTypeLabels = {
+        1: 'หัวหน้าโครงการ',
+        2: 'ที่ปรึกษาโครงการ',
+        3: 'ผู้ประสานงาน',
+        4: 'นักวิจัยร่วม',
+        99: 'อื่นๆ',
+      }
+
+      return {
+        id: item?.id || p.id,
+        fullname: p.fullname || p.name || '',
+        orgName: p.orgName || p.org || '',
+        partnerType: partnerTypeLabels[p.participant_type] || p.partnerType || '',
+        isInternal: !!p.users_permissions_user || !!p.userID || false,
+        userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
+        partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
+        partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
+        partnerProportion_percentage_custom: p.participation_percentage_custom !== undefined ? String(p.participation_percentage_custom) : undefined,
+      }
+    })
+
+    if (norm.length > 0) setLocalPartners(recomputeProportions(norm))
+  }, [project])
+
+  // Fetch project data when projectId provided
+  useEffect(() => {
+    async function loadProject() {
+      if (!projectId) return
+      try {
+        const resp = await projectAPI.getProject(projectId)
+        setProject(resp)
+      } catch (err) {
+        setSaveError(err?.message || 'Failed to load project')
+      }
+    }
+    loadProject()
+  }, [projectId])
+
+  // Load current user
+  useEffect(() => {
+    async function loadMe() {
+      try {
+        const u = await authAPI.me()
+        setMe(u?.data || u || null)
+      } catch (err) {
+        // do not log to console; surface via state if needed
+        setSaveError(err?.message || 'Failed to load current user')
+      }
+    }
+    loadMe()
+  }, [])
+
+  // ถ้ามี partnersLocal ถูกส่งมาจาก Parent (`formData.partnersLocal`) ให้ใช้ค่านั้นเป็นค่าเริ่มต้น
+  // (ใช้เมื่อไม่มี `project` โหลดมาจาก API เช่นในกรณี Create หรือเมื่อ Edit ใช้ parent เป็นแหล่งข้อมูล)
+  // เพิ่ม effect นี้เพื่อให้ EditResearchForm ที่ตั้งค่า `formData.partnersLocal` สามารถทำให้ตารางแสดงได้ทันที
+  useEffect(() => {
+    if (!project && Array.isArray(formData?.partnersLocal) && formData.partnersLocal.length > 0) {
+      // ใช้ recomputeProportions เพื่อคำนวณสัดส่วนให้ถูกต้องก่อนแสดง
+      setLocalPartners(recomputeProportions(formData.partnersLocal))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData?.partnersLocal, project])
+
+  // Keep parent formData in sync with local partners (so CreateResearchForm can read them)
+  useEffect(() => {
+    if (typeof setFormData === 'function') {
+      setFormData(prev => ({ ...prev, partnersLocal: localPartners }))
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function syncToServer(partnersList) {
+    // หมายเหตุ: ซิงค์ข้อมูลทีมขึ้น Strapi ด้วยแนวทาง replace ทั้งชุด
+    // 1) ลบข้อมูลเดิมของโปรเจกต์นี้ทั้งหมด (อิง documentId)
+    // 2) สร้างข้อมูลใหม่ตามลำดับที่เห็นใน UI (ใช้ field order)
+    if (!projectId) return; // ไม่มี project ให้ซิงค์
+    setSaveError('')
+    setSaving(true)
+    try {
+      // เตรียม payload สำหรับ API 
+      const partnerTypeMap = {
+        'หัวหน้าโครงการ': 1,
+        'ที่ปรึกษาโครงการ': 2,
+        'ผู้ประสานงาน': 3,
+        'นักวิจัยร่วม': 4,
+        'อื่นๆ': 99,
+      }
+
+      // ลบ partners เก่าที่เชื่อมโยงกับ project นี้ (ใช้ documentId สำหรับ Strapi v5)
+      try {
+        const existingPartners = await api.get(`/project-partners?filters[project_researches][documentId][$eq]=${projectId}`)
+        const partnersToDelete = existingPartners?.data || []
+        for (const partner of partnersToDelete) {
+          await api.delete(`/project-partners/${partner.documentId || partner.id}`)
+        }
+      } catch (err) {
+        // ignore deletion errors but capture message
+        // preserve user experience without noisy console output
+      }
+
+      // สร้าง partners ใหม่ (รวม order เพื่อให้สามารถจัดลำดับได้ใน Strapi)
+      for (let i = 0; i < (partnersList || []).length; i++) {
+        const p = partnersList[i]
+        // หมายเหตุ: map ค่าจาก state UI -> ชื่อฟิลด์ของ Strapi
+        const partnerData = stripUndefined({
+          fullname: p.fullname || undefined,
+          orgName: p.orgName || undefined,
+          participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
+          participation_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '' ? parseFloat(p.partnerProportion_percentage_custom) : undefined,
+          participant_type: partnerTypeMap[p.partnerType] || undefined,
+          isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
+          isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
+          users_permissions_user: p.userID || undefined,
+          project_researches: [projectId], // ใช้ documentId
+          order: i
+        })
+
+        await api.post('/project-partners', { data: partnerData })
+      }
+
+      setSwalProps({ show: true, icon: 'success', title: 'บันทึกทีมสำเร็จ', timer: 1000, showConfirmButton: false })
+    } catch (err) {
+      setSaveError(err.message || 'บันทึกผู้ร่วมโครงการไม่สำเร็จ')
+      setSwalProps({ show: true, icon: 'error', title: 'บันทึกทีมไม่สำเร็จ', text: err.message || '', timer: 2000 })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  function resetForm() {
+    setFormData(prev => ({
+      ...prev,
+      __userObj: undefined,
+      partnerFullName: '',
+      orgName: '',
+      userId: undefined,
+      partnerType: '',
+      partnerComment: '',
+      partnerProportion_percentage_custom: undefined,
+    }))
+    setEditingIndex(null)
+  }
+
+  function handleAddPartner() {
+    const internal = formData.isInternal === true
+    const u = formData.__userObj || null
+    const prof = u ? (Array.isArray(u.profile) ? u.profile[0] : u.profile) : null
+    // ใช้ชื่อไทยก่อน ถ้าไม่มีค่อย fallback อังกฤษ / อีเมล
+    const full = u ? (
+      prof ? `${prof.firstNameTH || prof.firstName || ''} ${prof.lastNameTH || prof.lastName || ''}`.trim() || u.email : u.email
+    ) : ''
+    const org = u ? [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ') : ''
+
+    const pcArr = Array.isArray(formData.partnerComment)
+      ? formData.partnerComment
+      : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])
+    const pcJoined = pcArr.join(', ')
+
+    const partner = {
+      isInternal: internal,
+      userID: internal && u ? u.id : undefined,
+      fullname: internal ? (full || formData.partnerFullName || '') : (formData.partnerFullName || ''),
+      orgName: internal ? (org || formData.orgName || '') : (formData.orgName || ''),
+      partnerType: formData.partnerType || '',
+      partnerComment: pcJoined,
+      partnerProportion: undefined,
+      partnerProportion_percentage_custom: formData.partnerProportion_percentage_custom !== undefined && formData.partnerProportion_percentage_custom !== '' ? String(formData.partnerProportion_percentage_custom) : undefined,
+      // แนบข้อมูลผู้ใช้เพิ่มเติมเพื่อใช้แสดงชื่อ (ลดการเรียก API ซ้ำ)
+      User: internal && u ? {
+        email: u.email,
+        profile: prof ? {
+          firstNameTH: prof.firstNameTH || prof.firstName,
+          lastNameTH: prof.lastNameTH || prof.lastName
+        } : undefined
+      } : undefined,
+    }
+
+    setLocalPartners(prev => {
+      const base = prev || []
+      let next
+      if (editingIndex !== null && editingIndex >= 0 && editingIndex < base.length) {
+        const updated = base.slice()
+        updated[editingIndex] = { ...updated[editingIndex], ...partner }
+        next = recomputeProportions(updated)
+      } else {
+        next = recomputeProportions([...(base || []), partner])
+      }
+      // ซิงค์ขึ้นเซิร์ฟเวอร์ (ไม่รวม mePartner ซึ่งไม่ได้อยู่ใน localPartners อยู่แล้ว)
+      syncToServer(next)
+      return next
+    })
+
+    const dlg = document.getElementById('my_modal_2');
+    if (dlg && dlg.close) dlg.close()
+    resetForm()
+  }
+
+  // ย้ายลำดับขึ้น
+  function moveUp(idx) {
+    if (idx <= 0) return
+    // work on displayRows to allow moving `me` as well
+    const current = displayRows
+    const arr = current.slice()
+    const tmp = arr[idx - 1]
+    arr[idx - 1] = arr[idx]
+    arr[idx] = tmp
+    // Convert any me entries into normal partner objects so they are persisted
+    const newLocal = arr
+      .filter(p => true)
+      .map(p => p.isMe ? ({
+        isInternal: true,
+        userID: p.userID,
+        fullname: p.fullname,
+        orgName: p.orgName,
+        partnerType: p.partnerType || '',
+        partnerComment: p.partnerComment || '',
+        partnerProportion: p.partnerProportion,
+        partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
+        User: p.User
+      }) : p)
+      .filter(p => true)
+
+    setLocalPartners(() => {
+      const next = recomputeProportions(newLocal)
+      syncToServer(next)
+      return next
+    })
+  }
+
+  // ย้ายลำดับลง
+  function moveDown(idx) {
+    // operate on displayRows
+    const current = displayRows
+    const arr = current.slice()
+    if (idx >= arr.length - 1) return
+    const tmp = arr[idx + 1]
+    arr[idx + 1] = arr[idx]
+    arr[idx] = tmp
+    const newLocal = arr
+      .map(p => p.isMe ? ({
+        isInternal: true,
+        userID: p.userID,
+        fullname: p.fullname,
+        orgName: p.orgName,
+        partnerType: p.partnerType || '',
+        partnerComment: p.partnerComment || '',
+        partnerProportion: p.partnerProportion,
+        partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
+        User: p.User
+      }) : p)
+
+    setLocalPartners(() => {
+      const next = recomputeProportions(newLocal)
+      syncToServer(next)
+      return next
+    })
+  }
+
+  function handleRemovePartner(idx) {
+    // idx refers to displayRows; map to localPartners by filtering out me
+    const current = displayRows
+    const target = current[idx]
+    // if the target is me, we can't remove the creator; ignore
+    if (target && target.isMe) return
+    const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
+    const next = recomputeProportions(newLocal)
+    setLocalPartners(next)
+    syncToServer(next)
+    // รีเซ็ตฟอร์มใน dialog
+    setFormData(prev => ({
+      ...prev,
+      __userObj: undefined,
+      partnerFullName: '',
+      orgName: '',
+      userId: undefined,
+      partnerType: '',
+      partnerComment: ''
+    }))
+    setEditingIndex(null)
+  }
+
+  function handleEditPartner(idx) {
+    // idx is display index; map to localPartners entry
+    const current = displayRows
+    const p = current[idx]
+    if (!p) return
+    // find index in localPartners
+    const lpIdx = (localPartners || []).findIndex(x => (x.userID && x.userID === p.userID) || x.fullname === p.fullname)
+    setEditingIndex(lpIdx >= 0 ? lpIdx : null)
+    setFormData(prev => ({
+      ...prev,
+      isInternal: !!p.isInternal,
+      partnerFullName: p.fullname || '',
+      orgName: p.orgName || '',
+      partnerType: p.partnerType || '',
+      partnerComment: p.partnerComment || p.comment || '',
+      partnerProportion_percentage_custom: p.partnerProportion_percentage_custom || '',
+      userId: p.userID || undefined,
+      __userObj: undefined
+    }))
+    const dlg = document.getElementById('my_modal_2');
+    if (dlg && dlg.showModal) dlg.showModal()
+  }
+
+  const hasFirstAuthor = useMemo(() => (localPartners || []).some(p => ((p.partnerComment || p.comment || '')).includes('First Author')), [localPartners])
+  const hasCorresponding = useMemo(() => (localPartners || []).some(p => ((p.partnerComment || p.comment || '')).includes('Corresponding Author')), [localPartners])
+
+  // สร้างแถวผู้ใช้ปัจจุบันและคำนวณสัดส่วนรวมเพื่อใช้แสดงผล
+  // display only the local partners in the table (hide the creator/me row)
+  const displayRows = useMemo(() => {
+    return recomputeProportions(localPartners || [])
+  }, [localPartners])
+
+  return (
+    <>
+      <dialog id="my_modal_2" className="modal">
+        <div className="modal-box w-11/12 max-w-5xl text-gray-700">
+          <FormFieldBlock>
+            <div className="flex items-center gap-10">
+              <label className="flex items-center gap-3 text-zinc-700">
+                <input
+                  type="radio"
+                  value="true"
+                  checked={formData.isInternal === true}
+                  onChange={() => handleInputChange("isInternal", true)}
+                  className={`
+                                text-zinc-700
+                                px-3 py-2 border border-gray-300 rounded-md
+                                placeholder-gray-400 focus:outline-none focus:ring-2
+                                focus:ring-blue-500 focus:border-blue-500
+                                transition-colors duration-200
+                            `}
+                />
+                ภายใน มก.
+              </label>
+              <label className="flex items-center gap-3 text-zinc-700">
+                <input
+                  type="radio"
+                  value="false"
+                  checked={formData.isInternal === false}
+                  onChange={() => handleInputChange("isInternal", false)}
+                  className={`
+                                text-zinc-700
+                                px-3 py-2 border border-gray-300 rounded-md
+                                placeholder-gray-400 focus:outline-none focus:ring-2
+                                focus:ring-blue-500 focus:border-blue-500
+                                transition-colors duration-200
+                            `}
+                />
+                ภายนอก มก. (หัวหน้าโครงการวิจัยภายนอก มก. นิสิต และลูกจ้าง)
+              </label>
+            </div>
+            {
+              formData.isInternal === true ? (
+                <>
+                  <div>
+                    <UserPicker
+                      label="ผู้ร่วมโครงการวิจัย"
+                      selectedUser={formData.__userObj}
+                      onSelect={(u) => {
+                        const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
+                        const display = prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email
+                        const org = [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ')
+                        setFormData(prev => ({
+                          ...prev,
+                          partnerFullName: display,
+                          orgName: org,
+                          userId: u.id,
+                          __userObj: u
+                        }))
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <FormInput
+                      mini={false}
+                      label="ชื่อผู้ร่วมโครงการวิจัย"
+                      type="text"
+                      value={(() => {
+                        if (formData.__userObj) {
+                          const prof = Array.isArray(formData.__userObj.profile) ? formData.__userObj.profile[0] : formData.__userObj.profile
+                          return prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : formData.__userObj.email
+                        }
+                        return formData.partnerFullName || ''
+                      })()}
+                      readOnly={!!formData.__userObj}
+                      onChange={(value) => {
+                        // allow manual name editing when internal but not linked to a user
+                        if (!formData.__userObj) handleInputChange("partnerFullName", value)
+                      }}
+                    />
+                  </div>
+                  <div>
+                    <FormInput
+                      mini={false}
+                      label="ชื่อหน่วยงาน"
+                      type="text"
+                      value={(() => {
+                        if (formData.__userObj) {
+                          return [
+                            formData.__userObj.department?.name,
+                            formData.__userObj.faculty?.name,
+                            formData.__userObj.organization?.name
+                          ].filter(Boolean).join(' ')
+                        }
+                        return formData.orgName || ''
+                      })()}
+                      readOnly={!!formData.__userObj}
+                      onChange={(value) => {
+                        if (!formData.__userObj) handleInputChange("orgName", value)
+                      }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div>
+                    <FormInput
+                      mini={false}
+                      label="ชื่อผู้ร่วมโครงการวิจัย"
+                      type="text"
+                      value={formData.partnerFullName}
+                      onChange={(value) => handleInputChange("partnerFullName", value)}
+                      placeholder="กรอกชื่อ-นามสกุล"
+                    />
+                  </div>
+                  <div>
+                    <FormInput
+                      mini={false}
+                      label="ชื่อหน่วยงาน"
+                      type="text"
+                      value={formData.orgName}
+                      onChange={(value) => handleInputChange("orgName", value)}
+                      placeholder="กรอกชื่อหน่วยงาน"
+                    />
+                  </div>
+                </>
+              )
+            }
+            <div>
+              <FormSelect
+                label="ประเภทผู้ร่วมโครงการวิจัย"
+                required
+                value={formData.partnerType}
+                onChange={(value) => handleInputChange("partnerType", value)}
+                className="max-w-lg"
+                options={[
+                  { value: '', label: 'เลือกประเภท' },
+                  { value: 'หัวหน้าโครงการ', label: 'หัวหน้าโครงการ' },
+                  { value: 'ที่ปรึกษาโครงการ', label: 'ที่ปรึกษาโครงการ' },
+                  { value: 'ผู้ประสานงาน', label: 'ผู้ประสานงาน' },
+                  { value: 'นักวิจัยร่วม', label: 'นักวิจัยร่วม' },
+                  { value: 'อื่นๆ', label: 'อื่นๆ' },
+                ]}
+              />
+            </div>
+            <div>
+
+              <FormInput
+                mini={false}
+                label="สัดส่วนการมีส่วนร่วม (%)"
+                type="number"
+                step="0.001"
+                min="0"
+                max="100"
+                value={formData.partnerProportion_percentage_custom || ''}
+                onChange={(value) => {
+                  // allow empty or valid number between 0-100
+                  if (value === '' || value === null) {
+                    handleInputChange('partnerProportion_percentage_custom', '')
+                    return
+                  }
+                  const num = parseFloat(String(value))
+                  if (Number.isNaN(num)) return
+                  const clamped = Math.max(0, Math.min(100, num))
+                  // store as string to match other partnerProportion fields used elsewhere
+                  handleInputChange('partnerProportion_percentage_custom', String(clamped))
+                }}
+                placeholder="0%"
+              />
+            </div>
+            <div>
+              <FormCheckbox
+                label="หมายเหตุ"
+                inline={true}
+                value={Array.isArray(formData.partnerComment) ? formData.partnerComment : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])}
+                onChange={(arr) => handleInputChange("partnerComment", arr)}
+                className="max-w-lg"
+                options={[
+                  ...(!hasFirstAuthor || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('First Author')) ? [{ value: 'First Author', label: 'First Author' }] : []),
+                  ...(!hasCorresponding || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('Corresponding Author')) ? [{ value: 'Corresponding Author', label: 'Corresponding Author' }] : []),
+                ]}
+              />
+            </div>
+          </FormFieldBlock>
+          <div className="modal-action">
+            <button onClick={handleAddPartner} type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
+              {editingIndex !== null ? 'บันทึก' : 'เพิ่ม'}
+            </button>
+            <button
+              type="button"
+              className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+              onClick={() => { resetForm(); const dlg = document.getElementById('my_modal_2'); if (dlg && dlg.close) dlg.close(); }}
+            >
+              ยกเลิก
+            </button>
+          </div>
+        </div>
+        <div
+          className="modal-backdrop backdrop-blur-sm"
+          onClick={() => { resetForm(); const dlg = document.getElementById('my_modal_2'); if (dlg && dlg.close) dlg.close(); }}
+        />
+      </dialog>
+
+      <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
+      <div className="space-y-4">
+        {!projectId && (
+          <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
+            เมื่อเลือกโครงการแล้ว ระบบจะบันทึกรายชื่อผู้ร่วมโดยอัตโนมัติ
+          </div>
+        )}
+        {saveError && (
+          <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">{saveError}</div>
+        )}
+        {/* Header */}
+        <div className="flex justify-end gap-4 mb-5">
+          {/*
+            แก้บั๊ก: ปุ่มเปิด modal อยู่ภายในฟอร์มหลัก ถ้าไม่กำหนด type จะเป็นค่า default "submit"
+            ทำให้เมื่อกดแล้วฟอร์มใหญ่ถูก submit ไปด้วย --> กำหนด type="button" เพื่อป้องกัน
+          */}
+          <button type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" onClick={() => {
+            resetForm();
+            document.getElementById('my_modal_2').showModal();
+          }}>
+            เพิ่มสมาชิก
+          </button>
+        </div>
+        {/* Table */}
+        <div className="bg-white border border-gray-200 rounded-b-md overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-gray-50">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ลำดับ
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ชื่อ-นามสกุล
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    หน่วยงาน
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ประเภทผู้ร่วมโครงการวิจัย
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    หมายเหตุ
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    สัดส่วนการมีส่วนร่วม (%)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    สัดส่วนการวิจัย (%)
+                  </th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    การจัดการ
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {displayRows.map((p, i) => (
+                  <tr key={p.id || p.userID || i} className="hover:bg-gray-50">
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="flex items-center">
+                        <div
+                          className={`w-6 h-6 rounded-full flex items-center justify-center text-[#065F46] text-sm font-medium
+                          bg-[#D1FAE5]
+                        `}
+                        >
+                          {i + 1}
+                        </div>
+                        {(displayRows.length >= 2) && (
+                          <div className='text-gray-700 flex items-center gap-2 ml-3'>
+                            <button
+                              type="button"
+                              onClick={() => moveUp(i)}
+                              disabled={i === 0}
+                              className={`px-2 py-1 rounded bg-gray-100 text-xs ${i === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+                            >
+                              <ChevronUp />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => moveDown(i)}
+                              disabled={i === displayRows.length - 1}
+                              className={`px-2 py-1 rounded bg-gray-100 text-xs ${i === displayRows.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+                            >
+                              <ChevronDown />
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">
+                          {/* แสดงชื่อเต็มจาก profile (ไทย) เป็นหลัก */}
+                          {(() => {
+                            if (p.fullname) return p.fullname
+                            const prof = p.User?.profile
+                            if (prof && (prof.firstNameTH || prof.lastNameTH)) {
+                              return `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim()
+                            }
+                            return p.User?.email || '-'
+                          })()}
+                        </div>
+                        {p.User?.email && (
+                          <div className="text-sm text-gray-500">
+                            {p.User.email}
+                          </div>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">
+                        {p.orgName || '-'}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{p.partnerType || '-'}</div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm text-gray-900">{p.partnerComment || '-'}</div>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {p.partnerProportion_percentage_custom && (
+                        <div className="text-sm text-gray-900">
+                          {(parseFloat(p.partnerProportion_percentage_custom))}%
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      {p.partnerProportion && (
+                        <div className="text-sm text-gray-900">
+                          {(Number(p.partnerProportion).toFixed(1))}
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      {(displayRows.length >= 2) && (
+                        <div className="flex items-center gap-3 justify-end">
+                          <button type="button" onClick={() => handleEditPartner(i)} className="text-blue-600 hover:text-blue-900">
+                            แก้ไข
+                          </button>
+                          <button type="button" onClick={() => handleRemovePartner(i)} className="text-red-600 hover:text-red-900">
+                            ลบ
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
