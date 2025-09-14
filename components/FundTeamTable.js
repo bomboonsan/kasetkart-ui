@@ -116,6 +116,42 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     if (norm.length > 0) setLocalPartners(recomputeProportions(norm))
   }, [funding, project])
 
+  // ดึงรายชื่อผู้ร่วมโดยตรงจาก /funding-partners ด้วย fundingId (กรณีมีรหัสชัดเจน)
+  useEffect(() => {
+    async function loadFundingPartners() {
+      if (!fundingId) return
+      try {
+        const resp = await api.get(`/funding-partners?populate=users_permissions_user&filters[project_fundings][documentId][$eq]=${fundingId}`)
+        const items = resp?.data || resp || []
+        const partnerTypeLabels = {
+          1: 'หัวหน้าโครงการ',
+          2: 'ที่ปรึกษาโครงการ',
+          3: 'ผู้ประสานงาน',
+          4: 'นักวิจัยร่วม',
+          99: 'อื่นๆ',
+        }
+        const norm = (items || []).map(item => {
+          const p = item?.attributes ? item.attributes : item
+          return {
+            id: item?.id || p.id,
+            fullname: p.fullname || p.name || '',
+            orgName: p.orgName || p.org || '',
+            partnerType: partnerTypeLabels[p.participant_type] || p.partnerType || '',
+            isInternal: !!p.users_permissions_user || !!p.userID || false,
+            userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
+            partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
+            partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
+            partnerProportion_percentage_custom: undefined,
+          }
+        })
+        setLocalPartners(recomputeProportions(norm))
+      } catch (err) {
+        setSaveError(err?.message || 'Failed to load funding partners')
+      }
+    }
+    loadFundingPartners()
+  }, [fundingId])
+
   // Fetch funding data when fundingId provided (ใช้กับ FundingForm)
   useEffect(() => {
     async function loadFunding() {

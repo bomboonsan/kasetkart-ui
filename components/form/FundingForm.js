@@ -68,6 +68,11 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
     }))
   }, [workRes])
 
+  // ใช้ id/documentId จากผลลัพธ์ SWR เมื่ออยู่โหมดแก้ไข เพื่อให้ตารางโหลด funding_partners ได้ทันที
+  const fundingIdForTable = (mode === 'edit')
+    ? (workRes?.data?.documentId || workRes?.data?.id || workId)
+    : workId
+
   // Prefill from initialData when provided (SSR or preloaded data)
   useEffect(() => {
     if (!initialData) return
@@ -445,7 +450,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
         <div className="p-4 rounded-md border shadow border-gray-200/70">
           <FormSection title="* ผู้ร่วมวิจัย">
             <FundTeamTable
-              fundingId={workId}
+              fundingId={fundingIdForTable}
               formData={formData}
               handleInputChange={handleInputChange}
               setFormData={setFormData}
