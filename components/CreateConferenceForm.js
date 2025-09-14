@@ -30,32 +30,35 @@ export default function CreateConferenceForm({
 
   // Form state aligned to work-conference schema
   const [formData, setFormData] = useState({
-    project_research: "", // relation to project-research
-    titleTH: "", // ชื่อผลงาน (ไทย)
-    titleEN: "", // ชื่อผลงาน (อังกฤษ)
-    isEnvironmentallySustainable: 0, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
-    journalName: "", // ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)
-    doi: "", // DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI
-    isbn: "", // ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)
-    durationStart: "", // ระยะเวลาการทำวิจัย (Date)
-    durationEnd: "", // ระยะเวลาการทำวิจัย (Date)
-    cost: "", // ค่าใช้จ่าย (Int)
-    costType: "", // ค่าใช้จ่ายมาจาก  (Int) Value จาก select
+    project_research: null, // relation to project-research
+    titleTH: null, // ชื่อผลงาน (ไทย)
+    titleEN: null, // ชื่อผลงาน (อังกฤษ)
+    isEnvironmentallySustainable: null, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
+    journalName: null, // ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)
+    doi: null, // DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI
+    isbn: null, // ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)
+    durationStart: null, // ระยะเวลาการทำวิจัย (Date)
+    durationEnd: null, // ระยะเวลาการทำวิจัย (Date)
+    cost: null, // ค่าใช้จ่าย (Int)
+    costType: null, // ค่าใช้จ่ายมาจาก  (Int) Value จาก select
     __projectObj: undefined, // สำหรับเก็บ object โครงการวิจัยที่เลือก
-    presentationWork: "", // การนำเสนอผลงาน (Int) 0=ได้รับเชิญ (Invited Paper.), 1=เสนอเอง
-    presentType: "", // ประเภทการนำเสนอ (Int) 0=ภาคบรรยาย (Oral), 1=ภาคโปสเตอร์ (Poster), 2=เข้าร่วมประชุมวิชาการ
-    articleType: "", // ประเภทบทความ (Int) 0=Abstract อย่างเดียว, 1=เรื่องเต็ม
-    abstractTH: "", // บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)
-    abstractEN: "", // บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)
-    summary: "", // กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)
-    keywords: "", // คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)
-    level: "", // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
-    countryCode: "", // รหัสประเทศ   (Int) Value จาก select
-    state: "", // รัฐ/จังหวัด   (Int) Value จาก select
-    city: "", // เมือง   (Int) Value จาก select
-    fundName: "", // ชื่อแหล่งทุน (String)
+    presentationWork: null, // การนำเสนอผลงาน (Int) 0=ได้รับเชิญ (Invited Paper.), 1=เสนอเอง
+    presentType: null, // ประเภทการนำเสนอ (Int) 0=ภาคบรรยาย (Oral), 1=ภาคโปสเตอร์ (Poster), 2=เข้าร่วมประชุมวิชาการ
+    articleType: null, // ประเภทบทความ (Int) 0=Abstract อย่างเดียว, 1=เรื่องเต็ม
+    abstractTH: null, // บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)
+    abstractEN: null, // บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)
+    summary: null, // กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)
+    keywords: null, // คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)
+    level: null, // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
+    countryCode: null, // รหัสประเทศ   (Int) Value จาก select
+    state: null, // รัฐ/จังหวัด   (Int) Value จาก select
+    city: null, // เมือง   (Int) Value จาก select
+    fundName: null, // ชื่อแหล่งทุน (String)
     attachments: [],
   });
+
+  // debug
+  console.log("Form data:", formData);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -241,10 +244,10 @@ export default function CreateConferenceForm({
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="true"
-                  checked={formData.isEnvironmentallySustainable === true}
+                  value="1"
+                  checked={formData.isEnvironmentallySustainable == 1}
                   onChange={() =>
-                    handleInputChange("isEnvironmentallySustainable", true)
+                    handleInputChange("isEnvironmentallySustainable", 1)
                   }
                   className={`
                     text-zinc-700
@@ -259,10 +262,10 @@ export default function CreateConferenceForm({
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="false"
-                  checked={formData.isEnvironmentallySustainable === false}
+                  value="0"
+                  checked={formData.isEnvironmentallySustainable == 0}
                   onChange={() =>
-                    handleInputChange("isEnvironmentallySustainable", false)
+                    handleInputChange("isEnvironmentallySustainable", 0)
                   }
                   className={`
                     text-zinc-700
