@@ -35,6 +35,15 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
   const [saveError, setSaveError] = useState('')
   const isSyncingRef = useRef(false)
 
+  // Local modal state (prevent leaking into parent formData)
+  const [modalIsInternal, setModalIsInternal] = useState(true)
+  const [modalUserObj, setModalUserObj] = useState(undefined)
+  const [modalPartnerFullName, setModalPartnerFullName] = useState('')
+  const [modalOrgName, setModalOrgName] = useState('')
+  const [modalPartnerType, setModalPartnerType] = useState('')
+  const [modalPartnerCommentArr, setModalPartnerCommentArr] = useState([])
+  const [modalPartnerProportionCustom, setModalPartnerProportionCustom] = useState('')
+
   // Ensure every partner has an integer order starting from 1, sorted ascending
   function ensureSequentialOrder(list = []) {
     const arr = (list || []).slice().sort((a, b) => {
@@ -230,6 +239,14 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
   }
 
   function resetForm() {
+    // clear modal-local state and parent temps
+    setModalIsInternal(true)
+    setModalUserObj(undefined)
+    setModalPartnerFullName('')
+    setModalOrgName('')
+    setModalPartnerType('')
+    setModalPartnerCommentArr([])
+    setModalPartnerProportionCustom('')
     setFormData(prev => ({
       ...prev,
       __userObj: undefined,
@@ -260,8 +277,8 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
       return
     }
 
-    const internal = formData.isInternal === true
-    const u = formData.__userObj || null
+    const internal = modalIsInternal === true
+    const u = modalUserObj || null
     const prof = u ? (Array.isArray(u.profile) ? u.profile[0] : u.profile) : null
     // ใช้ชื่อไทยก่อน ถ้าไม่มีค่อย fallback อังกฤษ / อีเมล
     const full = u ? (
@@ -269,20 +286,20 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     ) : ''
     const org = u ? [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ') : ''
 
-    const pcArr = Array.isArray(formData.partnerComment)
-      ? formData.partnerComment
-      : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])
+    const pcArr = Array.isArray(modalPartnerCommentArr)
+      ? modalPartnerCommentArr
+      : (modalPartnerCommentArr ? String(modalPartnerCommentArr).split(',').map(s => s.trim()).filter(Boolean) : [])
     const pcJoined = pcArr.join(', ')
 
     const partner = {
       isInternal: internal,
       userID: internal && u ? u.id : undefined,
-      fullname: internal ? (full || formData.partnerFullName || '') : (formData.partnerFullName || ''),
-      orgName: internal ? (org || formData.orgName || '') : (formData.orgName || ''),
-      partnerType: formData.partnerType || '',
+      fullname: internal ? (full || modalPartnerFullName || '') : (modalPartnerFullName || ''),
+      orgName: internal ? (org || modalOrgName || '') : (modalOrgName || ''),
+      partnerType: modalPartnerType || '',
       partnerComment: pcJoined,
       partnerProportion: undefined,
-      partnerProportion_percentage_custom: formData.partnerProportion_percentage_custom !== undefined && formData.partnerProportion_percentage_custom !== '' ? String(formData.partnerProportion_percentage_custom) : undefined,
+      partnerProportion_percentage_custom: modalPartnerProportionCustom !== undefined && modalPartnerProportionCustom !== '' ? String(modalPartnerProportionCustom) : undefined,
       // กำหนด order ต่อท้าย
       order: (() => {
         const maxOrder = Math.max(0, ...((localPartners || []).map(p => parseInt(p.order) || 0)))
@@ -390,17 +407,14 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     // find index in localPartners
     const lpIdx = (localPartners || []).findIndex(x => (x.userID && x.userID === p.userID) || x.fullname === p.fullname)
     setEditingIndex(lpIdx >= 0 ? lpIdx : null)
-    setFormData(prev => ({
-      ...prev,
-      isInternal: !!p.isInternal,
-      partnerFullName: p.fullname || '',
-      orgName: p.orgName || '',
-      partnerType: p.partnerType || '',
-      partnerComment: p.partnerComment || p.comment || '',
-      partnerProportion_percentage_custom: p.partnerProportion_percentage_custom || '',
-      userId: p.userID || undefined,
-      __userObj: undefined
-    }))
+    // populate modal-local state instead of parent formData to avoid leaks
+    setModalIsInternal(!!p.isInternal)
+    setModalUserObj(p.User ? { email: p.User.email, profile: p.User.profile, id: p.userID } : (p.userID ? { id: p.userID } : undefined))
+    setModalPartnerFullName(p.fullname || '')
+    setModalOrgName(p.orgName || '')
+    setModalPartnerType(p.partnerType || '')
+    setModalPartnerCommentArr(p.partnerComment ? String(p.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])
+    setModalPartnerProportionCustom(p.partnerProportion_percentage_custom || '')
     const dlg = document.getElementById('my_modal_2');
     if (dlg && dlg.showModal) dlg.showModal()
   }

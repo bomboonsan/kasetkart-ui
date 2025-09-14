@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { FormSection, FormFieldBlock, FormField } from "@/components/ui";
 import { FormInput } from "@/components/ui";
 import FormRadio from "@/components/FormRadio";
@@ -106,6 +106,8 @@ export default function ProjectForm({
   const [meData, setMeData] = useState(null);
 
   const [realProjectId, setRealProjectId] = useState(null);
+  // ref to keep original mapping partner documentId -> users_permissions_user id
+  const partnersUserMapRef = useRef({});
 
   // ถ้าเป็นโหมดแก้ไข ให้โหลดข้อมูลโครงการจาก API และเติมค่าใน formData
   useEffect(() => {
@@ -191,19 +193,19 @@ export default function ProjectForm({
             ? attrs.research_partners.data
             : attrs.research_partners || [];
         if (partners && partners.length > 0) {
+          const mapping = {};
           const norm = partners.map((item) => {
             const p = item.attributes || item;
+            const userRel = p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined;
+            const key = item.id || p.id;
+            if (key && userRel) mapping[key] = userRel;
             return {
               id: item.id || p.id,
               fullname: p.fullname || p.name || "",
               orgName: p.orgName || p.org || "",
               partnerType: p.participant_type || p.partnerType || "",
-              isInternal: !!p.users_permissions_user || !!p.userID || false,
-              userID:
-                p.users_permissions_user?.data?.id ||
-                p.users_permissions_user ||
-                p.userID ||
-                undefined,
+              isInternal: !!userRel || false,
+              userID: userRel,
               partnerComment:
                 (p.isFirstAuthor ? "First Author" : "") +
                 (p.isCoreespondingAuthor ? " Corresponding Author" : ""),
@@ -217,6 +219,7 @@ export default function ProjectForm({
                   : undefined,
             };
           });
+          partnersUserMapRef.current = mapping;
           setFormData((prev) => ({ ...prev, partnersLocal: norm }));
         }
       } catch (err) {
@@ -529,7 +532,12 @@ export default function ProjectForm({
       for (let i = 0; i < partnersArray.length; i++) {
         const p = partnersArray[i]
         // หมายเหตุ: Normalize ชื่อคีย์จากตาราง (userID vs userId, partnerComment vs comment)
-        const userIdField = p.userId || p.userID || p.User?.id || undefined;
+        // prefer explicit id fields from the UI, but fallback to the original mapping
+        const explicitUserId = p.userId || p.userID || p.User?.id || undefined;
+        // partner might have an `id` field (documentId) that we saved earlier
+        const partnerKey = p.id || p.documentId || undefined;
+        const mappedUserId = partnerKey ? partnersUserMapRef.current[partnerKey] : undefined;
+        const userIdField = explicitUserId || mappedUserId || undefined;
         const commentField = p.partnerComment || p.comment || "";
         const fullnameField = p.fullname || p.partnerFullName || "";
         const orgField = p.orgName || p.org || p.orgFullName || "";
