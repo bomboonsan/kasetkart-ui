@@ -5,7 +5,7 @@ import UserPicker from './UserPicker'
 import FormInput from "./FormInput";
 import FormSelect from "./FormSelect";
 import { FormCheckbox } from '@/components/ui';
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, useRef } from 'react'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 import {
@@ -33,6 +33,9 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
   const [editingIndex, setEditingIndex] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const isSyncingRef = useRef(false)
+
+  console.log('localPartners:', localPartners)
 
   // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
   function recomputeProportions(list = []) {
@@ -219,6 +222,8 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     // 2) สร้างข้อมูลใหม่ตามลำดับที่เห็นใน UI (ใช้ field order)
     // ใช้ fundingId เป็นหลัก ถ้าไม่มีจะไม่ซิงค์ (อนุญาตให้แก้ไขออฟไลน์ในฟอร์มได้)
     if (!fundingId) return;
+    if (isSyncingRef.current) return
+    isSyncingRef.current = true
     setSaveError('')
     setSaving(true)
     try {
@@ -236,11 +241,14 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
         const existingPartners = await api.get(`/funding-partners?filters[project_fundings][documentId][$eq]=${fundingId}`)
         const partnersToDelete = existingPartners?.data || []
         for (const partner of partnersToDelete) {
-          await api.delete(`/funding-partners/${partner.documentId || partner.id}`)
+          try {
+            await api.delete(`/funding-partners/${partner.documentId || partner.id}`)
+          } catch (e) {
+            // ignore single deletion failure and continue
+          }
         }
       } catch (err) {
         // ignore deletion errors but capture message
-        // preserve user experience without noisy console output
       }
 
       // สร้าง partners ใหม่ (รวม order เพื่อให้สามารถจัดลำดับได้ใน Strapi)
@@ -259,10 +267,14 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
           // หมายเหตุ: สคีมา FundingPartner ไม่มี field order โดยตรง
         })
 
-        await api.post('/funding-partners', { data: partnerData })
+        try {
+          await api.post('/funding-partners', { data: partnerData })
+        } catch (e) {
+          // continue creating others but capture error
+        }
       }
-
-      // setSwalProps({ show: true, icon: 'success', title: 'บันทึกทีมสำเร็จ', timer: 1000, showConfirmButton: false })
+      // รีเฟรชจาก API เพื่อให้แน่ใจว่าข้อมูลที่แสดงตรงกับเซิร์ฟเวอร์
+      setRefreshTick(t => t + 1)
       console.log('Sync to server completed')
     } catch (err) {
       console.error('Error syncing partners to server:', err)
@@ -270,6 +282,7 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
       // setSwalProps({ show: true, icon: 'error', title: 'บันทึกทีมไม่สำเร็จ', text: err.message || '', timer: 2000 })
     } finally {
       setSaving(false)
+      isSyncingRef.current = false
     }
   }
 
@@ -287,7 +300,23 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     setEditingIndex(null)
   }
 
+  // helper to create a stable key for duplicate detection
+  const makeKey = (p) => {
+    let uid = p?.userID
+    if (uid && typeof uid === 'object') uid = uid.id || uid.data?.id
+    uid = uid !== undefined && uid !== null ? String(uid) : undefined
+    const name = String(p?.fullname || '').trim().toLowerCase()
+    const orgName = String(p?.orgName || '').trim().toLowerCase()
+    return uid ? `u:${uid}` : `n:${name}|${orgName}`
+  }
+
   function handleAddPartner() {
+    // prevent action while a sync is in progress
+    if (saving || isSyncingRef.current) {
+      setSwalProps({ show: true, icon: 'warning', title: 'กำลังบันทึกข้อมูลอยู่', text: 'กรุณารอให้การบันทึกเสร็จก่อน', timer: 1500, showConfirmButton: false })
+      return
+    }
+
     const internal = formData.isInternal === true
     const u = formData.__userObj || null
     const prof = u ? (Array.isArray(u.profile) ? u.profile[0] : u.profile) : null
@@ -321,8 +350,25 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
       } : undefined,
     }
 
+    // Duplicate prevention: do not add if key exists (allow editing to keep its own key)
     setLocalPartners(prev => {
       const base = prev || []
+      const keys = base.map(makeKey)
+      const newKey = makeKey(partner)
+
+      if (editingIndex !== null && editingIndex >= 0 && editingIndex < base.length) {
+        const existsIdx = keys.findIndex((k, i) => i !== editingIndex && k === newKey)
+        if (existsIdx !== -1) {
+          setSwalProps({ show: true, icon: 'error', title: 'มีรายชื่อซ้ำ', text: 'ไม่สามารถเพิ่มบุคคลเดิมซ้ำในรายการได้', timer: 1800, showConfirmButton: false })
+          return base
+        }
+      } else {
+        if (keys.includes(newKey)) {
+          setSwalProps({ show: true, icon: 'error', title: 'มีรายชื่อซ้ำ', text: 'บุคคลนี้ถูกเพิ่มแล้ว', timer: 1800, showConfirmButton: false })
+          return base
+        }
+      }
+
       let next
       if (editingIndex !== null && editingIndex >= 0 && editingIndex < base.length) {
         const updated = base.slice()
