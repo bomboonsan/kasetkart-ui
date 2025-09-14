@@ -455,7 +455,6 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
             <div>
               <FormSelect
                 label="ประเภทผู้ร่วมโครงการวิจัย"
-                required
                 value={formData.partnerType}
                 onChange={(value) => handleInputChange("partnerType", value)}
                 className="max-w-lg"

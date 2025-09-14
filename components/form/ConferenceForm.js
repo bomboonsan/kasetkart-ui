@@ -16,9 +16,11 @@ import { FormTextarea } from "@/components/ui";
 import { FormDateSelect } from "@/components/ui";
 import FormSelect from "@/components/FormSelect";
 import FileUploadField from "@/components/FileUploadField";
-import EditableResearchTeamSection from "@/components/EditableResearchTeamSection";
+import ResearchTeamTable from "@/components/ResearchTeamTable";
 import { Button } from "@/components/ui";
 import dynamic from "next/dynamic";
+import { api } from "@/lib/api-base";
+import { extractResearchTeam, applyTeamToProject } from "@/utils";
 const SweetAlert2 = dynamic(() => import("react-sweetalert2"), { ssr: false });
 
 // ฟังก์ชันช่วย map เป็น {value,label} สำหรับ FormSelect ของคุณ
@@ -236,6 +238,17 @@ export default function CreateConferenceForm({
     }));
   }, [workRes]);
 
+  // Initialize local team from selected project
+  useEffect(() => {
+    const project = formData.__projectObj;
+    if (!project) return;
+    const team = extractResearchTeam(project);
+    if (team.length > 0) {
+      setFormData((prev) => ({ ...prev, partnersLocal: team }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.__projectObj?.id]);
+
   // Prefill from initialData when provided (useful for SSR or preloaded data)
   useEffect(() => {
     if (!initialData) return;
@@ -344,6 +357,54 @@ export default function CreateConferenceForm({
           timer: 1600,
           showConfirmButton: false,
         });
+      }
+
+      // Sync research team back to ProjectResearch (truth source)
+      try {
+        const projectId = formData.__projectObj?.documentId || formData.__projectObj?.id;
+        if (projectId && Array.isArray(formData.partnersLocal)) {
+          // 1) Remove existing partners to avoid duplicates
+          const existing = await api.get(`/project-partners?filters[project_researches][documentId][$eq]=${projectId}`);
+          const items = existing?.data || [];
+          for (const item of items) {
+            const pid = item.documentId || item.id;
+            if (pid) await api.delete(`/project-partners/${pid}`);
+          }
+
+          // 2) Recreate from local
+          const typeMap = {
+            "หัวหน้าโครงการ": 1,
+            "ที่ปรึกษาโครงการ": 2,
+            "ผู้ประสานงาน": 3,
+            "นักวิจัยร่วม": 4,
+            "อื่นๆ": 99,
+          };
+
+          for (let i = 0; i < formData.partnersLocal.length; i++) {
+            const p = formData.partnersLocal[i];
+            const partnerData = stripUndefined({
+              fullname: p.fullname || p.partnerFullName || undefined,
+              orgName: p.orgName || undefined,
+              participation_percentage:
+                p.partnerProportion !== undefined && p.partnerProportion !== ""
+                  ? parseFloat(p.partnerProportion)
+                  : undefined,
+              participation_percentage_custom:
+                p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== ""
+                  ? parseFloat(p.partnerProportion_percentage_custom)
+                  : undefined,
+              participant_type: typeMap[p.partnerType] || undefined,
+              isFirstAuthor: String(p.partnerComment || "").includes("First Author"),
+              isCoreespondingAuthor: String(p.partnerComment || "").includes("Corresponding Author"),
+              users_permissions_user: p.userId || p.userID || p.User?.id,
+              project_researches: [projectId],
+              order: i,
+            });
+            await api.post("/project-partners", { data: partnerData });
+          }
+        }
+      } catch (syncErr) {
+        // Don't block conference save; just ignore
       }
 
       // Refresh data and navigate
@@ -729,9 +790,24 @@ export default function CreateConferenceForm({
         </FormSection>
 
         {/* Research Team Section (Editable) */}
-        {formData.__projectObj && (
+        {formData.__projectObj ? (
           <div className="p-4 rounded-md border shadow border-gray-200/70">
-            <EditableResearchTeamSection project={formData.__projectObj} />
+            <FormSection title="* ผู้ร่วมวิจัย">
+              <ResearchTeamTable
+                formData={formData}
+                handleInputChange={handleInputChange}
+                setFormData={setFormData}
+              />
+            </FormSection>
+          </div>
+        ) : (
+          <div className="p-3 rounded bg-amber-50 text-amber-800 border border-amber-200">
+            ต้องเลือกโครงการวิจัยก่อนจึงจะแก้ไขทีมวิจัยได้
+            <div className="mt-2">
+              <Button type="button" variant="outline" onClick={() => mutate(["work-conference", workId])}>
+                ลองโหลดใหม่
+              </Button>
+            </div>
           </div>
         )}
 
