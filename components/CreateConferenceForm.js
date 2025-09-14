@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { Country, State, City, ICountry, IState, ICity } from "country-state-city";
+import { Country, State, City } from "country-state-city";
 import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 // ใช้ path alias (@/) เพื่อให้ import สั้นและชัดเจน
@@ -129,9 +129,9 @@ export default function CreateConferenceForm({
     summary: null, // กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)
     keywords: null, // คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)
     level: null, // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
-    countryCode: null, // รหัสประเทศ   (Int) Value จาก select
-    state: null, // รัฐ/จังหวัด   (Int) Value จาก select
-    city: null, // เมือง   (Int) Value จาก select
+    country: null, // รหัสประเทศ   (str) Value จาก select
+    state: null, // รัฐ/จังหวัด   (str) Value จาก select
+    city: null, // เมือง   (str) Value จาก select
     fundName: null, // ชื่อแหล่งทุน (String)
     attachments: [],
   });
@@ -142,6 +142,48 @@ export default function CreateConferenceForm({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Dynamic Country/State/City options (memoized)
+  const countryOptions = useMemo(() => {
+    try {
+      const all = Country.getAllCountries() || [];
+      return [
+        { value: "", label: "เลือกประเทศ" },
+        ...all.map((c) => ({ value: c.isoCode, label: c.name })),
+      ];
+    } catch (e) {
+      return [{ value: "", label: "เลือกประเทศ" }];
+    }
+  }, []);
+
+  const stateOptions = useMemo(() => {
+    if (!formData.country) return [{ value: "", label: "เลือกมลรัฐ/จังหวัด" }];
+    try {
+      const states = State.getStatesOfCountry(String(formData.country)) || [];
+      return [
+        { value: "", label: "เลือกมลรัฐ/จังหวัด" },
+        ...states.map((s) => ({ value: s.isoCode, label: s.name })),
+      ];
+    } catch (e) {
+      return [{ value: "", label: "เลือกมลรัฐ/จังหวัด" }];
+    }
+  }, [formData.country]);
+
+  const cityOptions = useMemo(() => {
+    if (!formData.country || !formData.state) return [{ value: "", label: "เลือกเมือง" }];
+    try {
+      const cities = City.getCitiesOfState(
+        String(formData.country),
+        String(formData.state),
+      ) || [];
+      return [
+        { value: "", label: "เลือกเมือง" },
+        ...cities.map((c) => ({ value: c.name, label: c.name })),
+      ];
+    } catch (e) {
+      return [{ value: "", label: "เลือกเมือง" }];
+    }
+  }, [formData.country, formData.state]);
 
   // Load current user for context
   const { data: userRes, error: userError } = useSWR("users/me", () =>
@@ -186,7 +228,7 @@ export default function CreateConferenceForm({
       articleType: articleTypeLabelFromCode(work.articleType),
       level: levelValueFromCode(work.level),
       // Location (strings)
-      countryCode: work.countryCode ?? "",
+      country: work.country ?? "",
       state: work.state ?? "",
       city: work.city ?? "",
       // Files
@@ -221,7 +263,7 @@ export default function CreateConferenceForm({
       presentType: presentTypeLabelFromCode(work.presentType),
       articleType: articleTypeLabelFromCode(work.articleType),
       level: levelValueFromCode(work.level),
-      countryCode: work.countryCode ?? "",
+      country: work.country ?? "",
       state: work.state ?? "",
       city: work.city ?? "",
       attachments: work.attachments || [],
@@ -262,9 +304,9 @@ export default function CreateConferenceForm({
         summary: formData.summary || undefined,
         keywords: formData.keywords || undefined,
         level: levelCodeFromValue(formData.level),
-        countryCode:
-          formData.countryCode && String(formData.countryCode).trim() !== ""
-            ? String(formData.countryCode)
+        country:
+          formData.country && String(formData.country).trim() !== ""
+            ? String(formData.country)
             : undefined,
         state:
           formData.state && String(formData.state).trim() !== ""
@@ -639,39 +681,33 @@ export default function CreateConferenceForm({
             />
             <FormSelect
               label="ประเทศ"
-              value={formData.countryCode}
-              onChange={(value) => handleInputChange("countryCode", value)}
+              value={formData.country}
+              onChange={(value) => {
+                handleInputChange("country", value);
+                // reset state and city when country changes
+                handleInputChange("state", "");
+                handleInputChange("city", "");
+              }}
               className="max-w-lg"
-              options={[
-                { value: "", label: "เลือกประเทศ" },
-                { value: "TH", label: "Thailand" },
-                { value: "US", label: "United States" },
-                { value: "UK", label: "United Kingdom" },
-              ]}
+              options={countryOptions}
             />
             <FormSelect
               label="มลรัฐ/จังหวัด"
               value={formData.state}
-              onChange={(value) => handleInputChange("state", value)}
+              onChange={(value) => {
+                handleInputChange("state", value);
+                // reset city when state changes
+                handleInputChange("city", "");
+              }}
               className="max-w-lg"
-              options={[
-                { value: "", label: "เลือกมลรัฐ/จังหวัด" },
-                { value: "Bangkok", label: "Bangkok" },
-                { value: "ChiangMai", label: "Chiang Mai" },
-                { value: "Phuket", label: "Phuket" },
-              ]}
+              options={stateOptions}
             />
             <FormSelect
               label="เมือง"
               value={formData.city}
               onChange={(value) => handleInputChange("city", value)}
               className="max-w-lg"
-              options={[
-                { value: "", label: "เลือกเมือง" },
-                { value: "เมือง1", label: "เมือง 1" },
-                { value: "เมือง2", label: "เมือง 2" },
-                { value: "เมือง3", label: "เมือง 3" },
-              ]}
+              options={cityOptions}
             />
           </FormFieldBlock>
           <FormFieldBlock>
