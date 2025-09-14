@@ -5,9 +5,9 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 // ใช้ path alias (@/) สำหรับ API ทั้งหมด
-import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
+import { worksAPI, projectAPI, profileAPI, fundingAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
-import { getDocumentId, createHandleChange } from '@/utils'
+import { getDocumentId, createHandleChange, stripUndefined } from '@/utils'
 import { FormSection, FormFieldBlock, FormField } from '@/components/ui'
 import ProjectFundingPicker from '@/components/ProjectFundingPicker'
 import FormInput from "@/components/FormInput";
@@ -19,7 +19,7 @@ import FormSelect from "@/components/FormSelect";
 import dynamic from 'next/dynamic'
 
 const FileUploadField = dynamic(() => import('@/components/FileUploadField'), { ssr: false });
-const EditableResearchTeamSection = dynamic(() => import('@/components/EditableResearchTeamSection'), { ssr: false });
+import ResearchTeamTable from '@/components/ResearchTeamTable'
 
 import { Button } from '@/components/ui'
 
@@ -80,6 +80,74 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
     }
   }, [existingWorkBook, initialData])
 
+  // Ensure full Funding object and initialize partnersLocal from funding_partners once
+  useEffect(() => {
+    async function ensureFundingLoaded() {
+      try {
+        const maybe = formData.__projectFundingObj || formData.project_funding
+        if (!maybe) return
+        if (typeof maybe !== 'object') {
+          const id = getDocumentId({ documentId: maybe }) || maybe
+          const res = await fundingAPI.getFunding(id)
+          const fund = res?.data || res
+          setFormData(prev => {
+            const next = { ...prev, __projectFundingObj: fund }
+            if (!Array.isArray(prev.partnersLocal) || prev.partnersLocal.length === 0) {
+              // Extract team from funding_partners into local shape
+              let partners = []
+              if (fund?.funding_partners?.data) partners = fund.funding_partners.data
+              else if (Array.isArray(fund?.funding_partners)) partners = fund.funding_partners
+              const norm = (partners || []).map(item => {
+                const p = item?.attributes || item || {}
+                const partnerTypeLabels = { 1: 'หัวหน้าโครงการ', 2: 'ที่ปรึกษาโครงการ', 3: 'ผู้ประสานงาน', 4: 'นักวิจัยร่วม', 99: 'อื่นๆ' }
+                return {
+                  id: item?.id || p.id,
+                  fullname: p.fullname || p.name || '',
+                  orgName: p.orgName || p.org || '',
+                  partnerType: partnerTypeLabels[p.participant_type] || p.partnerType || '',
+                  isInternal: !!p.users_permissions_user || !!p.userID || false,
+                  userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
+                  partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
+                  partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
+                  partnerProportion_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== null ? String(p.partnerProportion_percentage_custom) : undefined,
+                  order: p.order !== undefined ? parseInt(p.order) : undefined,
+                }
+              })
+              next.partnersLocal = norm
+            }
+            return next
+          })
+          return
+        }
+        if (!Array.isArray(formData.partnersLocal) || formData.partnersLocal.length === 0) {
+          const fund = formData.__projectFundingObj
+          let partners = []
+          if (fund?.funding_partners?.data) partners = fund.funding_partners.data
+          else if (Array.isArray(fund?.funding_partners)) partners = fund.funding_partners
+          const norm = (partners || []).map(item => {
+            const p = item?.attributes || item || {}
+            const partnerTypeLabels = { 1: 'หัวหน้าโครงการ', 2: 'ที่ปรึกษาโครงการ', 3: 'ผู้ประสานงาน', 4: 'นักวิจัยร่วม', 99: 'อื่นๆ' }
+            return {
+              id: item?.id || p.id,
+              fullname: p.fullname || p.name || '',
+              orgName: p.orgName || p.org || '',
+              partnerType: partnerTypeLabels[p.participant_type] || p.partnerType || '',
+              isInternal: !!p.users_permissions_user || !!p.userID || false,
+              userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
+              partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
+              partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
+              partnerProportion_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== null ? String(p.partnerProportion_percentage_custom) : undefined,
+              order: p.order !== undefined ? parseInt(p.order) : undefined,
+            }
+          })
+          if (norm.length > 0) setFormData(prev => ({ ...prev, partnersLocal: norm }))
+        }
+      } catch { /* ignore */ }
+    }
+    ensureFundingLoaded()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.__projectFundingObj, formData.project_funding, formData.__projectFundingObj?.id, formData.__projectFundingObj?.documentId])
+
   // Writers management helpers (like in CreateFundingForm)
   const addWriter = () => {
     setFormData(prev => ({
@@ -109,6 +177,68 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
     setIsLoading(true)
 
     try {
+      // Upsert funding_partners to Funding from partnersLocal before saving work-book
+      try {
+        const fundingId = formData.__projectFundingObj?.documentId || formData.__projectFundingObj?.id || formData.project_funding
+        if (fundingId && Array.isArray(formData.partnersLocal)) {
+          const makeKey = (p) => {
+            let uid = p?.userID
+            if (uid && typeof uid === 'object') uid = uid.id || uid.data?.id
+            uid = uid !== undefined && uid !== null ? String(uid) : undefined
+            const name = String(p?.fullname || '').trim().toLowerCase()
+            const orgName = String(p?.orgName || '').trim().toLowerCase()
+            return uid ? `u:${uid}` : `n:${name}|${orgName}`
+          }
+          const partnerTypeMap = { 'หัวหน้าโครงการ': 1, 'ที่ปรึกษาโครงการ': 2, 'ผู้ประสานงาน': 3, 'นักวิจัยร่วม': 4, 'อื่นๆ': 99 }
+          let existingItems = []
+          try {
+            const resp = await api.get(`/funding-partners?populate=users_permissions_user&filters[project_fundings][documentId][$eq]=${fundingId}`)
+            existingItems = resp?.data || resp || []
+          } catch { existingItems = [] }
+          const serverEntries = (existingItems || []).map(item => {
+            const attr = item?.attributes || item || {}
+            const userId = attr.users_permissions_user?.data?.id || attr.users_permissions_user || attr.userID
+            return {
+              documentId: item?.documentId || item?.id,
+              fullname: attr.fullname || attr.name || '',
+              orgName: attr.orgName || attr.org || '',
+              partnerType: (() => { const t = attr.participant_type; if (t === 1) return 'หัวหน้าโครงการ'; if (t === 2) return 'ที่ปรึกษาโครงการ'; if (t === 3) return 'ผู้ประสานงาน'; if (t === 4) return 'นักวิจัยร่วม'; if (t === 99) return 'อื่นๆ'; return '' })(),
+              userID: userId,
+              partnerComment: `${attr.isFirstAuthor ? 'First Author' : ''}${attr.isCoreespondingAuthor ? (attr.isFirstAuthor ? ', ' : '') + 'Corresponding Author' : ''}`.trim(),
+              partnerProportion: attr.participation_percentage !== undefined ? String(attr.participation_percentage) : undefined,
+            }
+          })
+          const serverMap = new Map(serverEntries.map(e => [makeKey(e), e]))
+          const seen = new Set()
+          for (const [idx, p] of (formData.partnersLocal || []).entries()) {
+            const key = makeKey(p)
+            seen.add(key)
+            const payload = stripUndefined({
+              fullname: p.fullname || undefined,
+              orgName: p.orgName || undefined,
+              participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
+              participant_type: partnerTypeMap[p.partnerType] || undefined,
+              isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
+              isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
+              users_permissions_user: p.userID || undefined,
+              partnerProportion_percentage_custom: (p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '') ? Number(p.partnerProportion_percentage_custom) : undefined,
+              order: p.order !== undefined ? parseInt(p.order) : idx,
+              project_fundings: [fundingId],
+            })
+            const existing = serverMap.get(key)
+            if (existing?.documentId) {
+              try { await api.put(`/funding-partners/${existing.documentId}`, { data: payload }) } catch { }
+            } else {
+              try { await api.post('/funding-partners', { data: payload }) } catch { }
+            }
+          }
+          for (const [key, entry] of serverMap.entries()) {
+            if (!seen.has(key) && entry?.documentId) {
+              try { await api.delete(`/funding-partners/${entry.documentId}`) } catch { }
+            }
+          }
+        }
+      } catch { /* do not block work save */ }
       // Construct payload based on work-book schema
       const payload = {
         project_funding: formData.project_funding,
@@ -245,11 +375,13 @@ export default function CreateBookForm({ mode = 'create', workId, initialData })
           </FormFieldBlock>
         </FormSection>
 
-        <div className='p-4 rounded-md border shadow border-gray-200/70'>
-          <FormSection title="* ผู้ร่วมวิจัย">
-            <EditableResearchTeamSection project={formData.__projectObj} />
-          </FormSection>
-        </div>
+        {formData.__projectFundingObj ? (
+          <div className='p-4 rounded-md border shadow border-gray-200/70'>
+            <FormSection title="* ผู้ร่วมวิจัย">
+              <ResearchTeamTable formData={formData} setFormData={setFormData} />
+            </FormSection>
+          </div>
+        ) : null}
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">

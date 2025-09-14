@@ -22,7 +22,7 @@ import FormDateSelect from "@/components/FormDateSelect";
 import FormSelect from "@/components/FormSelect";
 import FileUploadField from "@/components/FileUploadField";
 import ResearchTeamTable from "@/components/ResearchTeamTable";
-import EditableResearchTeamSection from '@/components/EditableResearchTeamSection'
+import { extractResearchTeam } from '@/utils/team'
 import Button from "@/components/Button";
 import dynamic from 'next/dynamic'
 
@@ -553,6 +553,36 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
     }
   }, [existingWorkPublication, initialData])
 
+  // Ensure full Project object and initialize partnersLocal once (do not override active edits)
+  useEffect(() => {
+    async function ensureProjectLoaded() {
+      try {
+        const maybe = formData.__projectObj || formData.project_research
+        if (!maybe) return
+        if (typeof maybe !== 'object') {
+          const id = getDocumentId({ documentId: maybe }) || maybe
+          const res = await projectAPI.getProject(id)
+          const proj = res?.data || res
+          setFormData(prev => {
+            const next = { ...prev, __projectObj: proj }
+            if (!Array.isArray(prev.partnersLocal) || prev.partnersLocal.length === 0) {
+              const team = extractResearchTeam(proj) || []
+              next.partnersLocal = team
+            }
+            return next
+          })
+          return
+        }
+        if (!Array.isArray(formData.partnersLocal) || formData.partnersLocal.length === 0) {
+          const team = extractResearchTeam(maybe) || []
+          if (team.length > 0) setFormData(prev => ({ ...prev, partnersLocal: team }))
+        }
+      } catch { /* ignore */ }
+    }
+    ensureProjectLoaded()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [formData.__projectObj, formData.project_research, formData.__projectObj?.id, formData.__projectObj?.documentId])
+
   // หาก workId เป็น documentId (UUID) ให้ค้นหา numeric id ที่เกี่ยวข้อง
   // คอมเมนต์ (ไทย): helper นี้ช่วยให้หน้าแก้ไขรองรับทั้ง numeric id และ documentId
   async function resolveNumericWorkId(maybeId) {
@@ -580,6 +610,85 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
     setError('')
     setSubmitting(true)
     try {
+      // Ensure full project and upsert research_partners back to Project first
+      try {
+        const projectId = (formData.__projectObj?.documentId || formData.__projectObj?.id || formData.project_research)
+        if (projectId && Array.isArray(formData.partnersLocal)) {
+          // stable key by user or name|org
+          const makeKey = (p) => {
+            let uid = p?.userID
+            if (uid && typeof uid === 'object') uid = uid.id || uid.data?.id
+            uid = uid !== undefined && uid !== null ? String(uid) : undefined
+            const name = String(p?.fullname || '').trim().toLowerCase()
+            const orgName = String(p?.orgName || '').trim().toLowerCase()
+            return uid ? `u:${uid}` : `n:${name}|${orgName}`
+          }
+          const partnerTypeMap = {
+            'หัวหน้าโครงการ': 1,
+            'ที่ปรึกษาโครงการ': 2,
+            'ผู้ประสานงาน': 3,
+            'นักวิจัยร่วม': 4,
+            'อื่นๆ': 99,
+          }
+          // load existing for diff
+          let existingItems = []
+          try {
+            const resp = await api.get(`/project-partners?populate=users_permissions_user&filters[project_researches][documentId][$eq]=${projectId}`)
+            existingItems = resp?.data || resp || []
+          } catch { existingItems = [] }
+          const serverEntries = (existingItems || []).map(item => {
+            const attr = item?.attributes || item || {}
+            const userId = attr.users_permissions_user?.data?.id || attr.users_permissions_user || attr.userID
+            const partnerType = (() => {
+              const t = attr.participant_type
+              if (t === 1) return 'หัวหน้าโครงการ'
+              if (t === 2) return 'ที่ปรึกษาโครงการ'
+              if (t === 3) return 'ผู้ประสานงาน'
+              if (t === 4) return 'นักวิจัยร่วม'
+              if (t === 99) return 'อื่นๆ'
+              return ''
+            })()
+            return {
+              documentId: item?.documentId || item?.id,
+              fullname: attr.fullname || attr.name || '',
+              orgName: attr.orgName || attr.org || '',
+              partnerType,
+              userID: userId,
+              partnerComment: `${attr.isFirstAuthor ? 'First Author' : ''}${attr.isCoreespondingAuthor ? (attr.isFirstAuthor ? ', ' : '') + 'Corresponding Author' : ''}`.trim(),
+              partnerProportion: attr.participation_percentage !== undefined ? String(attr.participation_percentage) : undefined,
+            }
+          })
+          const serverMap = new Map(serverEntries.map(e => [makeKey(e), e]))
+          const seen = new Set()
+          for (const [idx, p] of (formData.partnersLocal || []).entries()) {
+            const key = makeKey(p)
+            seen.add(key)
+            const dataPayload = stripUndefined({
+              fullname: p.fullname || undefined,
+              orgName: p.orgName || undefined,
+              participation_percentage: p.partnerProportion !== undefined && p.partnerProportion !== '' ? parseFloat(p.partnerProportion) : undefined,
+              participant_type: partnerTypeMap[p.partnerType] || undefined,
+              isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
+              isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
+              users_permissions_user: p.userID || undefined,
+              partnerProportion_percentage_custom: (p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '') ? Number(p.partnerProportion_percentage_custom) : undefined,
+              order: p.order !== undefined ? parseInt(p.order) : idx,
+              project_researches: [projectId],
+            })
+            const existing = serverMap.get(key)
+            if (existing?.documentId) {
+              try { await api.put(`/project-partners/${existing.documentId}`, { data: dataPayload }) } catch { }
+            } else {
+              try { await api.post('/project-partners', { data: dataPayload }) } catch { }
+            }
+          }
+          for (const [key, entry] of serverMap.entries()) {
+            if (!seen.has(key) && entry?.documentId) {
+              try { await api.delete(`/project-partners/${entry.documentId}`) } catch { }
+            }
+          }
+        }
+      } catch { /* do not block work save */ }
       // Basic validation for volume/issue
       if (formData.volume < 0 || formData.volume > 9999) {
         throw new Error('ค่าปี (volume) ต้องอยู่ระหว่าง 0 - 9999')
@@ -589,8 +698,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
       }
       // Build payload matching Strapi v5 schema (see api/src/api/work-publication/content-types/work-publication/schema.json)
       const payload = {
-        // relation to project-research: Strapi v5 prefers documentId when searching (we store documentId)
-        ...(formData.project_research ? { project_research: formData.project_research } : {}),
+        // relation to project-research (store numeric id for saving work)
         project_research: formData.__projectObj?.id || undefined,
         titleTH: formData.titleTH || undefined,
         titleEN: formData.titleEN || undefined,
@@ -1123,11 +1231,16 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         </FormSection>
 
         {/* Research Team Section (Editable) */}
-        {formData.__projectObj && (
+        {formData.__projectObj ? (
           <div className='p-4 rounded-md border shadow border-gray-200/70'>
-            <EditableResearchTeamSection project={formData.__projectObj} />
+            <FormSection title="* ผู้ร่วมวิจัย">
+              <ResearchTeamTable
+                formData={formData}
+                setFormData={setFormData}
+              />
+            </FormSection>
           </div>
-        )}
+        ) : null}
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">

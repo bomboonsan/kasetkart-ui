@@ -20,7 +20,7 @@ import ResearchTeamTable from "@/components/ResearchTeamTable";
 import { Button } from "@/components/ui";
 import dynamic from "next/dynamic";
 import { api } from "@/lib/api-base";
-import { extractResearchTeam, applyTeamToProject } from "@/utils";
+import { extractResearchTeam } from "@/utils";
 const SweetAlert2 = dynamic(() => import("react-sweetalert2"), { ssr: false });
 
 // ฟังก์ชันช่วย map เป็น {value,label} สำหรับ FormSelect ของคุณ
@@ -205,7 +205,7 @@ export default function CreateConferenceForm({
     setFormData((prev) => ({
       ...prev,
       // Project relation
-      project_research: work.project_research?.id || work.project_research || "",
+      project_research: work.project_research?.documentId || work.project_research?.id || work.project_research || "",
       __projectObj: work.project_research || prev.__projectObj,
       // Text fields
       titleTH: work.titleTH ?? "",
@@ -238,16 +238,35 @@ export default function CreateConferenceForm({
     }));
   }, [workRes]);
 
-  // Initialize local team from selected project
+  // Ensure full project object and initialize partnersLocal once
   useEffect(() => {
-    const project = formData.__projectObj;
-    if (!project) return;
-    const team = extractResearchTeam(project);
-    if (team.length > 0) {
-      setFormData((prev) => ({ ...prev, partnersLocal: team }));
+    async function ensureProjectLoaded() {
+      try {
+        const maybe = formData.__projectObj || formData.project_research
+        if (!maybe) return
+        if (typeof maybe !== 'object') {
+          const id = getDocumentId({ documentId: maybe }) || maybe
+          const res = await projectAPI.getProject(id)
+          const proj = res?.data || res
+          setFormData(prev => {
+            const next = { ...prev, __projectObj: proj }
+            if (!Array.isArray(prev.partnersLocal) || prev.partnersLocal.length === 0) {
+              const team = extractResearchTeam(proj) || []
+              next.partnersLocal = team
+            }
+            return next
+          })
+          return
+        }
+        if (!Array.isArray(formData.partnersLocal) || formData.partnersLocal.length === 0) {
+          const team = extractResearchTeam(maybe) || []
+          if (team.length > 0) setFormData(prev => ({ ...prev, partnersLocal: team }))
+        }
+      } catch { /* ignore */ }
     }
+    ensureProjectLoaded()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData.__projectObj?.id]);
+  }, [formData.__projectObj, formData.project_research, formData.__projectObj?.id, formData.__projectObj?.documentId])
 
   // Prefill from initialData when provided (useful for SSR or preloaded data)
   useEffect(() => {
@@ -336,6 +355,84 @@ export default function CreateConferenceForm({
       // Clean payload
       const cleanPayload = stripUndefined(payload);
 
+      // 1) Upsert research_partners back to Project (diff, no full replace)
+      try {
+        const projectId = (formData.__projectObj?.documentId || formData.__projectObj?.id || formData.project_research)
+        if (projectId && Array.isArray(formData.partnersLocal)) {
+          const makeKey = (p) => {
+            let uid = p?.userID
+            if (uid && typeof uid === 'object') uid = uid.id || uid.data?.id
+            uid = uid !== undefined && uid !== null ? String(uid) : undefined
+            const name = String(p?.fullname || '').trim().toLowerCase()
+            const orgName = String(p?.orgName || '').trim().toLowerCase()
+            return uid ? `u:${uid}` : `n:${name}|${orgName}`
+          }
+          const partnerTypeMap = {
+            'หัวหน้าโครงการ': 1,
+            'ที่ปรึกษาโครงการ': 2,
+            'ผู้ประสานงาน': 3,
+            'นักวิจัยร่วม': 4,
+            'อื่นๆ': 99,
+          }
+          let existingItems = []
+          try {
+            const resp = await api.get(`/project-partners?populate=users_permissions_user&filters[project_researches][documentId][$eq]=${projectId}`)
+            existingItems = resp?.data || resp || []
+          } catch { existingItems = [] }
+          const serverEntries = (existingItems || []).map(item => {
+            const attr = item?.attributes || item || {}
+            const userId = attr.users_permissions_user?.data?.id || attr.users_permissions_user || attr.userID
+            const partnerType = (() => {
+              const t = attr.participant_type
+              if (t === 1) return 'หัวหน้าโครงการ'
+              if (t === 2) return 'ที่ปรึกษาโครงการ'
+              if (t === 3) return 'ผู้ประสานงาน'
+              if (t === 4) return 'นักวิจัยร่วม'
+              if (t === 99) return 'อื่นๆ'
+              return ''
+            })()
+            return {
+              documentId: item?.documentId || item?.id,
+              fullname: attr.fullname || attr.name || '',
+              orgName: attr.orgName || attr.org || '',
+              partnerType,
+              userID: userId,
+              partnerComment: `${attr.isFirstAuthor ? 'First Author' : ''}${attr.isCoreespondingAuthor ? (attr.isFirstAuthor ? ', ' : '') + 'Corresponding Author' : ''}`.trim(),
+              partnerProportion: attr.participation_percentage !== undefined ? String(attr.participation_percentage) : undefined,
+            }
+          })
+          const serverMap = new Map(serverEntries.map(e => [makeKey(e), e]))
+          const seen = new Set()
+          for (const [idx, p] of (formData.partnersLocal || []).entries()) {
+            const key = makeKey(p)
+            seen.add(key)
+            const dataPayload = stripUndefined({
+              fullname: p.fullname || undefined,
+              orgName: p.orgName || undefined,
+              participation_percentage: p.partnerProportion !== undefined && p.partnerProportion !== '' ? parseFloat(p.partnerProportion) : undefined,
+              participant_type: partnerTypeMap[p.partnerType] || undefined,
+              isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
+              isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
+              users_permissions_user: p.userID || undefined,
+              partnerProportion_percentage_custom: (p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '') ? Number(p.partnerProportion_percentage_custom) : undefined,
+              order: p.order !== undefined ? parseInt(p.order) : idx,
+              project_researches: [projectId],
+            })
+            const existing = serverMap.get(key)
+            if (existing?.documentId) {
+              try { await api.put(`/project-partners/${existing.documentId}`, { data: dataPayload }) } catch { }
+            } else {
+              try { await api.post('/project-partners', { data: dataPayload }) } catch { }
+            }
+          }
+          for (const [key, entry] of serverMap.entries()) {
+            if (!seen.has(key) && entry?.documentId) {
+              try { await api.delete(`/project-partners/${entry.documentId}`) } catch { }
+            }
+          }
+        }
+      } catch { /* do not block work save */ }
+
       let result;
       if (mode === "edit" && workId) {
         // console.log(workId, cleanPayload);
@@ -359,53 +456,7 @@ export default function CreateConferenceForm({
         });
       }
 
-      // Sync research team back to ProjectResearch (truth source)
-      try {
-        const projectId = formData.__projectObj?.documentId || formData.__projectObj?.id;
-        if (projectId && Array.isArray(formData.partnersLocal)) {
-          // 1) Remove existing partners to avoid duplicates
-          const existing = await api.get(`/project-partners?filters[project_researches][documentId][$eq]=${projectId}`);
-          const items = existing?.data || [];
-          for (const item of items) {
-            const pid = item.documentId || item.id;
-            if (pid) await api.delete(`/project-partners/${pid}`);
-          }
-
-          // 2) Recreate from local
-          const typeMap = {
-            "หัวหน้าโครงการ": 1,
-            "ที่ปรึกษาโครงการ": 2,
-            "ผู้ประสานงาน": 3,
-            "นักวิจัยร่วม": 4,
-            "อื่นๆ": 99,
-          };
-
-          for (let i = 0; i < formData.partnersLocal.length; i++) {
-            const p = formData.partnersLocal[i];
-            const partnerData = stripUndefined({
-              fullname: p.fullname || p.partnerFullName || undefined,
-              orgName: p.orgName || undefined,
-              participation_percentage:
-                p.partnerProportion !== undefined && p.partnerProportion !== ""
-                  ? parseFloat(p.partnerProportion)
-                  : undefined,
-              participation_percentage_custom:
-                p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== ""
-                  ? parseFloat(p.partnerProportion_percentage_custom)
-                  : undefined,
-              participant_type: typeMap[p.partnerType] || undefined,
-              isFirstAuthor: String(p.partnerComment || "").includes("First Author"),
-              isCoreespondingAuthor: String(p.partnerComment || "").includes("Corresponding Author"),
-              users_permissions_user: p.userId || p.userID || p.User?.id,
-              project_researches: [projectId],
-              order: i,
-            });
-            await api.post("/project-partners", { data: partnerData });
-          }
-        }
-      } catch (syncErr) {
-        // Don't block conference save; just ignore
-      }
+      // Note: team already synced via diff/upsert above
 
       // Refresh data and navigate
       mutate("work-conferences");
