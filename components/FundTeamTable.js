@@ -103,7 +103,9 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
         userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
         partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
         partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
-        partnerProportion_percentage_custom: undefined,
+        partnerProportion_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== null
+          ? String(p.partnerProportion_percentage_custom)
+          : undefined,
       }
     })
 
@@ -135,7 +137,9 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
             userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
             partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
             partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
-            partnerProportion_percentage_custom: undefined,
+            partnerProportion_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== null
+              ? String(p.partnerProportion_percentage_custom)
+              : undefined,
           }
         })
         setLocalPartners(recomputeProportions(norm))
@@ -271,7 +275,10 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
           isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
           isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
           users_permissions_user: p.userID || undefined,
-          partnerProportion_percentage_custom: p.partnerProportion_percentage_custom || undefined,
+          // เก็บค่า % แบบ custom (0-100) ถ้ามี
+          partnerProportion_percentage_custom: (p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '')
+            ? Number(p.partnerProportion_percentage_custom)
+            : undefined,
           // หมายเหตุ: ใน Strapi v5 การเชื่อมความสัมพันธ์สามารถส่ง documentId ได้โดยตรงในอาร์เรย์
           project_fundings: [fundingId],
         })
