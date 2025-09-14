@@ -12,12 +12,12 @@ export default function AdminBooksPage() {
   const [books, setBooks] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  
+
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [pageSize] = useState(10)
-  
+
   const [searchTitle, setSearchTitle] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
@@ -26,7 +26,7 @@ export default function AdminBooksPage() {
   const fetchBooks = useCallback(async () => {
     setLoading(true)
     setError('')
-    
+
     try {
       const params = {
         'pagination[page]': currentPage,
@@ -41,15 +41,15 @@ export default function AdminBooksPage() {
       }
 
       const response = await worksAPI.getBooks(params)
-      
+
       const data = response?.data || response || []
       const meta = response?.meta || {}
       const pagination = meta.pagination || {}
-      
+
       setBooks(data)
       setTotalItems(pagination.total || data.length)
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
-      
+
     } catch (err) {
       setError('ไม่สามารถโหลดข้อมูลหนังสือได้')
     } finally {
@@ -83,8 +83,8 @@ export default function AdminBooksPage() {
   }
 
   const getStatusColor = (publishedAt) => {
-    return publishedAt 
-      ? 'bg-green-100 text-green-800' 
+    return publishedAt
+      ? 'bg-green-100 text-green-800'
       : 'bg-yellow-100 text-yellow-800'
   }
 
@@ -167,7 +167,7 @@ export default function AdminBooksPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('titleTh')}
                   >
@@ -179,7 +179,7 @@ export default function AdminBooksPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     สำนักพิมพ์
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('year')}
                   >
@@ -197,7 +197,7 @@ export default function AdminBooksPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     สถานะ
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('publishedAt')}
                   >
@@ -206,7 +206,7 @@ export default function AdminBooksPage() {
                       <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('updatedAt')}
                   >
@@ -258,14 +258,14 @@ export default function AdminBooksPage() {
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Link 
+                        <Link
                           href={`/work/book/view/${book.documentId || book.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
-                        <Link 
-                          href={`/work/book/edit/${book.documentId || book.id}`}
+                        <Link
+                          href={`/form/edit/book/${book.documentId || book.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           แก้ไข
@@ -290,7 +290,7 @@ export default function AdminBooksPage() {
           >
             ก่อนหน้า
           </Button>
-          
+
           <div className="flex space-x-1">
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum
@@ -303,7 +303,7 @@ export default function AdminBooksPage() {
               } else {
                 pageNum = currentPage - 2 + i
               }
-              
+
               return (
                 <Button
                   key={pageNum}
@@ -316,7 +316,7 @@ export default function AdminBooksPage() {
               )
             })}
           </div>
-          
+
           <Button
             variant="outline"
             disabled={currentPage === totalPages}
