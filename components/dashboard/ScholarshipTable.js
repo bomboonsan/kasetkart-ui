@@ -17,6 +17,7 @@ export default function ScholarshipTable({
   researchStats = {},
 }) {
   const [activeType, setActiveType] = useState("icTypes");
+  // use null for 'all' internally to make API call easier (dashboardAPI expects null for all)
   const [selectedDeptId, setSelectedDeptId] = useState("all");
   const [departments, setDepartments] = useState([]);
   const [selectedItems, setSelectedItems] = useState([]);
@@ -117,26 +118,34 @@ export default function ScholarshipTable({
         </div>
         <div className="flex items-center gap-2">
           <label className="text-xs text-gray-500">เลือกภาควิชา</label>
-          <select
-            value={selectedDeptId}
-            onChange={(e) => {
-              const v = e.target.value;
-              startTransition(() => {
-                if (debounceRef.current) clearTimeout(debounceRef.current);
-                debounceRef.current = setTimeout(
-                  () => setSelectedDeptId(v),
-                  250,
-                );
-              });
-            }}
+            <select
+              value={selectedDeptId}
+              onChange={(e) => {
+                // Normalize the selected value: empty -> 'all', keep string ids
+                const raw = e.target.value;
+                const v = raw === "" ? "all" : raw;
+                startTransition(() => {
+                  if (debounceRef.current) clearTimeout(debounceRef.current);
+                  debounceRef.current = setTimeout(() => setSelectedDeptId(v), 250);
+                });
+              }}
             className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md text-gray-900"
           >
             <option value="all">ทั้งหมด</option>
-            {departments.map((dept) => (
-              <option key={dept.id || dept.documentId} value={String(dept.documentId || dept.id || '')}>
-                {dept.name}
-              </option>
-            ))}
+              {departments.map((dept) => {
+                // Normalize department id/documentId/name from various shapes
+                const id = dept?.id ?? dept?.documentId ?? (dept?.attributes && (dept.attributes.id ?? dept.attributes.documentId)) ?? null;
+                const documentId = dept?.documentId ?? (dept?.attributes && dept.attributes.documentId) ?? null;
+                const name = dept?.name ?? (dept?.attributes && dept.attributes.name) ?? String(dept);
+                const value = id != null ? String(id) : (documentId != null ? String(documentId) : null);
+                // Skip departments without usable id/documentId
+                if (!value) return null;
+                return (
+                  <option key={value} value={value}>
+                    {name}
+                  </option>
+                );
+              })}
           </select>
         </div>
       </div>

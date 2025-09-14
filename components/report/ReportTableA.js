@@ -182,7 +182,7 @@ export default function ReportTableA() {
               <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">TLS</th>
               <th className="bg-pink-200 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">TOTAL</th>
 
-              <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">BDS</th>
+                <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">PRJ</th>
               <th className="bg-green-100 px-2 py-2 text-center text-xs font-medium text-gray-700 border-r">
                 APR/ER<br /><span className="text-[10px]">PROCEEDING</span>
               </th>
