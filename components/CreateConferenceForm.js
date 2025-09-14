@@ -28,6 +28,80 @@ export default function CreateConferenceForm({
   const router = useRouter();
   const [swalProps, setSwalProps] = useState({});
 
+  // Helpers: map between UI labels/values and numeric codes used by backend
+  const presentTypeCodeFromLabel = (v) => {
+    if (v === 0 || v === 1 || v === 2) return v;
+    switch (v) {
+      case "ภาคบรรยาย (Oral)":
+        return 0;
+      case "ภาคโปสเตอร์ (Poster)":
+        return 1;
+      case "เข้าร่วมประชุมวิชาการ":
+        return 2;
+      default:
+        return 0;
+    }
+  };
+  const presentTypeLabelFromCode = (v) => {
+    if (v === "ภาคบรรยาย (Oral)" || v === "ภาคโปสเตอร์ (Poster)" || v === "เข้าร่วมประชุมวิชาการ") return v;
+    switch (Number(v)) {
+      case 0:
+        return "ภาคบรรยาย (Oral)";
+      case 1:
+        return "ภาคโปสเตอร์ (Poster)";
+      case 2:
+        return "เข้าร่วมประชุมวิชาการ";
+      default:
+        return "ภาคบรรยาย (Oral)";
+    }
+  };
+
+  const articleTypeCodeFromLabel = (v) => {
+    if (v === 0 || v === 1) return v;
+    switch (v) {
+      case "Abstract อย่างเดียว":
+        return 0;
+      case "เรื่องเต็ม":
+        return 1;
+      default:
+        return 0;
+    }
+  };
+  const articleTypeLabelFromCode = (v) => {
+    if (v === "Abstract อย่างเดียว" || v === "เรื่องเต็ม") return v;
+    switch (Number(v)) {
+      case 0:
+        return "Abstract อย่างเดียว";
+      case 1:
+        return "เรื่องเต็ม";
+      default:
+        return "Abstract อย่างเดียว";
+    }
+  };
+
+  const levelCodeFromValue = (v) => {
+    if (v === 0 || v === 1) return v;
+    switch (v) {
+      case "NATIONAL":
+        return 0;
+      case "INTERNATIONAL":
+        return 1;
+      default:
+        return 0;
+    }
+  };
+  const levelValueFromCode = (v) => {
+    if (v === "NATIONAL" || v === "INTERNATIONAL") return v;
+    switch (Number(v)) {
+      case 0:
+        return "NATIONAL";
+      case 1:
+        return "INTERNATIONAL";
+      default:
+        return "NATIONAL";
+    }
+  };
+
   // Form state aligned to work-conference schema
   const [formData, setFormData] = useState({
     project_research: null, // relation to project-research
@@ -81,37 +155,74 @@ export default function CreateConferenceForm({
     const work = workRes.data;
     setFormData((prev) => ({
       ...prev,
-      project_research: __projectObj.id || "",
-      titleTH: work.titleTH || "",
-      titleEN: work.titleEN || "",
-      isEnvironmentallySustainable: work.isEnvironmentallySustainable || 0,
-      journalName: work.journalName || "",
-      doi: work.doi || "",
-      isbn: work.isbn || "",
-      durationStart: work.durationStart
-        ? String(work.durationStart).slice(0, 10)
-        : "",
-      durationEnd: work.durationEnd
-        ? String(work.durationEnd).slice(0, 10)
-        : "",
-      cost: work.cost || 0,
-      costType: work.costType || 0,
-      presentationWork: work.presentationWork || 0,
-      presentType: work.presentType || 0,
-      articleType: work.articleType || 0,
-      abstractTH: work.abstractTH || "",
-      abstractEN: work.abstractEN || "",
-      summary: work.summary || "",
-      keywords: work.keywords || "",
-      level: work.level || 0,
-      countryCode: work.countryCode || 0,
-      state: work.state || 0,
-      city: work.city || 0,
-      fundName: work.fundName || "",
+      // Project relation
+      project_research: work.project_research?.id || work.project_research || "",
+      __projectObj: work.project_research || prev.__projectObj,
+      // Text fields
+      titleTH: work.titleTH ?? "",
+      titleEN: work.titleEN ?? "",
+      journalName: work.journalName ?? "",
+      doi: work.doi ?? "",
+      isbn: work.isbn ?? "",
+      abstractTH: work.abstractTH ?? "",
+      abstractEN: work.abstractEN ?? "",
+      summary: work.summary ?? "",
+      keywords: work.keywords ?? "",
+      fundName: work.fundName ?? "",
+      // Dates
+      durationStart: work.durationStart ? String(work.durationStart).slice(0, 10) : "",
+      durationEnd: work.durationEnd ? String(work.durationEnd).slice(0, 10) : "",
+      // Numbers / enums
+      isEnvironmentallySustainable: Number(work.isEnvironmentallySustainable ?? prev.isEnvironmentallySustainable ?? 0),
+      cost: work.cost ?? 0,
+      costType: work.costType ?? "",
+      presentationWork: Number(work.presentationWork ?? 0),
+      presentType: presentTypeLabelFromCode(work.presentType),
+      articleType: articleTypeLabelFromCode(work.articleType),
+      level: levelValueFromCode(work.level),
+      // Location (strings)
+      countryCode: work.countryCode ?? "",
+      state: work.state ?? "",
+      city: work.city ?? "",
+      // Files
       attachments: work.attachments || [],
-      __projectObj: work.project_research || undefined,
     }));
   }, [workRes]);
+
+  // Prefill from initialData when provided (useful for SSR or preloaded data)
+  useEffect(() => {
+    if (!initialData) return;
+    const work = initialData;
+    setFormData((prev) => ({
+      ...prev,
+      project_research: work.project_research?.id || work.project_research || "",
+      __projectObj: work.project_research || prev.__projectObj,
+      titleTH: work.titleTH ?? "",
+      titleEN: work.titleEN ?? "",
+      journalName: work.journalName ?? "",
+      doi: work.doi ?? "",
+      isbn: work.isbn ?? "",
+      abstractTH: work.abstractTH ?? "",
+      abstractEN: work.abstractEN ?? "",
+      summary: work.summary ?? "",
+      keywords: work.keywords ?? "",
+      fundName: work.fundName ?? "",
+      durationStart: work.durationStart ? String(work.durationStart).slice(0, 10) : "",
+      durationEnd: work.durationEnd ? String(work.durationEnd).slice(0, 10) : "",
+      isEnvironmentallySustainable: Number(work.isEnvironmentallySustainable ?? prev.isEnvironmentallySustainable ?? 0),
+      cost: work.cost ?? 0,
+      costType: work.costType ?? "",
+      presentationWork: Number(work.presentationWork ?? 0),
+      presentType: presentTypeLabelFromCode(work.presentType),
+      articleType: articleTypeLabelFromCode(work.articleType),
+      level: levelValueFromCode(work.level),
+      countryCode: work.countryCode ?? "",
+      state: work.state ?? "",
+      city: work.city ?? "",
+      attachments: work.attachments || [],
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData]);
 
   // console.log(formData.__projectObj.id);
 
@@ -123,31 +234,41 @@ export default function CreateConferenceForm({
     try {
       // Prepare payload aligned to work-conference schema
       const payload = {
-        project_research: formData.__projectObj.id || undefined,
+        project_research: formData.__projectObj?.id || undefined,
         titleTH: formData.titleTH || undefined,
         titleEN: formData.titleEN || undefined,
         isEnvironmentallySustainable:
-          parseInt(formData.isEnvironmentallySustainable) || 0,
+          Number(formData.isEnvironmentallySustainable) || 0,
         journalName: formData.journalName || undefined,
         doi: formData.doi || undefined,
         isbn: formData.isbn || undefined,
         durationStart: formData.durationStart || undefined,
         durationEnd: formData.durationEnd || undefined,
-        cost: formData.cost ? parseInt(formData.cost) : undefined,
-        costType: parseInt(formData.costType) || 0,
-        presentationWork: parseInt(formData.presentationWork) || 0,
-        presentType: parseInt(formData.presentType) || 0,
-        articleType: parseInt(formData.articleType) || 0,
+        cost: formData.cost !== "" && formData.cost !== null ? Number(formData.cost) : undefined,
+        costType:
+          formData.costType !== "" && formData.costType !== null
+            ? Number(formData.costType)
+            : undefined,
+        presentationWork: Number(formData.presentationWork) || 0,
+        presentType: presentTypeCodeFromLabel(formData.presentType),
+        articleType: articleTypeCodeFromLabel(formData.articleType),
         abstractTH: formData.abstractTH || undefined,
         abstractEN: formData.abstractEN || undefined,
         summary: formData.summary || undefined,
         keywords: formData.keywords || undefined,
-        level: parseInt(formData.level) || 0,
-        countryCode: formData.countryCode
-          ? parseInt(formData.countryCode)
-          : undefined,
-        state: formData.state ? parseInt(formData.state) : undefined,
-        city: formData.city ? parseInt(formData.city) : undefined,
+        level: levelCodeFromValue(formData.level),
+        countryCode:
+          formData.countryCode && String(formData.countryCode).trim() !== ""
+            ? String(formData.countryCode)
+            : undefined,
+        state:
+          formData.state && String(formData.state).trim() !== ""
+            ? String(formData.state)
+            : undefined,
+        city:
+          formData.city && String(formData.city).trim() !== ""
+            ? String(formData.city)
+            : undefined,
         fundName: formData.fundName || undefined,
         attachments: (formData.attachments || []).map((a) => ({ id: a.id })),
       };
