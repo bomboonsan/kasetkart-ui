@@ -1,7 +1,7 @@
 'use client'
 
-import CreateConferenceForm from '@/components/CreateConferenceForm'
+import ConferenceForm from "@/components/form/ConferenceForm";
 
 export default function EditConferencePage({ params }) {
-  return <CreateConferenceForm mode="edit" workId={params.id} />
+  return <ConferenceForm mode="edit" workId={params.id} />
 }
