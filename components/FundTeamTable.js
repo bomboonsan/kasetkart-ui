@@ -35,6 +35,17 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
   const [saveError, setSaveError] = useState('')
   const isSyncingRef = useRef(false)
 
+  // Ensure every partner has an integer order starting from 1, sorted ascending
+  function ensureSequentialOrder(list = []) {
+    const arr = (list || []).slice().sort((a, b) => {
+      const ao = a?.order ?? Number.POSITIVE_INFINITY
+      const bo = b?.order ?? Number.POSITIVE_INFINITY
+      if (ao === bo) return 0
+      return ao - bo
+    })
+    return arr.map((p, idx) => ({ ...p, order: idx + 1 }))
+  }
+
 
   // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
   function recomputeProportions(list = []) {
@@ -106,10 +117,11 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
         partnerProportion_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== null
           ? String(p.partnerProportion_percentage_custom)
           : undefined,
+        order: p.order !== undefined ? parseInt(p.order) : (item?.order !== undefined ? parseInt(item.order) : undefined),
       }
     })
 
-    if (norm.length > 0) setLocalPartners(recomputeProportions(norm))
+    if (norm.length > 0) setLocalPartners(recomputeProportions(ensureSequentialOrder(norm)))
   }, [funding, project])
 
   // ดึงรายชื่อผู้ร่วมโดยตรงจาก /funding-partners ด้วย fundingId (กรณีมีรหัสชัดเจน)
@@ -126,7 +138,7 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
           4: 'นักวิจัยร่วม',
           99: 'อื่นๆ',
         }
-        const norm = (items || []).map(item => {
+    const norm = (items || []).map(item => {
           const p = item?.attributes ? item.attributes : item
           return {
             id: item?.id || p.id,
@@ -140,9 +152,10 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
             partnerProportion_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== null
               ? String(p.partnerProportion_percentage_custom)
               : undefined,
+      order: p.order !== undefined ? parseInt(p.order) : (item?.order !== undefined ? parseInt(item.order) : undefined),
           }
         })
-        setLocalPartners(recomputeProportions(norm))
+    setLocalPartners(recomputeProportions(ensureSequentialOrder(norm)))
       } catch (err) {
         setSaveError(err?.message || 'Failed to load funding partners')
       }
@@ -270,6 +283,11 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
       partnerComment: pcJoined,
       partnerProportion: undefined,
       partnerProportion_percentage_custom: formData.partnerProportion_percentage_custom !== undefined && formData.partnerProportion_percentage_custom !== '' ? String(formData.partnerProportion_percentage_custom) : undefined,
+      // กำหนด order ต่อท้าย
+      order: (() => {
+        const maxOrder = Math.max(0, ...((localPartners || []).map(p => parseInt(p.order) || 0)))
+        return maxOrder + 1
+      })(),
       // แนบข้อมูลผู้ใช้เพิ่มเติมเพื่อใช้แสดงชื่อ (ลดการเรียก API ซ้ำ)
       User: internal && u ? {
         email: u.email,
@@ -293,7 +311,7 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
         } else {
           const updated = base.slice()
           updated[editingIndex] = { ...updated[editingIndex], ...partner }
-          const next = recomputeProportions(updated)
+          const next = recomputeProportions(ensureSequentialOrder(updated))
           setLocalPartners(next)
           if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
           syncToServer(next)
@@ -302,7 +320,7 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
         if (keys.includes(newKey)) {
           setSwalProps({ show: true, icon: 'error', title: 'มีรายชื่อซ้ำ', text: 'บุคคลนี้ถูกเพิ่มแล้ว', timer: 1800, showConfirmButton: false })
         } else {
-          const next = recomputeProportions([...(base || []), partner])
+          const next = recomputeProportions(ensureSequentialOrder([...(base || []), partner]))
           setLocalPartners(next)
           if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
           syncToServer(next)
@@ -317,66 +335,27 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
 
   // ย้ายลำดับขึ้น
   function moveUp(idx) {
-    if (idx <= 0) return
-    // work on displayRows to allow moving `me` as well
-    const current = displayRows
-    const arr = current.slice()
-    const tmp = arr[idx - 1]
-    arr[idx - 1] = arr[idx]
-    arr[idx] = tmp
-    // Convert any me entries into normal partner objects so they are persisted
-    const newLocal = arr
-      .filter(p => true)
-      .map(p => p.isMe ? ({
-        isInternal: true,
-        userID: p.userID,
-        fullname: p.fullname,
-        orgName: p.orgName,
-        partnerType: p.partnerType || '',
-        partnerComment: p.partnerComment || '',
-        partnerProportion: p.partnerProportion,
-        partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
-        User: p.User
-      }) : p)
-      .filter(p => true)
-
-    setLocalPartners(() => {
-      const next = recomputeProportions(newLocal)
-      // update parent immediately to avoid parent overwriting changes
-      if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
-      syncToServer(next)
-      return next
-    })
+  // ทำงานบนรายการที่เรียงตาม order แล้ว จากนั้นปรับ order ใหม่
+  if (idx <= 0) return
+  const arr = displayRows.slice()
+  ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
+  const renumbered = arr.map((p, i) => ({ ...p, order: i + 1 }))
+  const next = recomputeProportions(renumbered)
+  setLocalPartners(next)
+  if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
+  syncToServer(next)
   }
 
   // ย้ายลำดับลง
   function moveDown(idx) {
-    // operate on displayRows
-    const current = displayRows
-    const arr = current.slice()
-    if (idx >= arr.length - 1) return
-    const tmp = arr[idx + 1]
-    arr[idx + 1] = arr[idx]
-    arr[idx] = tmp
-    const newLocal = arr
-      .map(p => p.isMe ? ({
-        isInternal: true,
-        userID: p.userID,
-        fullname: p.fullname,
-        orgName: p.orgName,
-        partnerType: p.partnerType || '',
-        partnerComment: p.partnerComment || '',
-        partnerProportion: p.partnerProportion,
-        partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
-        User: p.User
-      }) : p)
-
-    setLocalPartners(() => {
-      const next = recomputeProportions(newLocal)
-      if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
-      syncToServer(next)
-      return next
-    })
+  const arr = displayRows.slice()
+  if (idx >= arr.length - 1) return
+  ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
+  const renumbered = arr.map((p, i) => ({ ...p, order: i + 1 }))
+  const next = recomputeProportions(renumbered)
+  setLocalPartners(next)
+  if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
+  syncToServer(next)
   }
 
   function handleRemovePartner(idx) {
@@ -385,8 +364,8 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     const target = current[idx]
     // if the target is me, we can't remove the creator; ignore
     if (target && target.isMe) return
-    const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
-    const next = recomputeProportions(newLocal)
+  const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
+  const next = recomputeProportions(ensureSequentialOrder(newLocal))
     setLocalPartners(next)
     if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
     syncToServer(next)
@@ -432,7 +411,9 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
   // สร้างแถวผู้ใช้ปัจจุบันและคำนวณสัดส่วนรวมเพื่อใช้แสดงผล
   // display only the local partners in the table (hide the creator/me row)
   const displayRows = useMemo(() => {
-    return recomputeProportions(localPartners || [])
+  // แสดงผลโดยเรียงตาม order เสมอ แล้วค่อยคำนวณสัดส่วนใหม่
+  const withOrder = ensureSequentialOrder(localPartners || [])
+  return recomputeProportions(withOrder)
   }, [localPartners])
 
   return (
@@ -700,7 +681,7 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
                           bg-[#D1FAE5]
                         `}
                         >
-                          {i + 1}
+                          {p.order ?? (i + 1)}
                         </div>
                         {(displayRows.length >= 2) && (
                           <div className='text-gray-700 flex items-center gap-2 ml-3'>

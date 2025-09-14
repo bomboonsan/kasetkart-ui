@@ -190,6 +190,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
             partnerProportion_percentage_custom: (p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '')
               ? Number(p.partnerProportion_percentage_custom)
               : undefined,
+            order: p.order !== undefined ? parseInt(p.order) : undefined,
             project_fundings: [fundingId],
           })
 
