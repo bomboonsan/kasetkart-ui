@@ -35,7 +35,6 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
   const [saveError, setSaveError] = useState('')
   const isSyncingRef = useRef(false)
 
-  console.log('localPartners:', localPartners)
 
   // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
   function recomputeProportions(list = []) {
@@ -73,21 +72,14 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     // กรณี Funding (priority)
     if (funding) {
       // funding อาจอยู่ในรูป { data: { attributes: { funding_partners }}} หรือแบบ flat
-      if (funding.data && funding.data.attributes) {
-        partners = funding.data.attributes.funding_partners?.data || []
+      if (funding.data && funding.data.funding_partners) {
+        partners = funding.data.funding_partners || []
       } else if (funding.funding_partners) {
         partners = funding.funding_partners.data || funding.funding_partners
       }
     }
 
-    // fallback: กรณี Project เดิม (คงไว้เพื่อความเข้ากันได้)
-    if (!partners?.length && project) {
-      if (project.data && project.data.attributes) {
-        partners = project.data.attributes.research_partners?.data || []
-      } else if (project.research_partners) {
-        partners = project.research_partners.data || project.research_partners
-      }
-    }
+    console.log('Loaded partners from funding/project:', partners)
 
     // Normalize Strapi partner entries to the UI shape (ใช้โครงเดียวกัน)
     const norm = (partners || []).map(item => {
