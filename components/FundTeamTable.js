@@ -13,15 +13,20 @@ import {
   ChevronDown
 } from "lucide-react";
 // ใช้ path alias (@/) เพื่อลด relative path และทำให้แก้ไขได้ง่ายขึ้น
-import { projectAPI } from '@/lib/api'
+import { projectAPI, fundingAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
 import { authAPI } from '@/lib/api'
 import { stripUndefined } from '@/utils'
 
-export default function FundTeamTable({ projectId, formData, handleInputChange, setFormData }) {
+// ใช้ได้ทั้งหน้าโครงการวิจัย (project) และหน้า Funding (funding)
+// แนะนำให้ส่ง fundingId เมื่อใช้ในหน้า FundingForm
+export default function FundTeamTable({ projectId, fundingId, formData, handleInputChange, setFormData }) {
   const [swalProps, setSwalProps] = useState({})
 
   // Real data from API
+  // สำหรับหน้า Funding จะใช้ state นี้แทน project
+  const [funding, setFunding] = useState(null)
+  // รองรับการใช้งานเดิมกับ Project (เผื่อถูกใช้ที่อื่น)
   const [project, setProject] = useState(null)
   const [me, setMe] = useState(null)
   const [localPartners, setLocalPartners] = useState([])
@@ -58,17 +63,30 @@ export default function FundTeamTable({ projectId, formData, handleInputChange, 
   }
 
   useEffect(() => {
-    // When project (from API) has research_partners, normalize into localPartners
-    if (!project) return
-    // project may be returned in different shapes: { data: { id, attributes: { research_partners: { data: [...] }}}} or plain object
+    // ดึงรายชื่อผู้ร่วมจาก Funding (ถ้ามี)
+    if (!funding && !project) return
+
     let partners = []
-    if (project.data && project.data.attributes) {
-      partners = project.data.attributes.research_partners?.data || []
-    } else if (project.research_partners) {
-      partners = project.research_partners.data || project.research_partners
+    // กรณี Funding (priority)
+    if (funding) {
+      // funding อาจอยู่ในรูป { data: { attributes: { funding_partners }}} หรือแบบ flat
+      if (funding.data && funding.data.attributes) {
+        partners = funding.data.attributes.funding_partners?.data || []
+      } else if (funding.funding_partners) {
+        partners = funding.funding_partners.data || funding.funding_partners
+      }
     }
 
-    // Normalize Strapi partner entries to the UI shape
+    // fallback: กรณี Project เดิม (คงไว้เพื่อความเข้ากันได้)
+    if (!partners?.length && project) {
+      if (project.data && project.data.attributes) {
+        partners = project.data.attributes.research_partners?.data || []
+      } else if (project.research_partners) {
+        partners = project.research_partners.data || project.research_partners
+      }
+    }
+
+    // Normalize Strapi partner entries to the UI shape (ใช้โครงเดียวกัน)
     const norm = (partners || []).map(item => {
       const p = item?.attributes ? item.attributes : item
 
@@ -90,14 +108,29 @@ export default function FundTeamTable({ projectId, formData, handleInputChange, 
         userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
         partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
         partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
-        partnerProportion_percentage_custom: p.participation_percentage_custom !== undefined ? String(p.participation_percentage_custom) : undefined,
+        // หมายเหตุ: ฝั่ง FundingPartner ไม่มี participation_percentage_custom ในสคีมา -> ไม่รองรับฟิลด์นี้
+        partnerProportion_percentage_custom: undefined,
       }
     })
 
     if (norm.length > 0) setLocalPartners(recomputeProportions(norm))
-  }, [project])
+  }, [funding, project])
 
-  // Fetch project data when projectId provided
+  // Fetch funding data when fundingId provided (ใช้กับ FundingForm)
+  useEffect(() => {
+    async function loadFunding() {
+      if (!fundingId) return
+      try {
+        const resp = await fundingAPI.getFunding(fundingId)
+        setFunding(resp)
+      } catch (err) {
+        setSaveError(err?.message || 'Failed to load funding')
+      }
+    }
+    loadFunding()
+  }, [fundingId])
+
+  // รองรับการใช้งานเดิม: ถ้า projectId ถูกส่งมา ให้โหลดข้อมูลโครงการวิจัย
   useEffect(() => {
     async function loadProject() {
       if (!projectId) return
@@ -129,12 +162,12 @@ export default function FundTeamTable({ projectId, formData, handleInputChange, 
   // (ใช้เมื่อไม่มี `project` โหลดมาจาก API เช่นในกรณี Create หรือเมื่อ Edit ใช้ parent เป็นแหล่งข้อมูล)
   // เพิ่ม effect นี้เพื่อให้ EditResearchForm ที่ตั้งค่า `formData.partnersLocal` สามารถทำให้ตารางแสดงได้ทันที
   useEffect(() => {
-    if (!project && Array.isArray(formData?.partnersLocal) && formData.partnersLocal.length > 0) {
+    if (!funding && !project && Array.isArray(formData?.partnersLocal) && formData.partnersLocal.length > 0) {
       // ใช้ recomputeProportions เพื่อคำนวณสัดส่วนให้ถูกต้องก่อนแสดง
       setLocalPartners(recomputeProportions(formData.partnersLocal))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData?.partnersLocal, project])
+  }, [formData?.partnersLocal, funding, project])
 
   // Keep parent formData in sync with local partners (so CreateResearchForm can read them)
   useEffect(() => {
@@ -148,7 +181,8 @@ export default function FundTeamTable({ projectId, formData, handleInputChange, 
     // หมายเหตุ: ซิงค์ข้อมูลทีมขึ้น Strapi ด้วยแนวทาง replace ทั้งชุด
     // 1) ลบข้อมูลเดิมของโปรเจกต์นี้ทั้งหมด (อิง documentId)
     // 2) สร้างข้อมูลใหม่ตามลำดับที่เห็นใน UI (ใช้ field order)
-    if (!projectId) return; // ไม่มี project ให้ซิงค์
+    // ใช้ fundingId เป็นหลัก ถ้าไม่มีจะไม่ซิงค์ (อนุญาตให้แก้ไขออฟไลน์ในฟอร์มได้)
+    if (!fundingId) return;
     setSaveError('')
     setSaving(true)
     try {
@@ -161,12 +195,12 @@ export default function FundTeamTable({ projectId, formData, handleInputChange, 
         'อื่นๆ': 99,
       }
 
-      // ลบ partners เก่าที่เชื่อมโยงกับ project นี้ (ใช้ documentId สำหรับ Strapi v5)
+      // ลบ partners เก่าที่เชื่อมโยงกับ funding นี้ (ใช้ documentId สำหรับ Strapi v5)
       try {
-        const existingPartners = await api.get(`/project-partners?filters[project_researches][documentId][$eq]=${projectId}`)
+        const existingPartners = await api.get(`/funding-partners?filters[project_fundings][documentId][$eq]=${fundingId}`)
         const partnersToDelete = existingPartners?.data || []
         for (const partner of partnersToDelete) {
-          await api.delete(`/project-partners/${partner.documentId || partner.id}`)
+          await api.delete(`/funding-partners/${partner.documentId || partner.id}`)
         }
       } catch (err) {
         // ignore deletion errors but capture message
@@ -181,16 +215,15 @@ export default function FundTeamTable({ projectId, formData, handleInputChange, 
           fullname: p.fullname || undefined,
           orgName: p.orgName || undefined,
           participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
-          participation_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '' ? parseFloat(p.partnerProportion_percentage_custom) : undefined,
           participant_type: partnerTypeMap[p.partnerType] || undefined,
           isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
           isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
           users_permissions_user: p.userID || undefined,
-          project_researches: [projectId], // ใช้ documentId
-          order: i
+          project_fundings: [fundingId], // ใช้ documentId
+          // หมายเหตุ: สคีมา FundingPartner ไม่มี field order โดยตรง
         })
 
-        await api.post('/project-partners', { data: partnerData })
+        await api.post('/funding-partners', { data: partnerData })
       }
 
       setSwalProps({ show: true, icon: 'success', title: 'บันทึกทีมสำเร็จ', timer: 1000, showConfirmButton: false })
@@ -515,7 +548,6 @@ export default function FundTeamTable({ projectId, formData, handleInputChange, 
             <div>
               <FormSelect
                 label="ประเภทผู้ร่วมโครงการวิจัย"
-                required
                 value={formData.partnerType}
                 onChange={(value) => handleInputChange("partnerType", value)}
                 className="max-w-lg"
@@ -589,9 +621,9 @@ export default function FundTeamTable({ projectId, formData, handleInputChange, 
 
       <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <div className="space-y-4">
-        {!projectId && (
+        {!fundingId && (
           <div className="text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded p-2">
-            เมื่อเลือกโครงการแล้ว ระบบจะบันทึกรายชื่อผู้ร่วมโดยอัตโนมัติ
+            เมื่อบันทึกแบบฟอร์ม ระบบจะบันทึกรายชื่อผู้ร่วมโดยอัตโนมัติ (ต้องมีรหัสคำขอทุน)
           </div>
         )}
         {saveError && (

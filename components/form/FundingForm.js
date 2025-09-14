@@ -16,6 +16,7 @@ import FileUploadField from '@/components/FileUploadField'
 import { Button } from '@/components/ui'
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
+import FundTeamTable from '@/components/FundTeamTable'
 
 export default function CreateFundingForm({ mode = 'create', workId, initialData }) {
   const router = useRouter()
@@ -122,6 +123,38 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
       } else {
         // Using api.post with { data: payload } wrapper
         result = await api.post('/project-fundings', { data: cleanPayload })
+        // หลังจากสร้างคำขอทุนแล้ว ให้บันทึกความสัมพันธ์ funding_partners ด้วย
+        try {
+          const created = result?.data || result || {}
+          const fundingId = created.documentId || created.id || created?.data?.documentId || created?.data?.id
+          const partners = Array.isArray(formData?.partnersLocal) ? formData.partnersLocal : []
+          if (fundingId && partners.length > 0) {
+            const partnerTypeMap = {
+              'หัวหน้าโครงการ': 1,
+              'ที่ปรึกษาโครงการ': 2,
+              'ผู้ประสานงาน': 3,
+              'นักวิจัยร่วม': 4,
+              'อื่นๆ': 99,
+            }
+            // ใช้สัดส่วนภายใน (partnerProportion) ที่คำนวณจากตาราง หากไม่มีให้ข้ามฟิลด์นี้
+            await Promise.all(partners.map(async (p) => {
+              const partnerData = stripUndefined({
+                fullname: p.fullname || undefined,
+                orgName: p.orgName || undefined,
+                participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
+                participant_type: partnerTypeMap[p.partnerType] || undefined,
+                isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
+                isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
+                users_permissions_user: p.userID || undefined,
+                project_fundings: [fundingId],
+              })
+              await api.post('/funding-partners', { data: partnerData })
+            }))
+          }
+        } catch (linkErr) {
+          // หากลิงก์ผู้ร่วมไม่สำเร็จ ให้แสดงเตือน แต่ไม่บล็อกการสร้างคำขอทุน
+          console.warn('Failed to create funding_partners:', linkErr)
+        }
         setSwalProps({ show: true, icon: 'success', title: 'สร้างข้อมูลสำเร็จ', timer: 1600, showConfirmButton: false })
       }
 
@@ -407,6 +440,18 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
             />
           </FormFieldBlock>
         </FormSection>
+
+        {/* Funding Partners (HABTM) */}
+        <div className="p-4 rounded-md border shadow border-gray-200/70">
+          <FormSection title="* ผู้ร่วมวิจัย">
+            <FundTeamTable
+              fundingId={workId}
+              formData={formData}
+              handleInputChange={handleInputChange}
+              setFormData={setFormData}
+            />
+          </FormSection>
+        </div>
 
         {/* Form Actions */}
         <div className="flex justify-end space-x-3 pt-6 border-t">
