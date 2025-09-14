@@ -12,13 +12,13 @@ export default function ConferencesPage() {
   const [conferences, setConferences] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  
+
   // Pagination states
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [pageSize] = useState(10)
-  
+
   // Filter states
   const [searchTitle, setSearchTitle] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
@@ -31,11 +31,12 @@ export default function ConferencesPage() {
   const fetchConferences = async () => {
     setLoading(true)
     setError('')
-    
+
     try {
       // Fetch conferences for current user only
       const response = await worksAPI.getMyConferences()
       let list = response?.data || response || []
+      console.log("Fetched conferences:", list)
 
       // Client-side search across titleTH/titleEN
       if (searchTitle.trim()) {
@@ -66,9 +67,9 @@ export default function ConferencesPage() {
       setConferences(paged)
       setTotalItems(total)
       setTotalPages(pageCount)
-      
+
     } catch (err) {
-  setError('ไม่สามารถโหลดข้อมูลประชุมวิชาการได้')
+      setError('ไม่สามารถโหลดข้อมูลประชุมวิชาการได้')
     } finally {
       setLoading(false)
     }
@@ -179,7 +180,7 @@ export default function ConferencesPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('titleTH')}
                   >
@@ -197,7 +198,7 @@ export default function ConferencesPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     สถานะ
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('durationStart')}
                   >
@@ -231,11 +232,10 @@ export default function ConferencesPage() {
                       {formatPresentationType(conference.presentationWork)}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        conference.publishedAt 
-                          ? 'bg-green-100 text-green-800' 
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${conference.publishedAt
+                          ? 'bg-green-100 text-green-800'
                           : 'bg-yellow-100 text-yellow-800'
-                      }`}>
+                        }`}>
                         {conference.publishedAt ? 'เผยแพร่' : 'ร่าง'}
                       </span>
                     </td>
@@ -244,13 +244,13 @@ export default function ConferencesPage() {
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Link 
+                        <Link
                           href={`/form/view/conference/${conference.documentId || conference.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
-                        <Link 
+                        <Link
                           href={`/form/edit/conference/${conference.documentId || conference.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
@@ -276,7 +276,7 @@ export default function ConferencesPage() {
           >
             ก่อนหน้า
           </Button>
-          
+
           <div className="flex space-x-1">
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum
@@ -289,7 +289,7 @@ export default function ConferencesPage() {
               } else {
                 pageNum = currentPage - 2 + i
               }
-              
+
               return (
                 <Button
                   key={pageNum}
@@ -302,7 +302,7 @@ export default function ConferencesPage() {
               )
             })}
           </div>
-          
+
           <Button
             variant="outline"
             disabled={currentPage === totalPages}

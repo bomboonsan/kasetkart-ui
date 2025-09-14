@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
+import { Country, State, City, ICountry, IState, ICity } from "country-state-city";
 import { useRouter } from "next/navigation";
 import useSWR, { mutate } from "swr";
 // ใช้ path alias (@/) เพื่อให้ import สั้นและชัดเจน
@@ -19,6 +20,10 @@ import EditableResearchTeamSection from "./EditableResearchTeamSection";
 import { Button } from "@/components/ui";
 import dynamic from "next/dynamic";
 const SweetAlert2 = dynamic(() => import("react-sweetalert2"), { ssr: false });
+
+// ฟังก์ชันช่วย map เป็น {value,label} สำหรับ FormSelect ของคุณ
+const toOptions = (items, getValue, getLabel) =>
+  [{ value: "", label: "เลือก" }, ...items.map(i => ({ value: getValue(i), label: getLabel(i) }))];
 
 export default function CreateConferenceForm({
   mode = "create",
