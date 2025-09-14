@@ -20,7 +20,7 @@ import { stripUndefined } from '@/utils'
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const [swalProps, setSwalProps] = useState({})
-  
+
   // Real data from API
   const [project, setProject] = useState(null)
   const [me, setMe] = useState(null)
@@ -31,14 +31,14 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
 
   // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
   function recomputeProportions(list = []) {
-  // หมายเหตุ: ฟังก์ชันนี้รับลิสต์สมาชิก team แล้วคำนวณค่า partnerProportion ใหม่
-  // โดยแบ่งสัดส่วนเท่า ๆ กันเฉพาะสมาชิกที่เป็นภายใน (isInternal=true)
-  // และดูแลไม่ให้รวมกันเกิน/ขาด 1.000 (แก้จุดปัดเศษที่คนสุดท้าย)
+    // หมายเหตุ: ฟังก์ชันนี้รับลิสต์สมาชิก team แล้วคำนวณค่า partnerProportion ใหม่
+    // โดยแบ่งสัดส่วนเท่า ๆ กันเฉพาะสมาชิกที่เป็นภายใน (isInternal=true)
+    // และดูแลไม่ให้รวมกันเกิน/ขาด 1.000 (แก้จุดปัดเศษที่คนสุดท้าย)
     const result = list.map(p => ({ ...p }))
     const internalIdx = result.reduce((arr, p, idx) => (p.isInternal ? [...arr, idx] : arr), [])
     const n = internalIdx.length
     if (n === 0) return result.map(p => ({ ...p, partnerProportion: undefined }))
-    
+
     // แบ่งสัดส่วนเท่าๆ กันสำหรับผู้ใช้ภายในเท่านั้น
     const base = 1 / n
     let assigned = 0
@@ -52,7 +52,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         result[idx].partnerProportion = last.toFixed(3)
       }
     })
-    
+
     // ผู้ร่วมงานภายนอกไม่มีสัดส่วน
     return result.map(p => (p.isInternal ? p : { ...p, partnerProportion: undefined }))
   }
@@ -71,7 +71,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     // Normalize Strapi partner entries to the UI shape
     const norm = (partners || []).map(item => {
       const p = item?.attributes ? item.attributes : item
-      
+
       // Map participant_type numbers to labels
       const partnerTypeLabels = {
         1: 'หัวหน้าโครงการ',
@@ -80,7 +80,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         4: 'นักวิจัยร่วม',
         99: 'อื่นๆ',
       }
-      
+
       return {
         id: item?.id || p.id,
         fullname: p.fullname || p.name || '',
@@ -89,8 +89,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         isInternal: !!p.users_permissions_user || !!p.userID || false,
         userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
         partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
-  partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
-  partnerProportion_percentage_custom: p.participation_percentage_custom !== undefined ? String(p.participation_percentage_custom) : undefined,
+        partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
+        partnerProportion_percentage_custom: p.participation_percentage_custom !== undefined ? String(p.participation_percentage_custom) : undefined,
       }
     })
 
@@ -102,11 +102,11 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     async function loadProject() {
       if (!projectId) return
       try {
-          const resp = await projectAPI.getProject(projectId)
-          setProject(resp)
-        } catch (err) {
-          setSaveError(err?.message || 'Failed to load project')
-        }
+        const resp = await projectAPI.getProject(projectId)
+        setProject(resp)
+      } catch (err) {
+        setSaveError(err?.message || 'Failed to load project')
+      }
     }
     loadProject()
   }, [projectId])
@@ -145,9 +145,9 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   }, [])
 
   async function syncToServer(partnersList) {
-  // หมายเหตุ: ซิงค์ข้อมูลทีมขึ้น Strapi ด้วยแนวทาง replace ทั้งชุด
-  // 1) ลบข้อมูลเดิมของโปรเจกต์นี้ทั้งหมด (อิง documentId)
-  // 2) สร้างข้อมูลใหม่ตามลำดับที่เห็นใน UI (ใช้ field order)
+    // หมายเหตุ: ซิงค์ข้อมูลทีมขึ้น Strapi ด้วยแนวทาง replace ทั้งชุด
+    // 1) ลบข้อมูลเดิมของโปรเจกต์นี้ทั้งหมด (อิง documentId)
+    // 2) สร้างข้อมูลใหม่ตามลำดับที่เห็นใน UI (ใช้ field order)
     if (!projectId) return; // ไม่มี project ให้ซิงค์
     setSaveError('')
     setSaving(true)
@@ -176,8 +176,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       // สร้าง partners ใหม่ (รวม order เพื่อให้สามารถจัดลำดับได้ใน Strapi)
       for (let i = 0; i < (partnersList || []).length; i++) {
         const p = partnersList[i]
-  // หมายเหตุ: map ค่าจาก state UI -> ชื่อฟิลด์ของ Strapi
-  const partnerData = stripUndefined({
+        // หมายเหตุ: map ค่าจาก state UI -> ชื่อฟิลด์ของ Strapi
+        const partnerData = stripUndefined({
           fullname: p.fullname || undefined,
           orgName: p.orgName || undefined,
           participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
@@ -188,7 +188,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
           users_permissions_user: p.userID || undefined,
           project_researches: [projectId], // ใช้ documentId
           order: i
-  })
+        })
 
         await api.post('/project-partners', { data: partnerData })
       }
@@ -208,10 +208,10 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       __userObj: undefined,
       partnerFullName: '',
       orgName: '',
-  userId: undefined,
+      userId: undefined,
       partnerType: '',
       partnerComment: '',
-  partnerProportion_percentage_custom: undefined,
+      partnerProportion_percentage_custom: undefined,
     }))
     setEditingIndex(null)
   }
@@ -225,12 +225,12 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       prof ? `${prof.firstNameTH || prof.firstName || ''} ${prof.lastNameTH || prof.lastName || ''}`.trim() || u.email : u.email
     ) : ''
     const org = u ? [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ') : ''
-    
+
     const pcArr = Array.isArray(formData.partnerComment)
       ? formData.partnerComment
       : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])
     const pcJoined = pcArr.join(', ')
-    
+
     const partner = {
       isInternal: internal,
       userID: internal && u ? u.id : undefined,
@@ -238,18 +238,18 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       orgName: internal ? (org || formData.orgName || '') : (formData.orgName || ''),
       partnerType: formData.partnerType || '',
       partnerComment: pcJoined,
-  partnerProportion: undefined,
-  partnerProportion_percentage_custom: formData.partnerProportion_percentage_custom !== undefined && formData.partnerProportion_percentage_custom !== '' ? String(formData.partnerProportion_percentage_custom) : undefined,
+      partnerProportion: undefined,
+      partnerProportion_percentage_custom: formData.partnerProportion_percentage_custom !== undefined && formData.partnerProportion_percentage_custom !== '' ? String(formData.partnerProportion_percentage_custom) : undefined,
       // แนบข้อมูลผู้ใช้เพิ่มเติมเพื่อใช้แสดงชื่อ (ลดการเรียก API ซ้ำ)
-      User: internal && u ? { 
-        email: u.email, 
-        profile: prof ? { 
-          firstNameTH: prof.firstNameTH || prof.firstName, 
-          lastNameTH: prof.lastNameTH || prof.lastName 
-        } : undefined 
+      User: internal && u ? {
+        email: u.email,
+        profile: prof ? {
+          firstNameTH: prof.firstNameTH || prof.firstName,
+          lastNameTH: prof.lastNameTH || prof.lastName
+        } : undefined
       } : undefined,
     }
-    
+
     setLocalPartners(prev => {
       const base = prev || []
       let next
@@ -264,7 +264,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       syncToServer(next)
       return next
     })
-    
+
     const dlg = document.getElementById('my_modal_2');
     if (dlg && dlg.close) dlg.close()
     resetForm()
@@ -289,8 +289,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         orgName: p.orgName,
         partnerType: p.partnerType || '',
         partnerComment: p.partnerComment || '',
-  partnerProportion: p.partnerProportion,
-  partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
+        partnerProportion: p.partnerProportion,
+        partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
         User: p.User
       }) : p)
       .filter(p => true)
@@ -319,8 +319,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         orgName: p.orgName,
         partnerType: p.partnerType || '',
         partnerComment: p.partnerComment || '',
-  partnerProportion: p.partnerProportion,
-  partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
+        partnerProportion: p.partnerProportion,
+        partnerProportion_percentage_custom: p.partnerProportion_percentage_custom,
         User: p.User
       }) : p)
 
@@ -332,15 +332,15 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   }
 
   function handleRemovePartner(idx) {
-  // idx refers to displayRows; map to localPartners by filtering out me
-  const current = displayRows
-  const target = current[idx]
-  // if the target is me, we can't remove the creator; ignore
-  if (target && target.isMe) return
-  const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
-  const next = recomputeProportions(newLocal)
-  setLocalPartners(next)
-  syncToServer(next)
+    // idx refers to displayRows; map to localPartners by filtering out me
+    const current = displayRows
+    const target = current[idx]
+    // if the target is me, we can't remove the creator; ignore
+    if (target && target.isMe) return
+    const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
+    const next = recomputeProportions(newLocal)
+    setLocalPartners(next)
+    syncToServer(next)
     // รีเซ็ตฟอร์มใน dialog
     setFormData(prev => ({
       ...prev,
@@ -355,21 +355,21 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   }
 
   function handleEditPartner(idx) {
-  // idx is display index; map to localPartners entry
-  const current = displayRows
-  const p = current[idx]
-  if (!p) return
-  // find index in localPartners
-  const lpIdx = (localPartners || []).findIndex(x => (x.userID && x.userID === p.userID) || x.fullname === p.fullname)
-  setEditingIndex(lpIdx >= 0 ? lpIdx : null)
+    // idx is display index; map to localPartners entry
+    const current = displayRows
+    const p = current[idx]
+    if (!p) return
+    // find index in localPartners
+    const lpIdx = (localPartners || []).findIndex(x => (x.userID && x.userID === p.userID) || x.fullname === p.fullname)
+    setEditingIndex(lpIdx >= 0 ? lpIdx : null)
     setFormData(prev => ({
       ...prev,
       isInternal: !!p.isInternal,
       partnerFullName: p.fullname || '',
       orgName: p.orgName || '',
       partnerType: p.partnerType || '',
-  partnerComment: p.partnerComment || p.comment || '',
-  partnerProportion_percentage_custom: p.partnerProportion_percentage_custom || '',
+      partnerComment: p.partnerComment || p.comment || '',
+      partnerProportion_percentage_custom: p.partnerProportion_percentage_custom || '',
       userId: p.userID || undefined,
       __userObj: undefined
     }))
@@ -436,12 +436,12 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                         const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
                         const display = prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email
                         const org = [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ')
-                        setFormData(prev => ({ 
-                          ...prev, 
-                          partnerFullName: display, 
-                          orgName: org, 
-                          userId: u.id, 
-                          __userObj: u 
+                        setFormData(prev => ({
+                          ...prev,
+                          partnerFullName: display,
+                          orgName: org,
+                          userId: u.id,
+                          __userObj: u
                         }))
                       }}
                     />
@@ -454,7 +454,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       value={(() => {
                         if (formData.__userObj) {
                           const prof = Array.isArray(formData.__userObj.profile) ? formData.__userObj.profile[0] : formData.__userObj.profile
-                          return prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : formData.__userObj.email
+                          return prof ? `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim() : formData.__userObj.email
                         }
                         return formData.partnerFullName || ''
                       })()}

@@ -111,7 +111,6 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
         userID: p.users_permissions_user?.data?.id || p.users_permissions_user || p.userID || undefined,
         partnerComment: (p.isFirstAuthor ? 'First Author' : '') + (p.isCoreespondingAuthor ? ' Corresponding Author' : ''),
         partnerProportion: p.participation_percentage !== undefined ? String(p.participation_percentage) : undefined,
-        // หมายเหตุ: ฝั่ง FundingPartner ไม่มี participation_percentage_custom ในสคีมา -> ไม่รองรับฟิลด์นี้
         partnerProportion_percentage_custom: undefined,
       }
     })
@@ -213,21 +212,17 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     if (typeof setFormData === 'function') {
       setFormData(prev => ({ ...prev, partnersLocal: localPartners }))
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [localPartners, setFormData])
 
   async function syncToServer(partnersList) {
-    // หมายเหตุ: ซิงค์ข้อมูลทีมขึ้น Strapi ด้วยแนวทาง replace ทั้งชุด
-    // 1) ลบข้อมูลเดิมของโปรเจกต์นี้ทั้งหมด (อิง documentId)
-    // 2) สร้างข้อมูลใหม่ตามลำดับที่เห็นใน UI (ใช้ field order)
-    // ใช้ fundingId เป็นหลัก ถ้าไม่มีจะไม่ซิงค์ (อนุญาตให้แก้ไขออฟไลน์ในฟอร์มได้)
+    // หมายเหตุ: เปลี่ยนกลยุทธ์ซิงค์เป็นแบบ upsert (อัปเดต/สร้าง และลบเฉพาะตัวที่หายไป)
+    // เพื่อหลีกเลี่ยงกรณีข้อมูลหายเมื่อการสร้างล้มเหลวหลังจากลบทั้งหมด
     if (!fundingId) return;
     if (isSyncingRef.current) return
     isSyncingRef.current = true
     setSaveError('')
     setSaving(true)
     try {
-      // เตรียม payload สำหรับ API 
       const partnerTypeMap = {
         'หัวหน้าโครงการ': 1,
         'ที่ปรึกษาโครงการ': 2,
@@ -236,26 +231,47 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
         'อื่นๆ': 99,
       }
 
-      // ลบ partners เก่าที่เชื่อมโยงกับ funding นี้ (ใช้ documentId สำหรับ Strapi v5)
+      // โหลดรายการเดิมจากเซิร์ฟเวอร์เพื่อคำนวณ diff
+      let existingItems = []
       try {
-        const existingPartners = await api.get(`/funding-partners?filters[project_fundings][documentId][$eq]=${fundingId}`)
-        const partnersToDelete = existingPartners?.data || []
-        for (const partner of partnersToDelete) {
-          try {
-            await api.delete(`/funding-partners/${partner.documentId || partner.id}`)
-          } catch (e) {
-            // ignore single deletion failure and continue
-          }
-        }
-      } catch (err) {
-        // ignore deletion errors but capture message
+        const existingResp = await api.get(`/funding-partners?populate=users_permissions_user&filters[project_fundings][documentId][$eq]=${fundingId}`)
+        existingItems = existingResp?.data || existingResp || []
+      } catch (e) {
+        // ถ้าดึงไม่ได้ให้ถือว่าไม่มีรายการเดิม
+        existingItems = []
       }
 
-      // สร้าง partners ใหม่ (รวม order เพื่อให้สามารถจัดลำดับได้ใน Strapi)
-      for (let i = 0; i < (partnersList || []).length; i++) {
-        const p = partnersList[i]
-        // หมายเหตุ: map ค่าจาก state UI -> ชื่อฟิลด์ของ Strapi
-        const partnerData = stripUndefined({
+      // แปลง server entries ให้สร้าง key เหมือนกับ UI สำหรับจับคู่
+      const serverEntries = (existingItems || []).map(item => {
+        const attr = item?.attributes || item || {}
+        const userId = attr.users_permissions_user?.data?.id || attr.users_permissions_user || attr.userID
+        return {
+          documentId: item?.documentId || item?.id,
+          fullname: attr.fullname || attr.name || '',
+          orgName: attr.orgName || attr.org || '',
+          partnerType: (() => {
+            const t = attr.participant_type
+            if (t === 1) return 'หัวหน้าโครงการ'
+            if (t === 2) return 'ที่ปรึกษาโครงการ'
+            if (t === 3) return 'ผู้ประสานงาน'
+            if (t === 4) return 'นักวิจัยร่วม'
+            if (t === 99) return 'อื่นๆ'
+            return ''
+          })(),
+          userID: userId,
+          partnerComment: `${attr.isFirstAuthor ? 'First Author' : ''}${attr.isCoreespondingAuthor ? (attr.isFirstAuthor ? ', ' : '') + 'Corresponding Author' : ''}`.trim(),
+          partnerProportion: attr.participation_percentage !== undefined ? String(attr.participation_percentage) : undefined
+        }
+      })
+
+      const serverMap = new Map(serverEntries.map(e => [makeKey(e), e]))
+      const seenKeys = new Set()
+
+      // อัปเดตหรือสร้างใหม่ตามรายการใน UI
+      for (const p of (partnersList || [])) {
+        const key = makeKey(p)
+        seenKeys.add(key)
+        const payload = stripUndefined({
           fullname: p.fullname || undefined,
           orgName: p.orgName || undefined,
           participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
@@ -263,23 +279,40 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
           isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
           isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
           users_permissions_user: p.userID || undefined,
-          project_fundings: [fundingId], // ใช้ documentId
-          // หมายเหตุ: สคีมา FundingPartner ไม่มี field order โดยตรง
+          partnerProportion_percentage_custom: p.partnerProportion_percentage_custom || undefined,
+          // หมายเหตุ: ใน Strapi v5 การเชื่อมความสัมพันธ์สามารถส่ง documentId ได้โดยตรงในอาร์เรย์
+          project_fundings: [fundingId],
         })
 
+        const existing = serverMap.get(key)
         try {
-          await api.post('/funding-partners', { data: partnerData })
+          if (existing && existing.documentId) {
+            await api.put(`/funding-partners/${existing.documentId}`, { data: payload })
+          } else {
+            await api.post('/funding-partners', { data: payload })
+          }
         } catch (e) {
-          // continue creating others but capture error
+          // ดักข้อผิดพลาดต่อรายการ แต่ดำเนินการต่อ
         }
       }
-      // รีเฟรชจาก API เพื่อให้แน่ใจว่าข้อมูลที่แสดงตรงกับเซิร์ฟเวอร์
-      setRefreshTick(t => t + 1)
-      console.log('Sync to server completed')
+
+      // ลบรายการที่ไม่มีอยู่ใน UI แล้วเท่านั้น (ลดความเสี่ยงข้อมูลหาย)
+      for (const [key, entry] of serverMap.entries()) {
+        if (!seenKeys.has(key)) {
+          try {
+            if (entry?.documentId) {
+              await api.delete(`/funding-partners/${entry.documentId}`)
+            }
+          } catch (e) {
+            // ข้ามข้อผิดพลาดการลบเป็นรายตัว
+          }
+        }
+      }
+
+      // เสร็จสิ้น
+      console.log('Sync to server completed (upsert mode)')
     } catch (err) {
       console.error('Error syncing partners to server:', err)
-      // setSaveError(err.message || 'บันทึกผู้ร่วมโครงการไม่สำเร็จ')
-      // setSwalProps({ show: true, icon: 'error', title: 'บันทึกทีมไม่สำเร็จ', text: err.message || '', timer: 2000 })
     } finally {
       setSaving(false)
       isSyncingRef.current = false
@@ -351,8 +384,8 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     }
 
     // Duplicate prevention: do not add if key exists (allow editing to keep its own key)
-    setLocalPartners(prev => {
-      const base = prev || []
+    {
+      const base = Array.isArray(localPartners) ? localPartners.slice() : []
       const keys = base.map(makeKey)
       const newKey = makeKey(partner)
 
@@ -360,27 +393,25 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
         const existsIdx = keys.findIndex((k, i) => i !== editingIndex && k === newKey)
         if (existsIdx !== -1) {
           setSwalProps({ show: true, icon: 'error', title: 'มีรายชื่อซ้ำ', text: 'ไม่สามารถเพิ่มบุคคลเดิมซ้ำในรายการได้', timer: 1800, showConfirmButton: false })
-          return base
+        } else {
+          const updated = base.slice()
+          updated[editingIndex] = { ...updated[editingIndex], ...partner }
+          const next = recomputeProportions(updated)
+          setLocalPartners(next)
+          if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
+          syncToServer(next)
         }
       } else {
         if (keys.includes(newKey)) {
           setSwalProps({ show: true, icon: 'error', title: 'มีรายชื่อซ้ำ', text: 'บุคคลนี้ถูกเพิ่มแล้ว', timer: 1800, showConfirmButton: false })
-          return base
+        } else {
+          const next = recomputeProportions([...(base || []), partner])
+          setLocalPartners(next)
+          if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
+          syncToServer(next)
         }
       }
-
-      let next
-      if (editingIndex !== null && editingIndex >= 0 && editingIndex < base.length) {
-        const updated = base.slice()
-        updated[editingIndex] = { ...updated[editingIndex], ...partner }
-        next = recomputeProportions(updated)
-      } else {
-        next = recomputeProportions([...(base || []), partner])
-      }
-      // ซิงค์ขึ้นเซิร์ฟเวอร์ (ไม่รวม mePartner ซึ่งไม่ได้อยู่ใน localPartners อยู่แล้ว)
-      syncToServer(next)
-      return next
-    })
+    }
 
     const dlg = document.getElementById('my_modal_2');
     if (dlg && dlg.close) dlg.close()
@@ -414,6 +445,8 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
 
     setLocalPartners(() => {
       const next = recomputeProportions(newLocal)
+      // update parent immediately to avoid parent overwriting changes
+      if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
       syncToServer(next)
       return next
     })
@@ -443,6 +476,7 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
 
     setLocalPartners(() => {
       const next = recomputeProportions(newLocal)
+      if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
       syncToServer(next)
       return next
     })
@@ -457,6 +491,7 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
     const next = recomputeProportions(newLocal)
     setLocalPartners(next)
+    if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
     syncToServer(next)
     // รีเซ็ตฟอร์มใน dialog
     setFormData(prev => ({
