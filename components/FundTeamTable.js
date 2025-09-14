@@ -138,7 +138,7 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
           4: 'นักวิจัยร่วม',
           99: 'อื่นๆ',
         }
-    const norm = (items || []).map(item => {
+        const norm = (items || []).map(item => {
           const p = item?.attributes ? item.attributes : item
           return {
             id: item?.id || p.id,
@@ -152,10 +152,10 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
             partnerProportion_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== null
               ? String(p.partnerProportion_percentage_custom)
               : undefined,
-      order: p.order !== undefined ? parseInt(p.order) : (item?.order !== undefined ? parseInt(item.order) : undefined),
+            order: p.order !== undefined ? parseInt(p.order) : (item?.order !== undefined ? parseInt(item.order) : undefined),
           }
         })
-    setLocalPartners(recomputeProportions(ensureSequentialOrder(norm)))
+        setLocalPartners(recomputeProportions(ensureSequentialOrder(norm)))
       } catch (err) {
         setSaveError(err?.message || 'Failed to load funding partners')
       }
@@ -335,27 +335,27 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
 
   // ย้ายลำดับขึ้น
   function moveUp(idx) {
-  // ทำงานบนรายการที่เรียงตาม order แล้ว จากนั้นปรับ order ใหม่
-  if (idx <= 0) return
-  const arr = displayRows.slice()
-  ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
-  const renumbered = arr.map((p, i) => ({ ...p, order: i + 1 }))
-  const next = recomputeProportions(renumbered)
-  setLocalPartners(next)
-  if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
-  syncToServer(next)
+    // ทำงานบนรายการที่เรียงตาม order แล้ว จากนั้นปรับ order ใหม่
+    if (idx <= 0) return
+    const arr = displayRows.slice()
+      ;[arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]
+    const renumbered = arr.map((p, i) => ({ ...p, order: i + 1 }))
+    const next = recomputeProportions(renumbered)
+    setLocalPartners(next)
+    if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
+    syncToServer(next)
   }
 
   // ย้ายลำดับลง
   function moveDown(idx) {
-  const arr = displayRows.slice()
-  if (idx >= arr.length - 1) return
-  ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
-  const renumbered = arr.map((p, i) => ({ ...p, order: i + 1 }))
-  const next = recomputeProportions(renumbered)
-  setLocalPartners(next)
-  if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
-  syncToServer(next)
+    const arr = displayRows.slice()
+    if (idx >= arr.length - 1) return
+      ;[arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]
+    const renumbered = arr.map((p, i) => ({ ...p, order: i + 1 }))
+    const next = recomputeProportions(renumbered)
+    setLocalPartners(next)
+    if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
+    syncToServer(next)
   }
 
   function handleRemovePartner(idx) {
@@ -364,8 +364,8 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
     const target = current[idx]
     // if the target is me, we can't remove the creator; ignore
     if (target && target.isMe) return
-  const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
-  const next = recomputeProportions(ensureSequentialOrder(newLocal))
+    const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
+    const next = recomputeProportions(ensureSequentialOrder(newLocal))
     setLocalPartners(next)
     if (typeof setFormData === 'function') setFormData(prev => ({ ...prev, partnersLocal: next }))
     syncToServer(next)
@@ -411,9 +411,9 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
   // สร้างแถวผู้ใช้ปัจจุบันและคำนวณสัดส่วนรวมเพื่อใช้แสดงผล
   // display only the local partners in the table (hide the creator/me row)
   const displayRows = useMemo(() => {
-  // แสดงผลโดยเรียงตาม order เสมอ แล้วค่อยคำนวณสัดส่วนใหม่
-  const withOrder = ensureSequentialOrder(localPartners || [])
-  return recomputeProportions(withOrder)
+    // แสดงผลโดยเรียงตาม order เสมอ แล้วค่อยคำนวณสัดส่วนใหม่
+    const withOrder = ensureSequentialOrder(localPartners || [])
+    return recomputeProportions(withOrder)
   }, [localPartners])
 
   return (
