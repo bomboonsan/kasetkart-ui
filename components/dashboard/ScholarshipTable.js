@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useTransition, useMemo } from "react";
+import { useState, useEffect, useRef, useTransition } from "react";
 import useSWR from "swr";
 import { valueFromAPI } from "@/lib/api/lookup";
 import { dashboardAPI } from "@/lib/api/dashboard";
@@ -19,16 +19,82 @@ export default function ScholarshipTable({
   const [activeType, setActiveType] = useState("icTypes");
   const [selectedDeptId, setSelectedDeptId] = useState("all");
   const [departments, setDepartments] = useState([]);
-  const [currentStats, setCurrentStats] = useState({
-    icTypes: [],
-    impacts: [],
-    sdgs: [],
-  });
-  const [loading, setLoading] = useState(false);
-  const [isFetching, setIsFetching] = useState(false);
   const [selectedItems, setSelectedItems] = useState([]);
   const debounceRef = useRef(null);
   const [isPending, startTransition] = useTransition();
+
+  // โหลด departments ตอน mount
+  useEffect(() => {
+    const loadDepartments = async () => {
+      try {
+        const response = await valueFromAPI.getDepartments();
+        const depts = response?.data || response || [];
+        setDepartments(depts);
+      } catch {
+        setDepartments([]);
+      }
+    };
+    loadDepartments();
+  }, []);
+
+  // กำหนด key สำหรับ SWR
+  const researchKey =
+    selectedDeptId === ""
+      ? null
+      : ["researchStats", selectedDeptId === "all" ? "all" : selectedDeptId];
+
+  // ใช้ SWR โหลด research stats
+  const {
+    data: currentStats,
+    isLoading: swrLoading,
+    isValidating: isFetching,
+  } = useSWR(
+    researchKey,
+    () =>
+      dashboardAPI.getResearchStatsByTypes(
+        selectedDeptId === "all" ? null : selectedDeptId,
+      ),
+    {
+      revalidateOnFocus: false,
+      dedupingInterval: 6000,
+      keepPreviousData: true,
+      fallbackData: researchStats, // ใช้ prop เป็นค่าเริ่มต้น
+    },
+  );
+
+  const activeData = currentStats?.[activeType] || [];
+
+  // Default: mark all items checked whenever activeData changes
+  useEffect(() => {
+    if (Array.isArray(activeData) && activeData.length) {
+      setSelectedItems(activeData.map((_, i) => i));
+    } else {
+      setSelectedItems([]);
+    }
+  }, [activeData]);
+
+  // นับรวม
+  const counts = {
+    icTypes: (currentStats?.icTypes || []).reduce(
+      (sum, item) => sum + (item.count || 0),
+      0,
+    ),
+    impacts: (currentStats?.impacts || []).reduce(
+      (sum, item) => sum + (item.count || 0),
+      0,
+    ),
+    sdgs: (currentStats?.sdgs || []).reduce(
+      (sum, item) => sum + (item.count || 0),
+      0,
+    ),
+  };
+
+  const totalCount = counts[activeType] || 1;
+
+  const selectedSum = (selectedItems || []).reduce((sum, idx) => {
+    const item = activeData[idx];
+    return sum + (item && item.count ? item.count : 0);
+  }, 0);
 
   const handleCheckboxChange = (e) => {
     const value = parseInt(e.target.value);
@@ -41,112 +107,6 @@ export default function ScholarshipTable({
       setSelectedItems((prev) => prev.filter((i) => i !== value));
     }
   };
-
-  
-
-  // Load departments on mount
-  useEffect(() => {
-    loadDepartments();
-  }, []);
-
-  // Load research stats when department changes
-  useEffect(() => {
-    if (selectedDeptId !== "") {
-      // loadResearchStats()
-    }
-  }, [selectedDeptId]);
-
-  // Use passed stats initially
-  useEffect(() => {
-    if (researchStats && Object.keys(researchStats).length > 0) {
-      setCurrentStats(researchStats);
-    }
-  }, [researchStats]);
-
-  const loadDepartments = async () => {
-    try {
-      const response = await valueFromAPI.getDepartments();
-      const depts = response?.data || response || [];
-      setDepartments(depts);
-    } catch (err) {
-      // Graceful fallback: clear departments on error
-      setDepartments([]);
-      setLoading(false);
-    }
-  };
-  // Use SWR for research stats per-department
-  const researchKey =
-    selectedDeptId === ""
-      ? null
-      : ["researchStats", selectedDeptId === "all" ? "all" : selectedDeptId];
-  const {
-    data: researchRaw,
-    isLoading: swrLoading,
-    isValidating: isValidatingResearch,
-  } = useSWR(
-    researchKey,
-    () =>
-      dashboardAPI.getResearchStatsByTypes(
-        selectedDeptId === "all" ? null : selectedDeptId,
-      ),
-    {
-      revalidateOnFocus: false,
-      dedupingInterval: 60000,
-      keepPreviousData: true,
-    },
-  );
-
-  // map swr data to expected shape
-  useEffect(() => {
-    if (researchRaw && Object.keys(researchRaw).length > 0) {
-      setCurrentStats(researchRaw);
-    }
-  }, [researchRaw]);
-  const activeData = currentStats[activeType] || [];
-
-  // Default: mark all items checked whenever activeData changes
-  useEffect(() => {
-    if (Array.isArray(activeData) && activeData.length) {
-      setSelectedItems(activeData.map((_, i) => i));
-    } else {
-      setSelectedItems([]);
-    }
-  }, [activeData]);
-
-  // Calculate counts for tabs
-  const counts = {
-    icTypes: (currentStats.icTypes || []).reduce(
-      (sum, item) => sum + (item.count || 0),
-      0,
-    ),
-    impacts: (currentStats.impacts || []).reduce(
-      (sum, item) => sum + (item.count || 0),
-      0,
-    ),
-    sdgs: (currentStats.sdgs || []).reduce(
-      (sum, item) => sum + (item.count || 0),
-      0,
-    ),
-  };
-
-  // Calculate total for percentage
-  const totalCount = counts[activeType] || 1;
-
-  // Sum only checked items for summary
-  const selectedSum = (selectedItems || []).reduce((sum, idx) => {
-    const item = activeData[idx];
-    return sum + (item && item.count ? item.count : 0);
-  }, 0);
-
-  // if (scholarshipErr) {
-  //   return (
-  //     <div className="p-6 border rounded-lg shadow-sm bg-white">
-  //       <div className="text-red-500 text-center">
-  //         เกิดข้อผิดพลาดในการโหลดข้อมูล: {scholarshipErr.message}
-  //       </div>
-  //     </div>
-  //   )
-  // }
 
   return (
     <div className="p-6 border border-gray-50 rounded-lg shadow-sm bg-white">
@@ -170,11 +130,10 @@ export default function ScholarshipTable({
               });
             }}
             className="px-3 py-1 bg-white border border-gray-200 text-sm rounded-md text-gray-900"
-            disabled={loading}
           >
             <option value="all">ทั้งหมด</option>
             {departments.map((dept) => (
-              <option key={dept.documentId} value={String(dept.documentId)}>
+              <option key={dept.id || dept.documentId} value={String(dept.documentId || dept.id || '')}>
                 {dept.name}
               </option>
             ))}
@@ -189,11 +148,10 @@ export default function ScholarshipTable({
             <button
               key={t.key}
               onClick={() => setActiveType(t.key)}
-              className={`px-4 py-2 text-sm font-medium -mb-px border-b-2 transition-colors ${
-                activeType === t.key
+              className={`px-4 py-2 text-sm font-medium -mb-px border-b-2 transition-colors ${activeType === t.key
                   ? "border-blue-600 text-blue-600"
                   : "border-transparent text-gray-600 hover:text-gray-800"
-              }`}
+                }`}
             >
               {t.label} {counts[t.key] ? `(${counts[t.key]})` : "(0)"}
             </button>
@@ -207,7 +165,6 @@ export default function ScholarshipTable({
               type="checkbox"
               ref={(el) => {
                 if (!el) return;
-                // set indeterminate state based on selection
                 el.indeterminate =
                   selectedItems.length > 0 &&
                   selectedItems.length < (activeData || []).length;
@@ -259,7 +216,7 @@ export default function ScholarshipTable({
               </tr>
             </thead>
             <tbody>
-              {loading && (!activeData || activeData.length === 0) ? (
+              {swrLoading && (!activeData || activeData.length === 0) ? (
                 <tr>
                   <td colSpan={4} className="text-center py-8 text-gray-500">
                     กำลังโหลดข้อมูล...
@@ -272,16 +229,13 @@ export default function ScholarshipTable({
                   </td>
                 </tr>
               ) : (
-                // Render rows; while isFetching show slightly dimmed rows and a skeleton for clarity
                 activeData.map((item, index) => {
                   const count = item.count || 0;
-                  const totalCount = counts[activeType] || 1;
                   const percentage =
                     totalCount > 0
                       ? ((count / totalCount) * 100).toFixed(1)
                       : "0.0";
 
-                  // Color mapping for different types
                   const colors = {
                     0: "#22c55e", // green
                     1: "#6366f1", // indigo
@@ -294,7 +248,8 @@ export default function ScholarshipTable({
                   return (
                     <tr
                       key={item.name || index}
-                      className={`border-b border-b-gray-200 hover:bg-gray-50 ${isFetching || isPending ? "opacity-80" : ""}`}
+                      className={`border-b border-b-gray-200 hover:bg-gray-50 ${isFetching || isPending ? "opacity-80" : ""
+                        }`}
                     >
                       <td className="py-3 px-4">
                         <div className="text-sm font-medium text-gray-900 flex items-center gap-2">
@@ -360,7 +315,6 @@ export default function ScholarshipTable({
           </div>
         )}
 
-        {/* subtle fetching indicator */}
         {(isFetching || isPending) && (
           <div className="mt-2 text-xs text-gray-500">อัปเดตข้อมูล...</div>
         )}

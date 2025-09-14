@@ -30,6 +30,7 @@ export default function DashboardHome() {
   const loadResearchStatsForDepartment = useCallback(async (departmentId) => {
     try {
       const stats = await dashboardAPI.getResearchStatsByTypes(departmentId)
+      console.log('Loaded research stats for department', departmentId, stats)
       setResearchStats(stats)
     } catch (err) {
       setError('ไม่สามารถโหลดสถิติการวิจัยสำหรับภาควิชานี้ได้')
@@ -137,6 +138,7 @@ export default function DashboardHome() {
 
     if (researchStatsRes) {
       setResearchStats(researchStatsRes)
+      console.log('Loaded research stats for all departments', researchStatsRes)
     }
 
     setLoading(Boolean(loadingDepts || loadingStats || loadingFaculty || loadingResearch))
