@@ -225,7 +225,7 @@ export default function EditResearchForm({ mode = 'create', projectId: propProje
   }, [])
   // หมายเหตุ: ตัด log debug ออกเพื่อความสะอาดของโค้ด
 
-  // console.log('formData', formData)
+  
 
   const [subFundType, setSubFundType] = useState([])
   const subFundType1 = [

@@ -1,32 +1,36 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import useSWR, { mutate } from 'swr'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import useSWR, { mutate } from "swr";
 // ใช้ path alias (@/) เพื่อให้ import สั้นและชัดเจน
-import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
-import { stripUndefined, getDocumentId, createHandleChange } from '@/utils'
-import { FormSection, FormFieldBlock, FormField } from '@/components/ui'
-import ProjectPicker from './ProjectPicker'
+import { worksAPI, projectAPI, profileAPI } from "@/lib/api";
+import { stripUndefined, getDocumentId, createHandleChange } from "@/utils";
+import { FormSection, FormFieldBlock, FormField } from "@/components/ui";
+import ProjectPicker from "./ProjectPicker";
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
-import { FormCheckbox } from '@/components/ui'
-import { FormTextarea } from '@/components/ui'
-import { FormDateSelect } from '@/components/ui'
+import { FormCheckbox } from "@/components/ui";
+import { FormTextarea } from "@/components/ui";
+import { FormDateSelect } from "@/components/ui";
 import FormSelect from "./FormSelect";
-import FileUploadField from './FileUploadField'
-import EditableResearchTeamSection from './EditableResearchTeamSection'
-import { Button } from '@/components/ui'
-import dynamic from 'next/dynamic'
-const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
+import FileUploadField from "./FileUploadField";
+import EditableResearchTeamSection from "./EditableResearchTeamSection";
+import { Button } from "@/components/ui";
+import dynamic from "next/dynamic";
+const SweetAlert2 = dynamic(() => import("react-sweetalert2"), { ssr: false });
 
-export default function CreateConferenceForm({ mode = 'create', workId, initialData }) {
-  const router = useRouter()
-  const [swalProps, setSwalProps] = useState({})
-  
+export default function CreateConferenceForm({
+  mode = "create",
+  workId,
+  initialData,
+}) {
+  const router = useRouter();
+  const [swalProps, setSwalProps] = useState({});
+
   // Form state aligned to work-conference schema
   const [formData, setFormData] = useState({
-    project_research: '', // relation to project-research
+    project_research: "", // relation to project-research
     titleTH: "", // ชื่อผลงาน (ไทย)
     titleEN: "", // ชื่อผลงาน (อังกฤษ)
     isEnvironmentallySustainable: 0, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
@@ -53,65 +57,74 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
     attachments: [],
   });
 
-  const [submitting, setSubmitting] = useState(false)
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Load current user for context
-  const { data: userRes, error: userError } = useSWR('users/me', () => profileAPI.getCurrentUser())
-  
+  const { data: userRes, error: userError } = useSWR("users/me", () =>
+    profileAPI.getCurrentUser(),
+  );
+
   // Load existing work when editing
   const { data: workRes, error: workError } = useSWR(
-    mode === 'edit' && workId ? ['work-conference', workId] : null,
-    () => worksAPI.getConference(workId)
-  )
+    mode === "edit" && workId ? ["work-conference", workId] : null,
+    () => worksAPI.getConference(workId),
+  );
 
   // Prefill when editing
   useEffect(() => {
-    if (!workRes?.data) return
-    const work = workRes.data
-    setFormData(prev => ({
+    if (!workRes?.data) return;
+    const work = workRes.data;
+    setFormData((prev) => ({
       ...prev,
-    project_research: getDocumentId(work.project_research) || '',
-      titleTH: work.titleTH || '',
-      titleEN: work.titleEN || '',
+      project_research: __projectObj.id || "",
+      titleTH: work.titleTH || "",
+      titleEN: work.titleEN || "",
       isEnvironmentallySustainable: work.isEnvironmentallySustainable || 0,
-      journalName: work.journalName || '',
-      doi: work.doi || '',
-      isbn: work.isbn || '',
-      durationStart: work.durationStart ? String(work.durationStart).slice(0,10) : '',
-      durationEnd: work.durationEnd ? String(work.durationEnd).slice(0,10) : '',
+      journalName: work.journalName || "",
+      doi: work.doi || "",
+      isbn: work.isbn || "",
+      durationStart: work.durationStart
+        ? String(work.durationStart).slice(0, 10)
+        : "",
+      durationEnd: work.durationEnd
+        ? String(work.durationEnd).slice(0, 10)
+        : "",
       cost: work.cost || 0,
       costType: work.costType || 0,
       presentationWork: work.presentationWork || 0,
       presentType: work.presentType || 0,
       articleType: work.articleType || 0,
-      abstractTH: work.abstractTH || '',
-      abstractEN: work.abstractEN || '',
-      summary: work.summary || '',
-      keywords: work.keywords || '',
+      abstractTH: work.abstractTH || "",
+      abstractEN: work.abstractEN || "",
+      summary: work.summary || "",
+      keywords: work.keywords || "",
       level: work.level || 0,
       countryCode: work.countryCode || 0,
       state: work.state || 0,
       city: work.city || 0,
-      fundName: work.fundName || '',
+      fundName: work.fundName || "",
       attachments: work.attachments || [],
       __projectObj: work.project_research || undefined,
-    }))
-  }, [workRes])
+    }));
+  }, [workRes]);
+
+  // console.log(formData.__projectObj.id);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('')
-    setSubmitting(true)
-    
+    setError("");
+    setSubmitting(true);
+
     try {
       // Prepare payload aligned to work-conference schema
       const payload = {
-    project_research: getDocumentId(formData.project_research) || undefined,
+        project_research: formData.__projectObj.id || undefined,
         titleTH: formData.titleTH || undefined,
         titleEN: formData.titleEN || undefined,
-        isEnvironmentallySustainable: parseInt(formData.isEnvironmentallySustainable) || 0,
+        isEnvironmentallySustainable:
+          parseInt(formData.isEnvironmentallySustainable) || 0,
         journalName: formData.journalName || undefined,
         doi: formData.doi || undefined,
         isbn: formData.isbn || undefined,
@@ -127,70 +140,76 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
         summary: formData.summary || undefined,
         keywords: formData.keywords || undefined,
         level: parseInt(formData.level) || 0,
-        countryCode: formData.countryCode ? parseInt(formData.countryCode) : undefined,
+        countryCode: formData.countryCode
+          ? parseInt(formData.countryCode)
+          : undefined,
         state: formData.state ? parseInt(formData.state) : undefined,
         city: formData.city ? parseInt(formData.city) : undefined,
         fundName: formData.fundName || undefined,
-        attachments: (formData.attachments || []).map(a => ({ id: a.id })),
-      }
+        attachments: (formData.attachments || []).map((a) => ({ id: a.id })),
+      };
 
-  // Clean payload
-  const cleanPayload = stripUndefined(payload)
+      // Clean payload
+      const cleanPayload = stripUndefined(payload);
 
-      let result
-      if (mode === 'edit' && workId) {
-  result = await worksAPI.updateConference(workId, cleanPayload)
-        setSwalProps({ 
-          show: true, 
-          icon: 'success', 
-          title: 'แก้ไขผลงานการประชุมสำเร็จ', 
-          timer: 1600, 
-          showConfirmButton: false 
-        })
+      let result;
+      if (mode === "edit" && workId) {
+        // console.log(workId, cleanPayload);
+        result = await worksAPI.updateConference(workId, cleanPayload);
+        setSwalProps({
+          show: true,
+          icon: "success",
+          title: "แก้ไขผลงานการประชุมสำเร็จ",
+          timer: 1600,
+          showConfirmButton: false,
+        });
       } else {
-  result = await worksAPI.createConference(cleanPayload)
-        setSwalProps({ 
-          show: true, 
-          icon: 'success', 
-          title: 'สร้างผลงานการประชุมสำเร็จ', 
-          timer: 1600, 
-          showConfirmButton: false 
-        })
+        // console.log("payload", payload);
+        result = await worksAPI.createConference(cleanPayload);
+        setSwalProps({
+          show: true,
+          icon: "success",
+          title: "สร้างผลงานการประชุมสำเร็จ",
+          timer: 1600,
+          showConfirmButton: false,
+        });
       }
 
       // Refresh data and navigate
-      mutate('work-conferences')
-      setTimeout(() => router.push('/form/overview'), 1200)
-
+      mutate("work-conferences");
+      setTimeout(() => router.push("/form/overview"), 1200);
     } catch (err) {
-        const msg = err?.response?.data?.error?.message || err?.message || 'เกิดข้อผิดพลาด'
-        setError(msg)
-        setSwalProps({ 
-          show: true, 
-          icon: 'error', 
-          title: 'บันทึกไม่สำเร็จ', 
-          text: msg, 
-          timer: 2200 
-        })
+      const msg =
+        err?.response?.data?.error?.message || err?.message || "เกิดข้อผิดพลาด";
+      setError(msg);
+      setSwalProps({
+        show: true,
+        icon: "error",
+        title: "บันทึกไม่สำเร็จ",
+        text: msg,
+        timer: 2200,
+      });
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
   };
 
-  const handleInputChange = createHandleChange(setFormData)
+  const handleInputChange = createHandleChange(setFormData);
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <SweetAlert2 {...swalProps} didClose={() => setSwalProps({})} />
       <form onSubmit={handleSubmit} className="p-6 space-y-8">
         {error && (
-          <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">{error}</div>
+          <div className="p-3 rounded bg-red-50 text-red-700 text-sm border border-red-200">
+            {error}
+          </div>
         )}
         {/* <FormSection>
           <FormFieldBlock>
             <ProjectPicker
               label="โครงการวิจัย"
-              
+
               selectedProject={formData.__projectObj}
               onSelect={(project) => {
                 handleInputChange('project_research', getDocumentId(project))
@@ -204,7 +223,6 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
-              
               value={formData.titleTH}
               onChange={(value) => handleInputChange("titleTH", value)}
               placeholder=""
@@ -212,7 +230,6 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
 
             <FormTextarea
               label="ชื่อผลงาน (อังกฤษ)"
-              
               value={formData.titleEN}
               onChange={(value) => handleInputChange("titleEN", value)}
               placeholder=""
@@ -226,7 +243,9 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
                   type="radio"
                   value="true"
                   checked={formData.isEnvironmentallySustainable === true}
-                  onChange={() => handleInputChange("isEnvironmentallySustainable", true)}
+                  onChange={() =>
+                    handleInputChange("isEnvironmentallySustainable", true)
+                  }
                   className={`
                     text-zinc-700
                     px-3 py-2 border border-gray-300 rounded-md
@@ -242,7 +261,9 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
                   type="radio"
                   value="false"
                   checked={formData.isEnvironmentallySustainable === false}
-                  onChange={() => handleInputChange("isEnvironmentallySustainable", false)}
+                  onChange={() =>
+                    handleInputChange("isEnvironmentallySustainable", false)
+                  }
                   className={`
                     text-zinc-700
                     px-3 py-2 border border-gray-300 rounded-md
@@ -258,7 +279,6 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)"
-              
               value={formData.journalName}
               onChange={(value) => handleInputChange("journalName", value)}
               placeholder=""
@@ -267,19 +287,25 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
               label="โครงการวิจัย"
               selectedProject={formData.__projectObj}
               onSelect={(p) => {
-                const ds = p.durationStart ? String(p.durationStart).slice(0,10) : ''
-                const de = p.durationEnd ? String(p.durationEnd).slice(0,10) : ''
-                setFormData(prev => ({
+                const ds = p.durationStart
+                  ? String(p.durationStart).slice(0, 10)
+                  : "";
+                const de = p.durationEnd
+                  ? String(p.durationEnd).slice(0, 10)
+                  : "";
+                setFormData((prev) => ({
                   ...prev,
                   projectId: String(p.id),
                   __projectObj: p,
                   // Prefill from Project
-                  isEnvironmentallySustainable: p.isEnvironmentallySustainable ?? prev.isEnvironmentallySustainable,
+                  isEnvironmentallySustainable:
+                    p.isEnvironmentallySustainable ??
+                    prev.isEnvironmentallySustainable,
                   fundName: p.fundName || prev.fundName,
                   keywords: p.keywords || prev.keywords,
                   durationStart: ds || prev.durationStart,
                   durationEnd: de || prev.durationEnd,
-                }))
+                }));
               }}
             />
             <FormInput
@@ -307,7 +333,9 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
                 <FormDateSelect
                   title="เริ่มต้น"
                   value={formData.durationStart}
-                  onChange={(value) => handleInputChange("durationStart", value)}
+                  onChange={(value) =>
+                    handleInputChange("durationStart", value)
+                  }
                 />
               </div>
               <div>
@@ -325,36 +353,38 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
                 </label>
               </div>
               <div className="flex-1 space-x-3">
-                
-                <div className='flex gap-4 items-center'>
+                <div className="flex gap-4 items-center">
                   <input
                     type="number"
                     value={formData.cost}
                     onChange={(e) => handleInputChange("cost", e.target.value)}
                     placeholder="0"
-                    
                     className={`
                   w-auto inline-block
           text-zinc-700
             px-3 py-2 border border-gray-300 rounded-md
-            placeholder-gray-400 focus:outline-none focus:ring-2 
+            placeholder-gray-400 focus:outline-none focus:ring-2
             focus:ring-blue-500 focus:border-blue-500
             transition-colors duration-200
           `}
                   />
-                  <span className='text-gray-700'>จาก</span>
+                  <span className="text-gray-700">จาก</span>
                   <select
                     value={formData.costType}
-                    onChange={(e) => handleInputChange("costType", e.target.value)}
-                    
+                    onChange={(e) =>
+                      handleInputChange("costType", e.target.value)
+                    }
                     className="text-zinc-700
                                 block w-auto px-3 py-2 border border-gray-300 rounded-md
-                                bg-white focus:outline-none focus:ring-2 
+                                bg-white focus:outline-none focus:ring-2
                                 focus:ring-blue-500 focus:border-blue-500
-                                transition-colors duration-200">
-                    <option value={''}>-- กรุณาเลือก --</option>
+                                transition-colors duration-200"
+                  >
+                    <option value={""}>-- กรุณาเลือก --</option>
                     <option value="1">เงินทุนส่วนตัว</option>
-                    <option value="10">เงินอุดหนุนรัฐบาลและเงินอุดหนุนอื่นที่รัฐบาลจัดสรรให้</option>
+                    <option value="10">
+                      เงินอุดหนุนรัฐบาลและเงินอุดหนุนอื่นที่รัฐบาลจัดสรรให้
+                    </option>
                     <option value="11">เงินงบประมาณมหาวิทยาลัย</option>
                     <option value="12">เงินรายได้ส่วนกลาง มก.</option>
                     <option value="13">ทุนอุดหนุนวิจัย มก.</option>
@@ -370,7 +400,6 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
             </div>
             <FormRadio
               inline={true}
-              
               label="การนำเสนอผลงาน"
               options={[
                 {
@@ -383,11 +412,12 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
                 },
               ]}
               value={formData.presentationWork}
-              onChange={(value) => handleInputChange("presentationWork", parseInt(value))}
+              onChange={(value) =>
+                handleInputChange("presentationWork", parseInt(value))
+              }
             />
             <FormRadio
               inline={true}
-              
               label="ประเภทการนำเสนอ"
               options={[
                 {
@@ -408,7 +438,6 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
             />
             <FormRadio
               inline={true}
-              
               label="ลักษณะของบทความ"
               options={[
                 {
@@ -428,14 +457,12 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
-              
               value={formData.abstractTH}
               onChange={(value) => handleInputChange("abstractTH", value)}
               placeholder=""
             />
             <FormTextarea
               label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
-              
               value={formData.abstractEN}
               onChange={(value) => handleInputChange("abstractEN", value)}
               placeholder=""
@@ -445,7 +472,6 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="กรณีเข้าร่วมประชุมวิชาการ สรุปเนื้อหาการประชุมแบบย่อ(ถ้าไม่มีข้อมูลให้ใส่ -)"
-              
               value={formData.summary}
               onChange={(value) => handleInputChange("summary", value)}
               placeholder=""
@@ -457,7 +483,9 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
               label="* ส่งไฟล์หลักฐาน (ขอให้ Scan หน้าปก สารบัญ และไฟล์เรื่องเต็ม ของการประชุม เพื่อการตรวจสอบหลักฐาน)"
               // ปรับให้รองรับการอัปโหลดไฟล์หลายครั้งแบบสะสม
               value={formData.attachments}
-              onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
+              onFilesChange={(attachments) =>
+                handleInputChange("attachments", attachments)
+              }
               accept=".pdf,.doc,.docx"
               multiple
             />
@@ -466,7 +494,6 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormRadio
               inline={true}
-              
               label="ระดับการนำเสนอ"
               options={[
                 {
@@ -483,48 +510,44 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
             />
             <FormSelect
               label="ประเทศ"
-              
               value={formData.countryCode}
               onChange={(value) => handleInputChange("countryCode", value)}
               className="max-w-lg"
               options={[
-                { value: '', label: 'เลือกประเทศ' },
-                { value: 'TH', label: 'Thailand' },
-                { value: 'US', label: 'United States' },
-                { value: 'UK', label: 'United Kingdom' },
+                { value: "", label: "เลือกประเทศ" },
+                { value: "TH", label: "Thailand" },
+                { value: "US", label: "United States" },
+                { value: "UK", label: "United Kingdom" },
               ]}
             />
             <FormSelect
               label="มลรัฐ/จังหวัด"
-              
               value={formData.state}
               onChange={(value) => handleInputChange("state", value)}
               className="max-w-lg"
               options={[
-                { value: '', label: 'เลือกมลรัฐ/จังหวัด' },
-                { value: 'Bangkok', label: 'Bangkok' },
-                { value: 'ChiangMai', label: 'Chiang Mai' },
-                { value: 'Phuket', label: 'Phuket' },
+                { value: "", label: "เลือกมลรัฐ/จังหวัด" },
+                { value: "Bangkok", label: "Bangkok" },
+                { value: "ChiangMai", label: "Chiang Mai" },
+                { value: "Phuket", label: "Phuket" },
               ]}
             />
             <FormSelect
               label="เมือง"
-              
               value={formData.city}
               onChange={(value) => handleInputChange("city", value)}
               className="max-w-lg"
               options={[
-                { value: '', label: 'เลือกเมือง' },
-                { value: 'เมือง1', label: 'เมือง 1' },
-                { value: 'เมือง2', label: 'เมือง 2' },
-                { value: 'เมือง3', label: 'เมือง 3' },
+                { value: "", label: "เลือกเมือง" },
+                { value: "เมือง1", label: "เมือง 1" },
+                { value: "เมือง2", label: "เมือง 2" },
+                { value: "เมือง3", label: "เมือง 3" },
               ]}
             />
           </FormFieldBlock>
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อแหล่งทุน"
-              
               value={formData.fundName}
               onChange={(value) => handleInputChange("fundName", value)}
               placeholder=""
@@ -533,7 +556,6 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <FormFieldBlock>
             <FormTextarea
               label="คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)"
-              
               value={formData.keywords}
               onChange={(value) => handleInputChange("keywords", value)}
               placeholder=""
@@ -543,7 +565,7 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
 
         {/* Research Team Section (Editable) */}
         {formData.__projectObj && (
-          <div className='p-4 rounded-md border shadow border-gray-200/70'>
+          <div className="p-4 rounded-md border shadow border-gray-200/70">
             <EditableResearchTeamSection project={formData.__projectObj} />
           </div>
         )}
@@ -553,9 +575,13 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
           <Button variant="outline" type="button">
             ยกเลิก
           </Button>
-          
+
           <Button variant="primary" type="submit" disabled={submitting}>
-            {submitting ? 'กำลังบันทึก...' : (mode === 'edit' ? 'แก้ไข' : 'บันทึก')}
+            {submitting
+              ? "กำลังบันทึก..."
+              : mode === "edit"
+                ? "แก้ไข"
+                : "บันทึก"}
           </Button>
         </div>
       </form>
@@ -566,34 +592,43 @@ export default function CreateConferenceForm({ mode = 'create', workId, initialD
 // Component to display project partners
 function ProjectPartnersDisplay({ project }) {
   const { data: partnersRes, error: partnersError } = useSWR(
-    project ? ['project-partners', project.documentId || project.id] : null,
-    () => projectAPI.getProjectPartners(project.documentId || project.id)
-  )
+    project ? ["project-partners", project.documentId || project.id] : null,
+    () => projectAPI.getProjectPartners(project.documentId || project.id),
+  );
 
-  const partners = partnersRes?.data || partnersRes || []
+  const partners = partnersRes?.data || partnersRes || [];
 
   if (partnersError) {
-    return <div className="text-sm text-gray-500">ไม่สามารถโหลดข้อมูลผู้ร่วมวิจัยได้</div>
+    return (
+      <div className="text-sm text-gray-500">
+        ไม่สามารถโหลดข้อมูลผู้ร่วมวิจัยได้
+      </div>
+    );
   }
 
   if (!partners.length) {
-    return <div className="text-sm text-gray-500">ไม่มีผู้ร่วมวิจัยในโครงการนี้</div>
+    return (
+      <div className="text-sm text-gray-500">ไม่มีผู้ร่วมวิจัยในโครงการนี้</div>
+    );
   }
 
   return (
     <div className="space-y-2">
       {partners.map((partner, idx) => (
-        <div key={partner.documentId || partner.id || idx} className="flex items-center space-x-4 p-3 bg-gray-50 rounded">
+        <div
+          key={partner.documentId || partner.id || idx}
+          className="flex items-center space-x-4 p-3 bg-gray-50 rounded"
+        >
           <div className="flex-1">
             <div className="font-medium text-gray-900">
-              {partner.users_permissions_user ? (
-                `${partner.users_permissions_user.firstName || ''} ${partner.users_permissions_user.lastName || ''}`
-              ) : (
-                partner.fullname || 'ไม่ระบุชื่อ'
-              )}
+              {partner.users_permissions_user
+                ? `${partner.users_permissions_user.firstName || ""} ${partner.users_permissions_user.lastName || ""}`
+                : partner.fullname || "ไม่ระบุชื่อ"}
             </div>
             <div className="text-sm text-gray-600">
-              {partner.users_permissions_user?.email || partner.orgName || 'ผู้ร่วมวิจัย'}
+              {partner.users_permissions_user?.email ||
+                partner.orgName ||
+                "ผู้ร่วมวิจัย"}
             </div>
             {partner.participation_percentage && (
               <div className="text-xs text-gray-500">
@@ -604,5 +639,5 @@ function ProjectPartnersDisplay({ project }) {
         </div>
       ))}
     </div>
-  )
+  );
 }

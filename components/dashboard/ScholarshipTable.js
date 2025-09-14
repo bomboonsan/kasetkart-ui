@@ -42,7 +42,7 @@ export default function ScholarshipTable({
     }
   };
 
-  // console.log('departments:', departments)
+  
 
   // Load departments on mount
   useEffect(() => {
