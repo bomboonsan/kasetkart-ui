@@ -28,6 +28,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   const [editingIndex, setEditingIndex] = useState(null)
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
+  const [initializedFromParent, setInitializedFromParent] = useState(false)
 
   // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
   function recomputeProportions(list = []) {
@@ -125,82 +126,31 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     loadMe()
   }, [])
 
-  // ถ้ามี partnersLocal ถูกส่งมาจาก Parent (`formData.partnersLocal`) ให้ใช้ค่านั้นเป็นค่าเริ่มต้น
-  // (ใช้เมื่อไม่มี `project` โหลดมาจาก API เช่นในกรณี Create หรือเมื่อ Edit ใช้ parent เป็นแหล่งข้อมูล)
-  // เพิ่ม effect นี้เพื่อให้ EditResearchForm ที่ตั้งค่า `formData.partnersLocal` สามารถทำให้ตารางแสดงได้ทันที
+  // Initialize from parent partnersLocal once (for create/edit initial fill) when no project is loaded
   useEffect(() => {
-    if (!project && Array.isArray(formData?.partnersLocal) && formData.partnersLocal.length > 0) {
-      // ใช้ recomputeProportions เพื่อคำนวณสัดส่วนให้ถูกต้องก่อนแสดง
+    if (
+      !initializedFromParent &&
+      !project &&
+      Array.isArray(formData?.partnersLocal) &&
+      formData.partnersLocal.length > 0
+    ) {
       setLocalPartners(recomputeProportions(formData.partnersLocal))
+      setInitializedFromParent(true)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [formData?.partnersLocal, project])
+  }, [formData?.partnersLocal, project, initializedFromParent])
 
-  // Keep parent formData in sync with local partners (so CreateResearchForm can read them)
+  // Keep parent formData in sync with local partners for submit
   useEffect(() => {
     if (typeof setFormData === 'function') {
       setFormData(prev => ({ ...prev, partnersLocal: localPartners }))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [localPartners])
 
-  async function syncToServer(partnersList) {
-    // หมายเหตุ: ซิงค์ข้อมูลทีมขึ้น Strapi ด้วยแนวทาง replace ทั้งชุด
-    // 1) ลบข้อมูลเดิมของโปรเจกต์นี้ทั้งหมด (อิง documentId)
-    // 2) สร้างข้อมูลใหม่ตามลำดับที่เห็นใน UI (ใช้ field order)
-    if (!projectId) return; // ไม่มี project ให้ซิงค์
-    setSaveError('')
-    setSaving(true)
-    try {
-      // เตรียม payload สำหรับ API 
-      const partnerTypeMap = {
-        'หัวหน้าโครงการ': 1,
-        'ที่ปรึกษาโครงการ': 2,
-        'ผู้ประสานงาน': 3,
-        'นักวิจัยร่วม': 4,
-        'อื่นๆ': 99,
-      }
-
-      // ลบ partners เก่าที่เชื่อมโยงกับ project นี้ (ใช้ documentId สำหรับ Strapi v5)
-      try {
-        const existingPartners = await api.get(`/project-partners?filters[project_researches][documentId][$eq]=${projectId}`)
-        const partnersToDelete = existingPartners?.data || []
-        for (const partner of partnersToDelete) {
-          await api.delete(`/project-partners/${partner.documentId || partner.id}`)
-        }
-      } catch (err) {
-        // ignore deletion errors but capture message
-        // preserve user experience without noisy console output
-      }
-
-      // สร้าง partners ใหม่ (รวม order เพื่อให้สามารถจัดลำดับได้ใน Strapi)
-      for (let i = 0; i < (partnersList || []).length; i++) {
-        const p = partnersList[i]
-        // หมายเหตุ: map ค่าจาก state UI -> ชื่อฟิลด์ของ Strapi
-        const partnerData = stripUndefined({
-          fullname: p.fullname || undefined,
-          orgName: p.orgName || undefined,
-          participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
-          participation_percentage_custom: p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '' ? parseFloat(p.partnerProportion_percentage_custom) : undefined,
-          participant_type: partnerTypeMap[p.partnerType] || undefined,
-          isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
-          isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
-          users_permissions_user: p.userID || undefined,
-          project_researches: [projectId], // ใช้ documentId
-          order: i
-        })
-
-        await api.post('/project-partners', { data: partnerData })
-      }
-
-      setSwalProps({ show: true, icon: 'success', title: 'บันทึกทีมสำเร็จ', timer: 1000, showConfirmButton: false })
-    } catch (err) {
-      setSaveError(err.message || 'บันทึกผู้ร่วมโครงการไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'บันทึกทีมไม่สำเร็จ', text: err.message || '', timer: 2000 })
-    } finally {
-      setSaving(false)
-    }
-  }
+  // NOTE: server sync was moved to ProjectForm submit to avoid repeated network
+  // calls on every local edit. ResearchTeamTable now only manages local state
+  // (localPartners) and updates parent `formData.partnersLocal` via setFormData.
 
   function resetForm() {
     setFormData(prev => ({
@@ -260,8 +210,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       } else {
         next = recomputeProportions([...(base || []), partner])
       }
-      // ซิงค์ขึ้นเซิร์ฟเวอร์ (ไม่รวม mePartner ซึ่งไม่ได้อยู่ใน localPartners อยู่แล้ว)
-      syncToServer(next)
+      // Note: server sync is handled by ProjectForm on submit
       return next
     })
 
@@ -295,11 +244,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       }) : p)
       .filter(p => true)
 
-    setLocalPartners(() => {
-      const next = recomputeProportions(newLocal)
-      syncToServer(next)
-      return next
-    })
+    setLocalPartners(() => recomputeProportions(newLocal))
   }
 
   // ย้ายลำดับลง
@@ -324,11 +269,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         User: p.User
       }) : p)
 
-    setLocalPartners(() => {
-      const next = recomputeProportions(newLocal)
-      syncToServer(next)
-      return next
-    })
+    setLocalPartners(() => recomputeProportions(newLocal))
   }
 
   function handleRemovePartner(idx) {
@@ -340,7 +281,6 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
     const next = recomputeProportions(newLocal)
     setLocalPartners(next)
-    syncToServer(next)
     // รีเซ็ตฟอร์มใน dialog
     setFormData(prev => ({
       ...prev,

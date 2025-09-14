@@ -385,26 +385,27 @@ export default function ProjectForm({
       }
 
       // สร้าง partner สำหรับผู้กรอกฟอร์ม (current user) เป็น หัวหน้าโครงการ
-      const mePartner = meObj
-        ? {
-          isInternal: true,
-          userId: meObj.id || meObj?.data?.id,
-          fullname:
-            (meObj.profile
-              ? `${meObj.profile.firstNameTH || meObj.profile.firstName || ""} ${meObj.profile.lastNameTH || meObj.profile.lastName || ""}`
-              : meObj.Profile
-                ? `${meObj.Profile.firstNameTH || meObj.Profile.firstName || ""} ${meObj.Profile.lastNameTH || meObj.Profile.lastName || ""}`
-                : meObj.email) || "",
-          orgName:
-            meObj.faculty?.name ||
-            meObj.department?.name ||
-            meObj.organization?.name ||
-            "",
-          partnerType: "หัวหน้าโครงการ",
-          partnerComment: "",
-          partnerProportion: undefined,
-        }
-        : null;
+      const mePartner = null;
+      // const mePartner = meObj
+      //   ? {
+      //     isInternal: true,
+      //     userId: meObj.id || meObj?.data?.id,
+      //     fullname:
+      //       (meObj.profile
+      //         ? `${meObj.profile.firstNameTH || meObj.profile.firstName || ""} ${meObj.profile.lastNameTH || meObj.profile.lastName || ""}`
+      //         : meObj.Profile
+      //           ? `${meObj.Profile.firstNameTH || meObj.Profile.firstName || ""} ${meObj.Profile.lastNameTH || meObj.Profile.lastName || ""}`
+      //           : meObj.email) || "",
+      //     orgName:
+      //       meObj.faculty?.name ||
+      //       meObj.department?.name ||
+      //       meObj.organization?.name ||
+      //       "",
+      //     partnerType: "หัวหน้าโครงการ",
+      //     partnerComment: "",
+      //     partnerProportion: undefined,
+      //   }
+      //   : null;
 
       // prefer partners provided by ResearchTeamTable if present, otherwise construct from me
       let partnersArray = [];
@@ -419,11 +420,11 @@ export default function ProjectForm({
           (p) => p.userId === meObj?.id || p.userID === meObj?.id,
         );
         if (mePartner && !hasMe) {
-          partnersArray.unshift(mePartner); // เพิ่มที่ตำแหน่งแรก
+          // partnersArray.unshift(mePartner); // เพิ่มที่ตำแหน่งแรก
         }
       } else {
         // ถ้าไม่มี partners จาก ResearchTeamTable ให้ใช้แค่ current user
-        if (mePartner) partnersArray.push(mePartner);
+        // if (mePartner) partnersArray.push(mePartner);
       }
 
       // Map to API payload matching Strapi content-type `project-research`
@@ -486,6 +487,16 @@ export default function ProjectForm({
           throw new Error("ไม่สามารถอัปเดตโครงการได้ (no id returned)");
         }
 
+        // IMPORTANT: Remove existing project-partners of this project to prevent duplicates
+        try {
+          const existingPartners = await api.get(`/project-partners?filters[project_researches][documentId][$eq]=${realProjectId}`)
+          const partnersToDelete = existingPartners?.data || []
+          for (const partner of partnersToDelete) {
+            await api.delete(`/project-partners/${partner.documentId || partner.id}`)
+          }
+        } catch (delErr) {
+          // Don't block submit; continue to recreate latest list
+        }
 
       } else {
         const resp = await projectAPI.createProjectWithRelations(payload);
@@ -512,8 +523,11 @@ export default function ProjectForm({
       };
 
       // สร้างข้อมูล project-partner สำหรับสมาชิกแต่ละคน
+      // For edit, use realProjectId (documentId) for relations; for create, use createdProjectId
+      const targetProjectIdForRelations = mode === 'edit' ? (realProjectId || createdProjectId) : createdProjectId
       const partnerErrors = [];
-      for (const p of partnersArray) {
+      for (let i = 0; i < partnersArray.length; i++) {
+        const p = partnersArray[i]
         // หมายเหตุ: Normalize ชื่อคีย์จากตาราง (userID vs userId, partnerComment vs comment)
         const userIdField = p.userId || p.userID || p.User?.id || undefined;
         const commentField = p.partnerComment || p.comment || "";
@@ -539,7 +553,8 @@ export default function ProjectForm({
           isCoreespondingAuthor:
             String(commentField).includes("Corresponding Author") || false,
           users_permissions_user: userIdField,
-          project_researches: [createdProjectId],
+          project_researches: [targetProjectIdForRelations],
+          order: i,
         });
 
         try {
