@@ -227,36 +227,36 @@ export default function ProjectForm({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, projectId]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const me = await authAPI.me();
-      setMeData(me);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const me = await authAPI.me();
+  //     setMeData(me);
 
-      // Auto-add current user เป็น partner หัวหน้าโครงการ
-      if (me && !formData.partnersLocal) {
-        const mePartner = {
-          isInternal: true,
-          userID: me.id,
-          fullname:
-            (me.profile
-              ? `${me.profile.firstNameTH || me.profile.firstName || ""} ${me.profile.lastNameTH || me.profile.lastName || ""}`
-              : me.Profile
-                ? `${me.Profile.firstNameTH || me.Profile.firstName || ""} ${me.Profile.lastNameTH || me.Profile.lastName || ""}`
-                : me.email) || "",
-          orgName:
-            me.faculty?.name ||
-            me.department?.name ||
-            me.organization?.name ||
-            "",
-          partnerType: "หัวหน้าโครงการ",
-          partnerComment: "",
-          partnerProportion: "1.00",
-        };
-        setFormData((prev) => ({ ...prev, partnersLocal: [mePartner] }));
-      }
-    };
-    fetchData();
-  }, []);
+  //     // // Auto-add current user เป็น partner หัวหน้าโครงการ
+  //     // if (me && !formData.partnersLocal) {
+  //     //   const mePartner = {
+  //     //     isInternal: true,
+  //     //     userID: me.id,
+  //     //     fullname:
+  //     //       (me.profile
+  //     //         ? `${me.profile.firstNameTH || me.profile.firstName || ""} ${me.profile.lastNameTH || me.profile.lastName || ""}`
+  //     //         : me.Profile
+  //     //           ? `${me.Profile.firstNameTH || me.Profile.firstName || ""} ${me.Profile.lastNameTH || me.Profile.lastName || ""}`
+  //     //           : me.email) || "",
+  //     //     orgName:
+  //     //       me.faculty?.name ||
+  //     //       me.department?.name ||
+  //     //       me.organization?.name ||
+  //     //       "",
+  //     //     partnerType: "หัวหน้าโครงการ",
+  //     //     partnerComment: "",
+  //     //     partnerProportion: "1.00",
+  //     //   };
+  //     //   setFormData((prev) => ({ ...prev, partnersLocal: [mePartner] }));
+  //     // }
+  //   };
+  //   fetchData();
+  // }, []);
   // หมายเหตุ: ตัด log debug ออกเพื่อความสะอาดของโค้ด
 
   const [subFundType, setSubFundType] = useState([]);
