@@ -12,12 +12,12 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  
+
   const [currentPage, setCurrentPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [totalItems, setTotalItems] = useState(0)
   const [pageSize] = useState(10)
-  
+
   const [searchTitle, setSearchTitle] = useState('')
   const [sortBy, setSortBy] = useState('createdAt')
   const [sortOrder, setSortOrder] = useState('desc')
@@ -26,7 +26,7 @@ export default function AdminProjectsPage() {
   const fetchProjects = useCallback(async () => {
     setLoading(true)
     setError('')
-    
+
     try {
       const params = {
         'pagination[page]': currentPage,
@@ -41,15 +41,15 @@ export default function AdminProjectsPage() {
       }
 
       const response = await projectAPI.getProjects(params)
-      
+
       const data = response?.data || response || []
       const meta = response?.meta || {}
       const pagination = meta.pagination || {}
-      
+
       setProjects(data)
       setTotalItems(pagination.total || data.length)
       setTotalPages(pagination.pageCount || Math.ceil((pagination.total || data.length) / pageSize))
-      
+
     } catch (err) {
       setError('ไม่สามารถโหลดข้อมูลโครงการได้')
     } finally {
@@ -83,8 +83,8 @@ export default function AdminProjectsPage() {
   }
 
   const getStatusColor = (publishedAt) => {
-    return publishedAt 
-      ? 'bg-green-100 text-green-800' 
+    return publishedAt
+      ? 'bg-green-100 text-green-800'
       : 'bg-yellow-100 text-yellow-800'
   }
 
@@ -165,7 +165,7 @@ export default function AdminProjectsPage() {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('nameTh')}
                   >
@@ -174,7 +174,7 @@ export default function AdminProjectsPage() {
                       <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('fiscalYear')}
                   >
@@ -189,7 +189,7 @@ export default function AdminProjectsPage() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     สถานะ
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('publishedAt')}
                   >
@@ -198,7 +198,7 @@ export default function AdminProjectsPage() {
                       <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
                   </th>
-                  <th 
+                  <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('updatedAt')}
                   >
@@ -244,14 +244,14 @@ export default function AdminProjectsPage() {
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
-                        <Link 
+                        <Link
                           href={`/form/view/project/${project.documentId || project.id}`}
                           className="text-blue-600 hover:text-blue-900"
                         >
                           ดู
                         </Link>
-                        <Link 
-                          href={`/form/edit/research/${project.documentId || project.id}`}
+                        <Link
+                          href={`/form/edit/project/${project.documentId || project.id}`}
                           className="text-green-600 hover:text-green-900"
                         >
                           แก้ไข
@@ -276,7 +276,7 @@ export default function AdminProjectsPage() {
           >
             ก่อนหน้า
           </Button>
-          
+
           <div className="flex space-x-1">
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum
@@ -289,7 +289,7 @@ export default function AdminProjectsPage() {
               } else {
                 pageNum = currentPage - 2 + i
               }
-              
+
               return (
                 <Button
                   key={pageNum}
@@ -302,7 +302,7 @@ export default function AdminProjectsPage() {
               )
             })}
           </div>
-          
+
           <Button
             variant="outline"
             disabled={currentPage === totalPages}

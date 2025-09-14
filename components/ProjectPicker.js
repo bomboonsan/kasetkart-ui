@@ -44,7 +44,7 @@ export default function ProjectPicker({ label = 'โครงการวิจ�
           {selectedProject ? 'เปลี่ยนโครงการ' : 'คลิกเพื่อเลือกโครงการวิจัย'}
         </button>
         {selectedProject && (
-          <span className="text-sm text-gray-700">{selectedProject.nameTE || selectedProject.nameEN || `Project #${selectedProject.id}`}</span>
+          <span className="text-sm text-gray-700">{selectedProject.nameTH || selectedProject.nameEN || `Project #${selectedProject.id}`}</span>
         )}
       </div>
 

@@ -29,6 +29,14 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState('')
   const [initializedFromParent, setInitializedFromParent] = useState(false)
+  // Local modal state to avoid mutating parent formData while editing modal
+  const [modalIsInternal, setModalIsInternal] = useState(true)
+  const [modalUserObj, setModalUserObj] = useState(undefined)
+  const [modalPartnerFullName, setModalPartnerFullName] = useState('')
+  const [modalOrgName, setModalOrgName] = useState('')
+  const [modalPartnerType, setModalPartnerType] = useState('')
+  const [modalPartnerCommentArr, setModalPartnerCommentArr] = useState([])
+  const [modalPartnerProportionCustom, setModalPartnerProportionCustom] = useState('')
 
   // คำนวณสัดส่วนสำหรับผู้ร่วมงานภายใน มก.
   function recomputeProportions(list = []) {
@@ -153,6 +161,15 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   // (localPartners) and updates parent `formData.partnersLocal` via setFormData.
 
   function resetForm() {
+    // clear modal-local fields
+    setModalIsInternal(true)
+    setModalUserObj(undefined)
+    setModalPartnerFullName('')
+    setModalOrgName('')
+    setModalPartnerType('')
+    setModalPartnerCommentArr([])
+    setModalPartnerProportionCustom('')
+    // also clear parent temporary fields used elsewhere
     setFormData(prev => ({
       ...prev,
       __userObj: undefined,
@@ -160,37 +177,33 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       orgName: '',
       userId: undefined,
       partnerType: '',
-      partnerComment: '',
-      partnerProportion_percentage_custom: undefined,
+      partnerComment: ''
     }))
     setEditingIndex(null)
   }
 
   function handleAddPartner() {
-    const internal = formData.isInternal === true
-    const u = formData.__userObj || null
+    // Build partner object from modal-local state to avoid mutating parent formData
+    const internal = modalIsInternal === true
+    const u = modalUserObj || null
     const prof = u ? (Array.isArray(u.profile) ? u.profile[0] : u.profile) : null
-    // ใช้ชื่อไทยก่อน ถ้าไม่มีค่อย fallback อังกฤษ / อีเมล
-    const full = u ? (
-      prof ? `${prof.firstNameTH || prof.firstName || ''} ${prof.lastNameTH || prof.lastName || ''}`.trim() || u.email : u.email
-    ) : ''
+    // display name fallback
+    const full = u ? (prof ? `${prof.firstNameTH || prof.firstName || ''} ${prof.lastNameTH || prof.lastName || ''}`.trim() || u.email : u.email) : ''
     const org = u ? [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ') : ''
 
-    const pcArr = Array.isArray(formData.partnerComment)
-      ? formData.partnerComment
-      : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])
+    const pcArr = Array.isArray(modalPartnerCommentArr) ? modalPartnerCommentArr : (modalPartnerCommentArr ? String(modalPartnerCommentArr).split(',').map(s => s.trim()).filter(Boolean) : [])
     const pcJoined = pcArr.join(', ')
 
     const partner = {
       isInternal: internal,
       userID: internal && u ? u.id : undefined,
-      fullname: internal ? (full || formData.partnerFullName || '') : (formData.partnerFullName || ''),
-      orgName: internal ? (org || formData.orgName || '') : (formData.orgName || ''),
-      partnerType: formData.partnerType || '',
+      fullname: internal ? (full || modalPartnerFullName || '') : (modalPartnerFullName || ''),
+      orgName: internal ? (org || modalOrgName || '') : (modalOrgName || ''),
+      partnerType: modalPartnerType || '',
       partnerComment: pcJoined,
       partnerProportion: undefined,
-      partnerProportion_percentage_custom: formData.partnerProportion_percentage_custom !== undefined && formData.partnerProportion_percentage_custom !== '' ? String(formData.partnerProportion_percentage_custom) : undefined,
-      // แนบข้อมูลผู้ใช้เพิ่มเติมเพื่อใช้แสดงชื่อ (ลดการเรียก API ซ้ำ)
+      partnerProportion_percentage_custom: modalPartnerProportionCustom !== undefined && modalPartnerProportionCustom !== '' ? String(modalPartnerProportionCustom) : undefined,
+      // include user info for display
       User: internal && u ? {
         email: u.email,
         profile: prof ? {
@@ -302,17 +315,14 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     // find index in localPartners
     const lpIdx = (localPartners || []).findIndex(x => (x.userID && x.userID === p.userID) || x.fullname === p.fullname)
     setEditingIndex(lpIdx >= 0 ? lpIdx : null)
-    setFormData(prev => ({
-      ...prev,
-      isInternal: !!p.isInternal,
-      partnerFullName: p.fullname || '',
-      orgName: p.orgName || '',
-      partnerType: p.partnerType || '',
-      partnerComment: p.partnerComment || p.comment || '',
-      partnerProportion_percentage_custom: p.partnerProportion_percentage_custom || '',
-      userId: p.userID || undefined,
-      __userObj: undefined
-    }))
+    // Populate modal-local fields
+    setModalIsInternal(!!p.isInternal)
+    setModalUserObj(p.User ? { email: p.User.email, profile: p.User.profile } : (p.userID ? { id: p.userID } : undefined))
+    setModalPartnerFullName(p.fullname || '')
+    setModalOrgName(p.orgName || '')
+    setModalPartnerType(p.partnerType || '')
+    setModalPartnerCommentArr(p.partnerComment ? String(p.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])
+    setModalPartnerProportionCustom(p.partnerProportion_percentage_custom || '')
     const dlg = document.getElementById('my_modal_2');
     if (dlg && dlg.showModal) dlg.showModal()
   }
@@ -336,8 +346,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                 <input
                   type="radio"
                   value="true"
-                  checked={formData.isInternal === true}
-                  onChange={() => handleInputChange("isInternal", true)}
+                  checked={modalIsInternal === true}
+                  onChange={() => setModalIsInternal(true)}
                   className={`
                                 text-zinc-700
                                 px-3 py-2 border border-gray-300 rounded-md
@@ -352,8 +362,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                 <input
                   type="radio"
                   value="false"
-                  checked={formData.isInternal === false}
-                  onChange={() => handleInputChange("isInternal", false)}
+                  checked={modalIsInternal === false}
+                  onChange={() => setModalIsInternal(false)}
                   className={`
                                 text-zinc-700
                                 px-3 py-2 border border-gray-300 rounded-md
@@ -366,23 +376,19 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               </label>
             </div>
             {
-              formData.isInternal === true ? (
+              modalIsInternal === true ? (
                 <>
                   <div>
                     <UserPicker
                       label="ผู้ร่วมโครงการวิจัย"
-                      selectedUser={formData.__userObj}
+                      selectedUser={modalUserObj}
                       onSelect={(u) => {
+                        setModalUserObj(u)
                         const prof = Array.isArray(u.profile) ? u.profile[0] : u.profile
                         const display = prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : u.email
                         const org = [u.department?.name, u.faculty?.name, u.organization?.name].filter(Boolean).join(' ')
-                        setFormData(prev => ({
-                          ...prev,
-                          partnerFullName: display,
-                          orgName: org,
-                          userId: u.id,
-                          __userObj: u
-                        }))
+                        setModalPartnerFullName(display)
+                        setModalOrgName(org)
                       }}
                     />
                   </div>
@@ -392,16 +398,16 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       label="ชื่อผู้ร่วมโครงการวิจัย"
                       type="text"
                       value={(() => {
-                        if (formData.__userObj) {
-                          const prof = Array.isArray(formData.__userObj.profile) ? formData.__userObj.profile[0] : formData.__userObj.profile
-                          return prof ? `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim() : formData.__userObj.email
+                        if (modalUserObj) {
+                          const prof = Array.isArray(modalUserObj.profile) ? modalUserObj.profile[0] : modalUserObj.profile
+                          return prof ? `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim() : modalUserObj.email
                         }
-                        return formData.partnerFullName || ''
+                        return modalPartnerFullName || ''
                       })()}
-                      readOnly={!!formData.__userObj}
+                      readOnly={!!modalUserObj}
                       onChange={(value) => {
                         // allow manual name editing when internal but not linked to a user
-                        if (!formData.__userObj) handleInputChange("partnerFullName", value)
+                        if (!modalUserObj) setModalPartnerFullName(value)
                       }}
                     />
                   </div>
@@ -411,18 +417,18 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       label="ชื่อหน่วยงาน"
                       type="text"
                       value={(() => {
-                        if (formData.__userObj) {
+                        if (modalUserObj) {
                           return [
-                            formData.__userObj.department?.name,
-                            formData.__userObj.faculty?.name,
-                            formData.__userObj.organization?.name
+                            modalUserObj.department?.name,
+                            modalUserObj.faculty?.name,
+                            modalUserObj.organization?.name
                           ].filter(Boolean).join(' ')
                         }
-                        return formData.orgName || ''
+                        return modalOrgName || ''
                       })()}
-                      readOnly={!!formData.__userObj}
+                      readOnly={!!modalUserObj}
                       onChange={(value) => {
-                        if (!formData.__userObj) handleInputChange("orgName", value)
+                        if (!modalUserObj) setModalOrgName(value)
                       }}
                     />
                   </div>
@@ -434,8 +440,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       mini={false}
                       label="ชื่อผู้ร่วมโครงการวิจัย"
                       type="text"
-                      value={formData.partnerFullName}
-                      onChange={(value) => handleInputChange("partnerFullName", value)}
+                      value={modalPartnerFullName}
+                      onChange={(value) => setModalPartnerFullName(value)}
                       placeholder="กรอกชื่อ-นามสกุล"
                     />
                   </div>
@@ -444,8 +450,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                       mini={false}
                       label="ชื่อหน่วยงาน"
                       type="text"
-                      value={formData.orgName}
-                      onChange={(value) => handleInputChange("orgName", value)}
+                      value={modalOrgName}
+                      onChange={(value) => setModalOrgName(value)}
                       placeholder="กรอกชื่อหน่วยงาน"
                     />
                   </div>
@@ -455,8 +461,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
             <div>
               <FormSelect
                 label="ประเภทผู้ร่วมโครงการวิจัย"
-                value={formData.partnerType}
-                onChange={(value) => handleInputChange("partnerType", value)}
+                value={modalPartnerType}
+                onChange={(value) => setModalPartnerType(value)}
                 className="max-w-lg"
                 options={[
                   { value: '', label: 'เลือกประเภท' },
@@ -477,18 +483,17 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                 step="0.001"
                 min="0"
                 max="100"
-                value={formData.partnerProportion_percentage_custom || ''}
+                value={modalPartnerProportionCustom || ''}
                 onChange={(value) => {
                   // allow empty or valid number between 0-100
                   if (value === '' || value === null) {
-                    handleInputChange('partnerProportion_percentage_custom', '')
+                    setModalPartnerProportionCustom('')
                     return
                   }
                   const num = parseFloat(String(value))
                   if (Number.isNaN(num)) return
                   const clamped = Math.max(0, Math.min(100, num))
-                  // store as string to match other partnerProportion fields used elsewhere
-                  handleInputChange('partnerProportion_percentage_custom', String(clamped))
+                  setModalPartnerProportionCustom(String(clamped))
                 }}
                 placeholder="0%"
               />
@@ -497,12 +502,12 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
               <FormCheckbox
                 label="หมายเหตุ"
                 inline={true}
-                value={Array.isArray(formData.partnerComment) ? formData.partnerComment : (formData.partnerComment ? String(formData.partnerComment).split(',').map(s => s.trim()).filter(Boolean) : [])}
-                onChange={(arr) => handleInputChange("partnerComment", arr)}
+                value={Array.isArray(modalPartnerCommentArr) ? modalPartnerCommentArr : (modalPartnerCommentArr ? String(modalPartnerCommentArr).split(',').map(s => s.trim()).filter(Boolean) : [])}
+                onChange={(arr) => setModalPartnerCommentArr(arr)}
                 className="max-w-lg"
                 options={[
-                  ...(!hasFirstAuthor || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('First Author')) ? [{ value: 'First Author', label: 'First Author' }] : []),
-                  ...(!hasCorresponding || (Array.isArray(formData.partnerComment) && formData.partnerComment.includes('Corresponding Author')) ? [{ value: 'Corresponding Author', label: 'Corresponding Author' }] : []),
+                  ...(!hasFirstAuthor || (Array.isArray(modalPartnerCommentArr) && modalPartnerCommentArr.includes('First Author')) ? [{ value: 'First Author', label: 'First Author' }] : []),
+                  ...(!hasCorresponding || (Array.isArray(modalPartnerCommentArr) && modalPartnerCommentArr.includes('Corresponding Author')) ? [{ value: 'Corresponding Author', label: 'Corresponding Author' }] : []),
                 ]}
               />
             </div>
