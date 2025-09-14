@@ -8,22 +8,22 @@ import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
 import { stripUndefined, getDocumentId, createHandleChange } from '@/utils'
 // นำเข้า api base เพื่อช่วยค้นหา record เมื่อรับ documentId (UUID)
 import { api } from '@/lib/api-base'
-import FormSection from "./FormSection";
-import FormFieldBlock from "./FormFieldBlock";
-import FormField from "./FormField";
-import ProjectPicker from './ProjectPicker'
-import UserPicker from './UserPicker'
+import FormSection from "@/components/FormSection";
+import FormFieldBlock from "@/components/FormFieldBlock";
+import FormField from "@/components/FormField";
+import ProjectPicker from '@/components/ProjectPicker'
+import UserPicker from '@/components/UserPicker'
 import { FormDoubleInput } from '@/components/ui'
-import FormInput from "./FormInput";
-import FormRadio from "./FormRadio";
-import FormCheckbox from "./FormCheckbox";
-import FormTextarea from "./FormTextarea";
-import FormDateSelect from "./FormDateSelect";
-import FormSelect from "./FormSelect";
-import FileUploadField from "./FileUploadField";
-import ResearchTeamTable from "./ResearchTeamTable";
-import EditableResearchTeamSection from './EditableResearchTeamSection'
-import Button from "./Button";
+import FormInput from "@/components/FormInput";
+import FormRadio from "@/components/FormRadio";
+import FormCheckbox from "@/components/FormCheckbox";
+import FormTextarea from "@/components/FormTextarea";
+import FormDateSelect from "@/components/FormDateSelect";
+import FormSelect from "@/components/FormSelect";
+import FileUploadField from "@/components/FileUploadField";
+import ResearchTeamTable from "@/components/ResearchTeamTable";
+import EditableResearchTeamSection from '@/components/EditableResearchTeamSection'
+import Button from "@/components/Button";
 import dynamic from 'next/dynamic'
 
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
@@ -43,35 +43,37 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
   const [formData, setFormData] = useState({
     project_research: '', // relation to project-research (documentId expected by Strapi v5)
     __projectObj: undefined, // สำหรับเก็บ object โครงการวิจัยที่เลือก
-    titleTH: "", // ชื่อผลงาน (ไทย)
-    titleEN: "", // ชื่อผลงาน (อังกฤษ)
+    titleTH: null, // ชื่อผลงาน (ไทย)
+    titleEN: null, // ชื่อผลงาน (อังกฤษ)
     isEnvironmentallySustainable: 0, // เกี่ยวข้องกับสิ่งแวดล้อมและความยั่งยืน (Int) 0=เกี่ยวข้อง, 1=ไม่เกี่ยวข้อง
-    journalName: "", // ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)
-    doi: "", // DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI
-    isbn: "", // ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)
-    volume: "", // ปีที่ (Volume) (Int)
-    issue: "", // ฉบับที่ (Issue) (Int)
-    durationStart: "", // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
-    durationEnd: "", // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
-    pageStart: 0, // หน้าเริ่มต้น (Int)
-    pageEnd: 10, // หน้าสิ้นสุด (Int)
-    level: "", // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
+    journalName: null, // ชื่อการประชุมทางวิชาการ (ใช้ชื่อไทยถ้าไม่มีชื่อไทยให้ใช้ภาษาอื่น)
+    doi: null, // DOI (ถ้าไม่มีให้ใส่ “-”) ความหมายของ DOI
+    isbn: null, // ISBN (ป้อนอักษร 10 ตัว หรือ 13 ตัว ไม่ต้องใส่ “-”)
+    volume: null, // ปีที่ (Volume) (Int)
+    issue: null, // ฉบับที่ (Issue) (Int)
+    durationStart: null, // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
+    durationEnd: null, // วัน/เดือน/ปี ที่ตีพิมพ์  (Date)
+    pageStart: null, // หน้าเริ่มต้น (Int)
+    pageEnd: null, // หน้าสิ้นสุด (Int)
+    level: null, // ระดับ 0=ระดับชาติ, 1=ระดับนานาชาติ
     isJournalDatabase: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูลหรือไม่
     isScopus: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล Scopus หรือไม่
-    scopusType: 0, // Scopus (ถ้าเลือก) (Int) Value จาก select
-    scopusValue: 0, // Scopus (ถ้าเลือก) (Int) Value จาก select
+    scopusType: null, // Scopus (ถ้าเลือก) (Int) Value จาก select
+    scopusValue: null, // Scopus (ถ้าเลือก) (Int) Value จาก select
     isACI: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล ACI หรือไม่
+    isABDC: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล ABDC หรือไม่
+    abdcType: null, // ABDC (ถ้าเลือก) (Int) Value จาก select
     isTCI1: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล TCI1 หรือไม่
     isTCI2: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล TCI2 หรือไม่
     isAJG: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล isAJG หรือไม่
-    ajgType: 0, // AJG (ถ้าเลือก) (Int) Value จาก select
+    ajgType: null, // AJG (ถ้าเลือก) (Int) Value จาก select
     isSSRN: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล Social Science Research Network หรือไม่
     isWOS: false, // วารสารที่เผยแพร่ผลงานวิจัยอยู่ในฐานข้อมูล Web of Science หรือไม่
-    wosType: 0, // Web of Science (ถ้าเลือก) (Int) Value จาก select
-    fundName: "", // ชื่อแหล่งทุน (ถ้ามี)
-    keywords: "", // คำสำคัญ (ถ้ามี) คั่นด้วย ,
-    abstractTH: "", // บทคัดย่อ (ไทย)
-    abstractEN: "", // บทคัดย่อ (อังกฤษ)
+    wosType: null, // Web of Science (ถ้าเลือก) (Int) Value จาก select
+    fundName: null, // ชื่อแหล่งทุน (ถ้ามี)
+    keywords: null, // คำสำคัญ (ถ้ามี) คั่นด้วย ,
+    abstractTH: null, // บทคัดย่อ (ไทย)
+    abstractEN: null, // บทคัดย่อ (อังกฤษ)
     attachments: [],
 
     // #listsStandard
@@ -79,392 +81,410 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
     listsStandard: [
       {
         "label": "Scopus",
+        "key": "isScopus",
       },
       {
         "label": "ACI",
+        "key": "isACI",
       },
       {
         "label": "TCI1",
-
+        "key": "isTCI1",
       },
       {
         "label": "ABDC",
-
+        "key": "isABDC",
       },
       {
         "label": "TCI2",
-
+        "key": "isTCI2",
       },
       {
         "label": "AJG",
-
+        "key": "isAJG",
       },
       {
         "label": "Social Science Research Network",
-
+        "key": "isSSRN",
       },
       {
         "label": "Web of Science",
-
+        "key": "isWOS",
       },
     ],
 
     listsStandardScopus: [
       {
         "label": "Q1",
-
+        "value": 1
       },
       {
         "label": "Q2",
-
+        "value": 2
       },
       {
         "label": "Q3",
-
+        "value": 3
       },
       {
         "label": "Q4",
-
+        "value": 4
       },
       {
         "label": "Delisted from Scopus",
-
+        "value": 5
       }
     ],
 
     listsStandardScopusSubset: [
       {
         "label": "Accounting",
-
+        "value": 1
       },
       {
         "label": "Analysis",
-
+        "value": 2
       },
       {
         "label": "Applied Mathematics",
-
+        "value": 3
       },
       {
         "label": "Artificial Intelligence",
-
+        "value": 4
       },
       {
         "label": "Business and International Management",
-
+        "value": 5
       },
       {
         "label": "Business, Management and Accounting (miscellaneous)",
-
+        "value": 6
       },
       {
         "label": "Computational Mathematics",
-
+        "value": 7
       },
       {
         "label": "Computational Theory and Mathematics",
-
+        "value": 8
       },
       {
         "label": "Computer Graphics and Computer-Aided Design",
-
+        "value": 9
       },
       {
         "label": "Computer Networks and Communications",
-
+        "value": 10
       },
       {
         "label": "Computer Science (miscellaneous)",
-
+        "value": 11
       },
       {
         "label": "Computer Science Application",
-
+        "value": 12
       },
       {
         "label": "Computer Vision and Pattern Recognition",
-
+        "value": 13
       },
       {
         "label": "Control and Optimisation",
-
+        "value": 14
       },
       {
         "label": "Control and Systems Engineering",
-
+        "value": 15
       },
       {
         "label": "Decision Science (miscellaneous)",
-
+        "value": 16
       },
       {
         "label": "Discrete Mathematics and Combinatorics",
-
+        "value": 17
       },
       {
         "label": "Economics and Econometrics",
-
+        "value": 18
       },
       {
         "label": "Economics, Econometrics and Finance (miscellaneous)",
-
+        "value": 19
       },
       {
         "label": "Education",
-
+        "value": 20
       },
       {
         "label": "Finance",
-
+        "value": 21
       },
       {
         "label": "General Business, Management and Accounting",
-
+        "value": 22
       },
       {
         "label": "General Computer Sciences",
-
+        "value": 23
       },
       {
         "label": "General Decision Sciences",
-
+        "value": 24
       },
       {
         "label": "General Economics, Econometrics and Finance",
-
+        "value": 25
       },
       {
         "label": "General Engineering",
-
+        "value": 26
       },
       {
         "label": "General Mathematics",
-
+        "value": 27
       },
       {
         "label": "General Social Sciences",
-
+        "value": 28
       },
       {
         "label": "Hardware and Architecture",
-
+        "value": 29
       },
       {
         "label": "Human-Computer Interaction",
-
+        "value": 30
       },
       {
         "label": "Industrial and Manufacturing Engineering",
-
+        "value": 31
       },
       {
         "label": "Industrial Relations",
-
+        "value": 32
       },
       {
         "label": "Information Systems",
-
+        "value": 33
       },
       {
         "label": "Information Systems and Management",
-
+        "value": 34
       },
       {
         "label": "Issues, Ethics and Legal Aspects",
-
+        "value": 35
       },
       {
         "label": "Leadership and Management",
-
+        "value": 36
       },
       {
         "label": "Library and Information Sciences",
-
+        "value": 37
       },
       {
         "label": "Logic",
-
+        "value": 38
       },
       {
         "label": "Management Information Systems",
-
+        "value": 39
       },
       {
         "label": "Management of Technology and Innovation",
-
+        "value": 40
       },
       {
         "label": "Management Science and Operations Research",
-
+        "value": 41
       },
       {
         "label": "Management, Monitoring, Policy and Law",
-
+        "value": 42
       },
       {
         "label": "Marketing",
-
+        "value": 43
       },
       {
         "label": "Mathematics (miscellaneous)",
-
+        "value": 44
       },
       {
         "label": "Media Technology",
-
+        "value": 45
       },
       {
         "label": "Modelling and Simulation",
-
+        "value": 46
       },
       {
         "label": "Multidisciplinary",
-
+        "value": 47
       },
       {
         "label": "Numerical Analysis",
-
+        "value": 48
       },
       {
         "label": "Organisational Behaviour and Human Resource Management",
-
+        "value": 49
       },
       {
         "label": "Public Administration",
-
+        "value": 50
       },
       {
         "label": "Renewable Energy, Sustainability and the Environment",
-
+        "value": 51
       },
       {
         "label": "Research and Theory",
-
+        "value": 52
       },
       {
         "label": "Review and Exam Preparation",
-
+        "value": 53
       },
       {
         "label": "Safety, Risk, Reliability and Quality",
-
+        "value": 54
       },
       {
         "label": "Sensory Systems",
-
+        "value": 55
       },
       {
         "label": "Signal Processing",
-
+        "value": 56
       },
       {
         "label": "Social Psychology",
-
+        "value": 57
       },
       {
         "label": "Social Sciences (miscellaneous)",
-
+        "value": 58
       },
       {
         "label": "Sociology and Political Sciences",
-
+        "value": 59
       },
       {
         "label": "Software",
-
+        "value": 60
       },
       {
         "label": "Statistics and Probability",
-
+        "value": 61
       },
       {
         "label": "Statistics, Probability and Uncertainty",
-
+        "value": 62
       },
       {
         "label": "Strategy and Management",
-
+        "value": 63
       },
       {
         "label": "Stratigraphy",
-
+        "value": 64
       },
       {
         "label": "Theoretical Computer Science",
-
+        "value": 65
       },
       {
         "label": "Tourism, Leisure and Hospitality Management",
-
+        "value": 66
       },
       {
         "label": "Transportation",
-
+        "value": 67
       },
       {
         "label": "Urban Studies",
-
+        "value": 68
       }
     ],
 
     listsStandardWebOfScience: [
       {
         "label": "SCIE",
+        "value": 1
       },
       {
         "label": "SSCI",
+        "value": 2
       },
       {
         "label": "AHCI",
+        "value": 3
       },
       {
         "label": "ESCI",
+        "value": 4
       },
     ],
 
     listsStandardABDC: [
       {
         "label": "A*",
+        "value": 1
       },
       {
         "label": "A",
+        "value": 2
       },
       {
         "label": "B",
+        "value": 3
       },
       {
         "label": "C",
+        "value": 4
       },
       {
         "label": "Other",
+        "value": 5
       },
     ],
 
     listsStandardAJG: [
       {
         "label": "ระดับ 4*",
+        "value": 1
       },
       {
         "label": "ระดับ 4",
+        "value": 2
       },
       {
         "label": "ระดับ 3",
+        "value": 3
       },
       {
         "label": "ระดับ 2",
+        "value": 4
       },
       {
         "label": "ระดับอื่น",
+        "value": 5
       },
     ],
-  // selected standard values (use ints for API)
-  standardScopus: 0,
-  standardScopusSubset: 0,
-  standardWebOfScience: 0,
-  standardABDC: 0,
-  standardAJG: 0,
+    // selected standard values (use ints for API)
+    standardScopus: 0,
+    standardScopusSubset: 0,
+    standardWebOfScience: 0,
+    standardABDC: 0,
+    standardAJG: 0,
 
   });
+
+  console.log('formData', formData)
 
   // ตัด log debug ออกเพื่อความเรียบร้อยของโค้ด
 
@@ -475,6 +495,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
   useEffect(() => {
     if (existingWorkPublication?.data) {
       const data = existingWorkPublication.data
+      console.log('existingWorkPublication', data)
       setFormData(prev => ({
         ...prev,
         project_research: data.project_research?.documentId || null,
@@ -487,8 +508,8 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         isbn: data.isbn || '',
         volume: data.volume || 0,
         issue: data.issue || 0,
-        durationStart: data.durationStart ? String(data.durationStart).slice(0,10) : '',
-        durationEnd: data.durationEnd ? String(data.durationEnd).slice(0,10) : '',
+        durationStart: data.durationStart ? String(data.durationStart).slice(0, 10) : '',
+        durationEnd: data.durationEnd ? String(data.durationEnd).slice(0, 10) : '',
         pageStart: data.pageStart || 0,
         pageEnd: data.pageEnd || 0,
         level: data.level || 0,
@@ -497,13 +518,16 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         scopusType: data.scopusType || 0,
         scopusValue: data.scopusValue || 0,
         isACI: data.isACI || false,
+        isABDC: data.isABDC || false,
+        abdcType: data.abdcType || null,
         isTCI1: data.isTCI1 || false,
         isTCI2: data.isTCI2 || false,
-        isABDC: data.isABDC || false,
         isAJG: data.isAJG || false,
-  isSSRN: data.isSSRN || false,
-  // Strapi schema uses `isWOS` (upper-case WOS) — keep state consistent
-  isWOS: data.isWOS || false,
+        ajgType: data.ajgType || null,
+        isSSRN: data.isSSRN || false,
+        // Strapi schema uses `isWOS` (upper-case WOS) — keep state consistent
+        isWOS: data.isWOS || false,
+        wosType: data.wosType || null,
         isDifferent: data.isDifferent || false,
         differentDetail: data.differentDetail || '',
         isReceiveAward: data.isReceiveAward || false,
@@ -511,6 +535,10 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         isCorrespondingAuthor: data.isCorrespondingAuthor || false,
         scopusGrade: data.scopusGrade || 0,
         impactFactor: data.impactFactor || 0,
+        keywords: data.keywords || '',
+        fundName: data.fundName || '',
+        abstractTH: data.abstractTH || '',
+        abstractEN: data.abstractEN || '',
         attachments: data.attachments || [],
         team: data.team || [],
       }))
@@ -519,7 +547,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         ...prev,
         ...initialData,
         // If initial data contains project_research relation, map to documentId
-    project_research: getDocumentId(initialData?.project_research) || prev.project_research || '',
+        project_research: getDocumentId(initialData?.project_research) || prev.project_research || '',
         __projectObj: initialData?.project_research || prev.__projectObj,
       }))
     }
@@ -563,6 +591,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
       const payload = {
         // relation to project-research: Strapi v5 prefers documentId when searching (we store documentId)
         ...(formData.project_research ? { project_research: formData.project_research } : {}),
+        project_research: formData.__projectObj?.id || undefined,
         titleTH: formData.titleTH || undefined,
         titleEN: formData.titleEN || undefined,
         isEnvironmentallySustainable: !!formData.isEnvironmentallySustainable,
@@ -581,6 +610,8 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         scopusType: formData.scopusType ? parseInt(formData.scopusType, 10) : undefined,
         scopusValue: formData.scopusValue ? parseInt(formData.scopusValue, 10) : undefined,
         isACI: !!formData.isACI,
+        isABDC: !!formData.isABDC,
+        abdcType: formData.abdcType ? parseInt(formData.abdcType, 10) : undefined,
         isTCI1: !!formData.isTCI1,
         isTCI2: !!formData.isTCI2,
         isAJG: !!formData.isAJG,
@@ -595,8 +626,8 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         // attachments as media relations
         attachments: (formData.attachments || []).map(a => ({ id: a.id })),
       }
-  // Clean payload using shared helper (removes undefined keys)
-  const cleanPayload = stripUndefined(payload)
+      // Clean payload using shared helper (removes undefined keys)
+      const cleanPayload = stripUndefined(payload)
 
       // ถ้าเป็นโหมดแก้ไข ให้แปลง workId เป็น numeric id ถ้าจำเป็น แล้วเรียก update
       if (mode === 'edit' && workId) {
@@ -633,7 +664,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อผลงาน (ไทย)"
-              
+
               value={formData.titleTH}
               onChange={(value) => handleInputChange("titleTH", value)}
               placeholder=""
@@ -641,7 +672,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
 
             <FormTextarea
               label="ชื่อผลงาน (อังกฤษ)"
-              
+
               value={formData.titleEN}
               onChange={(value) => handleInputChange("titleEN", value)}
               placeholder=""
@@ -687,19 +718,19 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อวารสาร/แหล่งตีพิมพ์"
-              
+
               value={formData.journalName}
               onChange={(value) => handleInputChange("journalName", value)}
               placeholder=""
             />
-    <ProjectPicker
+            <ProjectPicker
               label="โครงการวิจัย"
-              
+
               selectedProject={formData.__projectObj}
               onSelect={(p) => {
                 setFormData(prev => ({
-      ...prev,
-      project_research: getDocumentId(p),
+                  ...prev,
+                  project_research: getDocumentId(p),
                   __projectObj: p,
                   isEnvironmentallySustainable: p.isEnvironmentallySustainable ?? prev.isEnvironmentallySustainable,
                   fundName: p.fundName || prev.fundName,
@@ -709,7 +740,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
             />
             <FormInput
               label="DOI (ถ้าไม่มีให้ใส่ “-”)"
-              
+
               type="text"
               value={formData.doi}
               onChange={(value) => handleInputChange("doi", value)}
@@ -717,7 +748,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
             />
             <FormInput
               label="ISSN (ถ้ามี)"
-              
+
               type="text"
               value={formData.isbn}
               onChange={(value) => handleInputChange("isbn", value)}
@@ -731,12 +762,12 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
               <div className="flex-1 flex items-center space-x-3 md:max-w-60">
                 <div className="flex gap-3 items-center">
                   <span className="text-gray-700 inline-block w-[120px]">ปีที่ (Volume) <span className="text-red-500 ml-1">*</span></span>
-          <input
-            type="number"
-            min={0}
-            max={9999}
-            value={formData.volume}
-            onChange={(e) => handleInputChange('volume', Number(e.target.value))}
+                  <input
+                    type="number"
+                    min={0}
+                    max={9999}
+                    value={formData.volume}
+                    onChange={(e) => handleInputChange('volume', Number(e.target.value))}
                     className="text-zinc-700
                             px-3 py-2 border border-gray-300 rounded-md
                             placeholder-gray-400 focus:outline-none focus:ring-2 
@@ -747,19 +778,19 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
                 </div>
                 <div className="flex gap-3 items-center">
                   <span className="text-gray-700 inline-block w-[120px]">ฉบับที่ (Issue) <span className="text-red-500 ml-1">*</span></span>
-                <input
-                  type="number"
-                  min={0}
-                  max={9999}
-                  value={formData.issue}
-                  onChange={(e) => handleInputChange('issue', Number(e.target.value))}
-                  className="text-zinc-700
+                  <input
+                    type="number"
+                    min={0}
+                    max={9999}
+                    value={formData.issue}
+                    onChange={(e) => handleInputChange('issue', Number(e.target.value))}
+                    className="text-zinc-700
                             px-3 py-2 border border-gray-300 rounded-md
                             placeholder-gray-400 focus:outline-none focus:ring-2 
                             focus:ring-blue-500 focus:border-blue-500
                             transition-colors duration-200
                             w-[100px]"
-                />
+                  />
                 </div>
               </div>
             </div>
@@ -795,7 +826,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
               value2={formData.pageEnd}
               onChange={(value, field) => handleInputChange(field, value)}
               placeholder=""
-              
+
             />
             {/* <FormRadio
               inline={true}
@@ -868,7 +899,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormRadio
               inline={true}
-              
+
               label="ระดับการตีพิมพ์"
               options={[
                 {
@@ -904,7 +935,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
               {/* Flags for journal database presence */}
               <section className="space-y-1 flex items-center flex-wrap">
                 <div className="w-full md:w-1/3">
-                  
+
                 </div>
                 <div className="flex-1">
                   <div className="flex gap-3 items-center">
@@ -913,7 +944,6 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
                       {
                         formData.listsStandard.map((item, idx) => (
                           <div key={idx}>
-
                             <label className="flex items-center gap-3 text-zinc-700">
                               <input
                                 type="checkbox"
@@ -924,86 +954,87 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
                                   focus:ring-blue-500 focus:border-blue-500
                                   transition-colors duration-200
                               `}
-                                checked={item.value}
+                                checked={formData[item.key] || false}
                                 onChange={(e) =>
                                   setFormData(prev => ({
                                     ...prev,
-                                    // สร้างอาเรย์ใหม่ + อ็อบเจ็กต์ใหม่ เฉพาะตัวที่เปลี่ยน
-                                    listsStandard: prev.listsStandard.map((it, i) =>
-                                      i === idx ? { ...it, value: e.target.checked } : it
-                                    ),
+                                    // เอาค่า item.key มาใช้เป็น key ใน formData
+                                    [item.key]: e.target.checked,
+                                    // อัปเดตค่าใน listsStandard ด้วย
+                                    listsStandard: prev.listsStandard.map((it, i) => i === idx ? { ...it, value: e.target.checked } : it)
+
                                   }))
                                 } />
                               {item.label}
                             </label>
                             {
-                            // SCOPUS = true
-                              formData.listsStandard[idx].label === 'Scopus' && item.value &&
-                            <div>
-                              <select
-                                    onChange={
-                                      (e) => {
-                                        const selectedValue = parseInt(e.target.value || '0', 10);
-                                        setFormData(prev => ({
-                                          ...prev,
-                                          standardScopus: selectedValue
-                                        }));
-                                      }
+                              // SCOPUS = true
+                              formData.listsStandard[idx].label === 'Scopus' && formData.isScopus &&
+                              <div>
+                                <select
+                                  onChange={
+                                    (e) => {
+                                      const selectedValue = parseInt(e.target.value || '0', 10);
+                                      setFormData(prev => ({
+                                        ...prev,
+                                        scopusType: selectedValue
+                                      }));
                                     }
-                                className="text-zinc-700
+                                  }
+                                  className="text-zinc-700
                                 block w-full px-3 py-2 border border-gray-300 rounded-md
                                 bg-white focus:outline-none focus:ring-2 
                                 focus:ring-blue-500 focus:border-blue-500
                                 transition-colors duration-200">
-                                <option value={0}>-- กรุณาเลือก --</option>
-                                {formData.listsStandardScopus.map((item, idx) => (
-                                  <option key={idx} value={idx + 1}>{item.label}</option>
-                                ))}
-                              </select>
-                            </div>
+                                  <option value={0}>-- กรุณาเลือก --</option>
+                                  {formData.listsStandardScopus.map((item, idx) => (
+                                    <option key={idx} value={item.value} selected={item.value == formData.scopusType}>{item.label}</option>
+                                  ))}
+                                </select>
+                              </div>
                             }
                             {
                               // SUBSET SCOPUS
-                              (formData.listsStandard[idx].label === 'Scopus' && item.value && (formData.standardScopus === 1 || formData.standardScopus === 2 || formData.standardScopus === 3 || formData.standardScopus === 4)) &&
+                              (formData.listsStandard[idx].label === 'Scopus' && (formData.scopusType === 1 || formData.scopusType === 2 || formData.scopusType === 3 || formData.scopusType === 4)) &&
                               <div>
                                 <select
-                                  onChange={(e) => setFormData(prev => ({ ...prev, standardScopusSubset: parseInt(e.target.value || '0', 10) }))}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, scopusValue: parseInt(e.target.value || '0', 10) }))}
                                   className="text-zinc-700
                                   block w-full px-3 py-2 border border-gray-300 rounded-md
                                   bg-white focus:outline-none focus:ring-2 
                                   focus:ring-blue-500 focus:border-blue-500
                                   transition-colors duration-200">
                                   <option value={0}>-- กรุณาเลือก --</option>
-                                    {formData.listsStandardScopusSubset.map((item, idx) => (
-                                    <option key={idx} value={idx + 1}>{item.label}</option>
+                                  {formData.listsStandardScopusSubset.map((item, idx) => (
+                                    <option key={idx} value={item.value} selected={item.value == formData.scopusValue}>{item.label}</option>
                                   ))}
                                 </select>
                               </div>
                             }
                             {
                               // Web of Science = true
-                              formData.listsStandard[idx].label === 'Web of Science' && item.value &&
+                              formData.listsStandard[idx].label === 'Web of Science' && formData.isWOS &&
                               <div>
                                 <select
-                                  onChange={(e) => setFormData(prev => ({ ...prev, standardWebOfScience: parseInt(e.target.value || '0', 10) }))}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, wosType: parseInt(e.target.value || '0', 10) }))}
                                   className="text-zinc-700
                                 block w-full px-3 py-2 border border-gray-300 rounded-md
                                 bg-white focus:outline-none focus:ring-2 
                                 focus:ring-blue-500 focus:border-blue-500
                                 transition-colors duration-200">
                                   <option value={0}>-- กรุณาเลือก --</option>
-                                    {formData.listsStandardWebOfScience.map((item, idx) => (
-                                    <option key={idx} value={idx + 1}>{item.label}</option>
+                                  {formData.listsStandardWebOfScience.map((item, idx) => (
+                                    <option key={idx} value={item.value} selected={item.value == formData.wosType}>{item.label}</option>
                                   ))}
                                 </select>
                               </div>
                             }
                             {
                               // ABDC = true
-                              formData.listsStandard[idx].label === 'ABDC' && item.value &&
+                              formData.listsStandard[idx].label === 'ABDC' && formData.isABDC &&
                               <div>
                                 <select
-                                  onChange={(e) => setFormData(prev => ({ ...prev, standardABDC: parseInt(e.target.value || '0', 10) }))}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, abdcType: parseInt(e.target.value || '0', 10) }))}
                                   className="text-zinc-700
                                 block w-full px-3 py-2 border border-gray-300 rounded-md
                                 bg-white focus:outline-none focus:ring-2 
@@ -1011,25 +1042,25 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
                                 transition-colors duration-200">
                                   <option value={0}>-- กรุณาเลือก --</option>
                                   {formData.listsStandardABDC.map((item, idx) => (
-                                    <option key={idx} value={idx + 1}>{item.label}</option>
+                                    <option key={idx} value={item.value} selected={item.value == formData.abdcType}>{item.label}</option>
                                   ))}
                                 </select>
                               </div>
                             }
                             {
                               // Social Science Research Network = true
-                              formData.listsStandard[idx].label === 'AJG' && item.value &&
+                              formData.listsStandard[idx].label === 'AJG' && formData.isAJG &&
                               <div>
                                 <select
-                                  onChange={(e) => setFormData(prev => ({ ...prev, standardAJG: parseInt(e.target.value || '0', 10) }))}
+                                  onChange={(e) => setFormData(prev => ({ ...prev, ajgType: parseInt(e.target.value || '0', 10) }))}
                                   className="text-zinc-700
                                 block w-full px-3 py-2 border border-gray-300 rounded-md
                                 bg-white focus:outline-none focus:ring-2 
                                 focus:ring-blue-500 focus:border-blue-500
                                 transition-colors duration-200">
                                   <option value={0}>-- กรุณาเลือก --</option>
-                                    {formData.listsStandardAJG.map((item, idx) => (
-                                    <option key={idx} value={idx + 1}>{item.label}</option>
+                                  {formData.listsStandardAJG.map((item, idx) => (
+                                    <option key={idx} value={item.value} selected={item.value == formData.ajgType}>{item.label}</option>
                                   ))}
                                 </select>
                               </div>
@@ -1038,7 +1069,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
                         )
                         )
                       }
-                    </div>                    
+                    </div>
                   </div>
                 </div>
               </section>
@@ -1047,7 +1078,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="ชื่อแหล่งทุน"
-              
+
               value={formData.fundName}
               onChange={(value) => handleInputChange("fundName", value)}
               placeholder=""
@@ -1056,7 +1087,7 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="คำสำคัญ (คั่นระหว่างคำด้วยเครื่องหมาย “;” เช่น ข้าว; พืช; อาหาร)"
-              
+
               value={formData.keywords}
               onChange={(value) => handleInputChange("keywords", value)}
               placeholder=""
@@ -1065,14 +1096,14 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
           <FormFieldBlock>
             <FormTextarea
               label="บทคัดย่อ (ไทย) (ไม่มีข้อมูลให้ใส่ “-”)"
-              
+
               value={formData.abstractTH}
               onChange={(value) => handleInputChange("abstractTH", value)}
               placeholder=""
             />
             <FormTextarea
               label="บทคัดย่อ (อังกฤษ) (ไม่มีข้อมูลให้ใส่ “-”)"
-              
+
               value={formData.abstractEN}
               onChange={(value) => handleInputChange("abstractEN", value)}
               placeholder=""
@@ -1081,16 +1112,16 @@ export default function CreatePublicationsForm({ mode = 'create', workId, initia
         </FormSection>
 
         <FormSection>
-                  <FileUploadField
-                    label="* ส่งไฟล์บทความทางวิชาการ (ขอให้ Scan หน้าปกวารสาร สารบัญ พร้อมบทความ เพื่อการตรวจสอบหลักฐาน)"
-                    // ปรับให้รองรับการอัปโหลดไฟล์หลายครั้งแบบสะสม
-                    value={formData.attachments}
-                    onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
-                    accept=".pdf,.doc,.docx"
-                    multiple
-                  />
+          <FileUploadField
+            label="* ส่งไฟล์บทความทางวิชาการ (ขอให้ Scan หน้าปกวารสาร สารบัญ พร้อมบทความ เพื่อการตรวจสอบหลักฐาน)"
+            // ปรับให้รองรับการอัปโหลดไฟล์หลายครั้งแบบสะสม
+            value={formData.attachments}
+            onFilesChange={(attachments) => handleInputChange("attachments", attachments)}
+            accept=".pdf,.doc,.docx"
+            multiple
+          />
         </FormSection>
-        
+
         {/* Research Team Section (Editable) */}
         {formData.__projectObj && (
           <div className='p-4 rounded-md border shadow border-gray-200/70'>
