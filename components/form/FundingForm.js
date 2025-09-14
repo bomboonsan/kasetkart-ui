@@ -5,7 +5,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 // ใช้ path alias (@/) สำหรับ API (คงพฤติกรรมเดิม)
-import { projectAPI } from '@/lib/api'
+import { projectAPI, fundingAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
 import { stripUndefined, createHandleChange } from '@/utils'
 import useSWR, { mutate } from 'swr'
@@ -43,7 +43,7 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
   // Load existing data when editing
   const { data: workRes, error: workError } = useSWR(
     mode === 'edit' && workId ? ['project-funding', workId] : null,
-    () => projectAPI.getFunding(workId) // Assuming a getFunding exists
+    () => fundingAPI.getFunding(workId) // Assuming a getFunding exists
   )
 
   // Prefill when editing
@@ -66,6 +66,28 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
       attachments: work.attachments || [],
     }))
   }, [workRes])
+
+  // Prefill from initialData when provided (SSR or preloaded data)
+  useEffect(() => {
+    if (!initialData) return
+    const work = initialData
+    setFormData(prev => ({
+      ...prev,
+      writers: work.writers || [],
+      fundType: work.fundType ?? 0,
+      fundTypeText: work.fundTypeText || '',
+      contentDesc: work.contentDesc || '',
+      pastPublications: work.pastPublications || '',
+      purpose: work.purpose || '',
+      targetGroup: work.targetGroup || '',
+      chapterDetails: work.chapterDetails || '',
+      pages: work.pages || 0,
+      duration: work.duration ? String(work.duration).slice(0, 10) : '',
+      references: work.references || '',
+      attachments: work.attachments || [],
+    }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialData])
 
   const handleSubmit = async (e) => {
     e.preventDefault();
