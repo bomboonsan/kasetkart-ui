@@ -262,10 +262,12 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
         await api.post('/funding-partners', { data: partnerData })
       }
 
-      setSwalProps({ show: true, icon: 'success', title: 'บันทึกทีมสำเร็จ', timer: 1000, showConfirmButton: false })
+      // setSwalProps({ show: true, icon: 'success', title: 'บันทึกทีมสำเร็จ', timer: 1000, showConfirmButton: false })
+      console.log('Sync to server completed')
     } catch (err) {
-      setSaveError(err.message || 'บันทึกผู้ร่วมโครงการไม่สำเร็จ')
-      setSwalProps({ show: true, icon: 'error', title: 'บันทึกทีมไม่สำเร็จ', text: err.message || '', timer: 2000 })
+      console.error('Error syncing partners to server:', err)
+      // setSaveError(err.message || 'บันทึกผู้ร่วมโครงการไม่สำเร็จ')
+      // setSwalProps({ show: true, icon: 'error', title: 'บันทึกทีมไม่สำเร็จ', text: err.message || '', timer: 2000 })
     } finally {
       setSaving(false)
     }
@@ -523,7 +525,7 @@ export default function FundTeamTable({ projectId, fundingId, formData, handleIn
                       value={(() => {
                         if (formData.__userObj) {
                           const prof = Array.isArray(formData.__userObj.profile) ? formData.__userObj.profile[0] : formData.__userObj.profile
-                          return prof ? `${prof.firstName || ''} ${prof.lastName || ''}`.trim() : formData.__userObj.email
+                          return prof ? `${prof.firstNameTH || ''} ${prof.lastNameTH || ''}`.trim() : formData.__userObj.email
                         }
                         return formData.partnerFullName || ''
                       })()}
