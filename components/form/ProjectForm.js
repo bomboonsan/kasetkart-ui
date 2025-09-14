@@ -2,36 +2,29 @@
 
 import { useEffect, useState } from "react";
 import { FormSection, FormFieldBlock, FormField } from "@/components/ui";
-import UserPicker from "./UserPicker";
 import { FormInput } from "@/components/ui";
-import FormRadio from "./FormRadio";
+import FormRadio from "@/components/FormRadio";
 import { FormTextarea } from "@/components/ui";
 import { FormDateSelect } from "@/components/ui";
 import { FormSelect } from "@/components/ui";
-import FileUploadField from "./FileUploadField";
-import ResearchTeamTable from "./ResearchTeamTable";
+import FileUploadField from "@/components/FileUploadField";
+import ResearchTeamTable from "@/components/ResearchTeamTable";
 import { Button } from "@/components/ui";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 const SweetAlert2 = dynamic(() => import("react-sweetalert2"), { ssr: false });
-// ใช้ path alias (@/) เพื่อให้ import ชัดเจนและลดความซ้ำซ้อนของ path
 import { projectAPI } from "@/lib/api";
 import { api } from "@/lib/api-base";
 import { authAPI, valueFromAPI } from "@/lib/api";
-// ยูทิลิตี้สำหรับจัดการ payload ให้สะอาด
 import { stripUndefined } from "@/utils";
-// ใช้ path alias (@/) สำหรับ helper
-import { formatDateDMY } from "@/utils";
-import { use } from "react";
 import useSWR, { mutate } from "swr";
 import { createHandleChange } from "@/utils";
 
-export default function CreateResearchForm({
+export default function ProjectForm({
   mode = "create",
   projectId: propProjectId,
   workId,
 }) {
-  // รับ props: mode และ projectId (รองรับ workId เดิมด้วย)
   const projectId = propProjectId || workId || null;
 
   ////////////////////////////////////////////////////////
@@ -106,14 +99,13 @@ export default function CreateResearchForm({
     attachments: [],
   });
 
-  // debug
-  console.log("formData changed:", formData);
-
   const [orgOptions, setOrgOptions] = useState([]);
   const [deptOptions, setDeptOptions] = useState([]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [meData, setMeData] = useState(null);
+
+  const [realProjectId, setRealProjectId] = useState(null);
 
   // ถ้าเป็นโหมดแก้ไข ให้โหลดข้อมูลโครงการจาก API และเติมค่าใน formData
   useEffect(() => {
@@ -124,6 +116,8 @@ export default function CreateResearchForm({
         const project = resp?.data || resp || null;
         /* debug removed */
         if (!project) return;
+        console.log("Loaded project for edit:", project.documentId);
+        setRealProjectId(project.documentId);
 
         // โครงสร้างอาจเป็น Strapi v5 shape: { data: { id, attributes: {...} } }
         const attrs =
@@ -138,6 +132,7 @@ export default function CreateResearchForm({
           projectType: attrs.projectType ?? prev.projectType,
           projectMode: attrs.projectMode ?? prev.projectMode,
           subProjectCount: attrs.subProjectCount ?? prev.subProjectCount,
+          isEnvironmentallySustainable: attrs.isEnvironmentallySustainable ?? prev.isEnvironmentallySustainable,
           nameTH: attrs.nameTH ?? prev.nameTH,
           nameEN: attrs.nameEN ?? prev.nameEN,
           durationStart: attrs.durationStart ?? prev.durationStart,
@@ -344,8 +339,7 @@ export default function CreateResearchForm({
     setError("");
     setSubmitting(true);
     try {
-      // Basic client-side validation to avoid native form freeze
-      console.log("Submitting formData:", formData);
+
       const required = [
         ["projectType", "ประเภทโครงการ"],
         ["projectMode", "ลักษณะโครงการวิจัย"],
@@ -442,11 +436,13 @@ export default function CreateResearchForm({
           ? parseInt(formData.subProjectCount)
           : undefined,
         // แก้ไขฟิลด์ชื่อโครงการภาษาไทยให้ส่งตรงกับ schema (nameTH)
+        isEnvironmentallySustainable: Number(formData.isEnvironmentallySustainable) || 0,
         nameTH: formData.nameTH || undefined,
         nameEN: formData.nameEN || undefined,
         durationStart: formData.durationStart || undefined,
         durationEnd: formData.durationEnd || undefined,
         fundType: formData.fundType ? parseInt(formData.fundType) : undefined,
+        researchKind: formData.researchKind ? parseInt(formData.researchKind) : undefined,
         fundSubType: formData.fundSubType
           ? parseInt(formData.fundSubType)
           : undefined,
@@ -478,17 +474,33 @@ export default function CreateResearchForm({
       // --------------------------------------------------------------
       // Create project with M2M relations on backend
       // debug payload
-      const resp = await projectAPI.createProjectWithRelations(payload);
-      // parse created id from Strapi response shape
-      const createdProjectId =
-        resp?.data?.id ||
-        resp?.id ||
-        (resp?.data && resp.data.documentId) ||
-        null;
+      console.log("Submitting payload:", payload, "with partners:", partnersArray);
+      let createdProjectId
+      if (mode === "edit") {
+        // Edit mode: update existing project
+        console.log("Updating existing project ID:", realProjectId);
+        const resp = await projectAPI.updateProject(realProjectId, { ...payload })
+        createdProjectId = resp?.data?.id || resp?.id || null;
 
-      if (!createdProjectId) {
-        throw new Error("ไม่สามารถสร้างโครงการได้ (no id returned)");
+        if (!createdProjectId) {
+          throw new Error("ไม่สามารถอัปเดตโครงการได้ (no id returned)");
+        }
+
+
+      } else {
+        const resp = await projectAPI.createProjectWithRelations(payload);
+        // parse created id from Strapi response shape
+        createdProjectId =
+          resp?.data?.id ||
+          resp?.id ||
+          (resp?.data && resp.data.documentId) ||
+          null;
+
+        if (!createdProjectId) {
+          throw new Error("ไม่สามารถสร้างโครงการได้ (no id returned)");
+        }
       }
+
 
       // Helper: map partnerType label -> integer for backend `participant_type`
       const partnerTypeMap = {
@@ -544,7 +556,7 @@ export default function CreateResearchForm({
       setSwalProps({
         show: true,
         icon: "success",
-        title: "สร้างโครงการสำเร็จ",
+        title: { edit: "อัปเดตโครงการสำเร็จ", create: "สร้างโครงการสำเร็จ" }[mode] || "Success",
         timer: 1600,
         showConfirmButton: false,
       });
@@ -661,8 +673,8 @@ export default function CreateResearchForm({
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="true"
-                  checked={formData.isEnvironmentallySustainable === 1}
+                  value="1"
+                  checked={formData.isEnvironmentallySustainable == 1}
                   onChange={() =>
                     handleInputChange("isEnvironmentallySustainable", 1)
                   }
@@ -679,8 +691,8 @@ export default function CreateResearchForm({
               <label className="flex items-center gap-3 text-zinc-700">
                 <input
                   type="radio"
-                  value="false"
-                  checked={formData.isEnvironmentallySustainable === 0}
+                  value="0"
+                  checked={formData.isEnvironmentallySustainable == 0}
                   onChange={() =>
                     handleInputChange("isEnvironmentallySustainable", 0)
                   }
@@ -741,35 +753,35 @@ export default function CreateResearchForm({
               options={[
                 { value: "", label: "เลือกประเภทงานวิจัย" },
                 {
-                  value: "การวิจัยพื้นฐานหรือการวิจัยบริสุทธิ์",
+                  value: "1",
                   label: "การวิจัยพื้นฐานหรือการวิจัยบริสุทธิ์",
                 },
-                { value: "การวิจัยประยุกต์", label: "การวิจัยประยุกต์" },
-                { value: "การวิจัยเชิงปฏิบัติ", label: "การวิจัยเชิงปฏิบัติ" },
-                { value: "การวิจัยและพัฒนา", label: "การวิจัยและพัฒนา" },
-                { value: "การพัฒนาทดลอง", label: "การพัฒนาทดลอง" },
+                { value: "2", label: "การวิจัยประยุกต์" },
+                { value: "3", label: "การวิจัยเชิงปฏิบัติ" },
+                { value: "4", label: "การวิจัยและพัฒนา" },
+                { value: "5", label: "การพัฒนาทดลอง" },
                 {
-                  value: "พื้นฐาน (basic Research)",
+                  value: "6",
                   label: "พื้นฐาน (basic Research)",
                 },
                 {
-                  value: "พัฒนาและประยุกต์ (Development)",
+                  value: "7",
                   label: "พัฒนาและประยุกต์ (Development)",
                 },
                 {
-                  value: "วิจัยเชิงปฏิบัติการ (Operational Research)",
+                  value: "8",
                   label: "วิจัยเชิงปฏิบัติการ (Operational Research)",
                 },
                 {
-                  value: "วิจัยทางคลินิก (Clinical Trial)",
+                  value: "9",
                   label: "วิจัยทางคลินิก (Clinical Trial)",
                 },
                 {
-                  value: "วิจัยต่อยอด (Translational research)",
+                  value: "10",
                   label: "วิจัยต่อยอด (Translational research)",
                 },
                 {
-                  value: "การขยายผลงานวิจัย (Implementation)",
+                  value: "11",
                   label: "การขยายผลงานวิจัย (Implementation)",
                 },
               ]}

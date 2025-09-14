@@ -65,7 +65,7 @@ export default function ProjectPicker({ label = 'โครงการวิจ�
                     onClick={() => { onSelect && onSelect(p); setOpen(false) }}
                     className="w-full text-left p-3 hover:bg-gray-50"
                   >
-                    <div className="font-medium text-gray-900">{p.nameTE || p.nameEN || `Project #${p.id}`}</div>
+                    <div className="font-medium text-gray-900">{p.nameTH || p.nameEN || `Project #${p.id}`}</div>
                     <div className="text-xs text-gray-600">ปีงบประมาณ: {p.fiscalYear}</div>
                   </button>
                 ))}
