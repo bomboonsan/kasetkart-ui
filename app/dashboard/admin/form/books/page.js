@@ -82,14 +82,8 @@ export default function AdminBooksPage() {
     return new Date(dateString).toLocaleDateString('th-TH')
   }
 
-  const getStatusColor = (publishedAt) => {
-    return publishedAt
-      ? 'bg-green-100 text-green-800'
-      : 'bg-yellow-100 text-yellow-800'
-  }
-
-  const getStatusText = (publishedAt) => {
-    return publishedAt ? 'เผยแพร่' : 'ร่าง'
+  const getBookType = (bookType) => {
+    return bookType === 0 ? 'หนังสือ' : 'ตำรา'
   }
 
   return (
@@ -177,25 +171,7 @@ export default function AdminBooksPage() {
                     )}
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    สำนักพิมพ์
-                  </th>
-                  <th
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
-                    onClick={() => handleSort('year')}
-                  >
-                    ปี
-                    {sortBy === 'year' && (
-                      <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                    )}
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    ISBN
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     ประเภท
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    สถานะ
                   </th>
                   <th
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
@@ -210,7 +186,7 @@ export default function AdminBooksPage() {
                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100"
                     onClick={() => handleSort('updatedAt')}
                   >
-                    วันที่แก้ไข
+                    วันที่เกิดผลงาน
                     {sortBy === 'updatedAt' && (
                       <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
                     )}
@@ -226,35 +202,18 @@ export default function AdminBooksPage() {
                     <td className="px-6 py-4">
                       <div>
                         <div className="text-sm font-medium text-gray-900">
-                          {book.titleTh || book.titleEn || 'ไม่ระบุชื่อ'}
+                          {book.titleTH || book.titleEN || 'ไม่ระบุชื่อ'}
                         </div>
-                        {book.titleEn && book.titleTh && (
-                          <div className="text-sm text-gray-500">{book.titleEn}</div>
-                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-900">
-                      {book.publisher || '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {book.year || '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {book.isbn || '-'}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
-                      {book.type || '-'}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(book.publishedAt)}`}>
-                        {getStatusText(book.publishedAt)}
-                      </span>
+                      {getBookType(Number(book.type)) || 0}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {formatDate(book.publishedAt)}
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
-                      {formatDate(book.updatedAt)}
+                      {formatDate(book.publicationDate)}
                     </td>
                     <td className="px-6 py-4 text-sm font-medium">
                       <div className="flex space-x-2">
