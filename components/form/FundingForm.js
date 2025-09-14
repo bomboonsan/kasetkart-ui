@@ -120,10 +120,108 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
       // Clean payload using shared helper
       const cleanPayload = stripUndefined(payload)
 
+      // helper: create a stable key to match UI vs server entries
+      const makeKey = (p) => {
+        let uid = p?.userID
+        if (uid && typeof uid === 'object') uid = uid.id || uid.data?.id
+        uid = uid !== undefined && uid !== null ? String(uid) : undefined
+        const name = String(p?.fullname || '').trim().toLowerCase()
+        const orgName = String(p?.orgName || '').trim().toLowerCase()
+        return uid ? `u:${uid}` : `n:${name}|${orgName}`
+      }
+
+      // helper: upsert funding partners for a given fundingId
+      const upsertFundingPartners = async (fundingId, partners) => {
+        if (!fundingId) return
+        const partnerTypeMap = {
+          'หัวหน้าโครงการ': 1,
+          'ที่ปรึกษาโครงการ': 2,
+          'ผู้ประสานงาน': 3,
+          'นักวิจัยร่วม': 4,
+          'อื่นๆ': 99,
+        }
+
+        // load existing for diff
+        let existingItems = []
+        try {
+          const resp = await api.get(`/funding-partners?populate=users_permissions_user&filters[project_fundings][documentId][$eq]=${fundingId}`)
+          existingItems = resp?.data || resp || []
+        } catch {
+          existingItems = []
+        }
+
+        const serverEntries = (existingItems || []).map(item => {
+          const attr = item?.attributes || item || {}
+          const userId = attr.users_permissions_user?.data?.id || attr.users_permissions_user || attr.userID
+          return {
+            documentId: item?.documentId || item?.id,
+            fullname: attr.fullname || attr.name || '',
+            orgName: attr.orgName || attr.org || '',
+            partnerType: (() => {
+              const t = attr.participant_type
+              if (t === 1) return 'หัวหน้าโครงการ'
+              if (t === 2) return 'ที่ปรึกษาโครงการ'
+              if (t === 3) return 'ผู้ประสานงาน'
+              if (t === 4) return 'นักวิจัยร่วม'
+              if (t === 99) return 'อื่นๆ'
+              return ''
+            })(),
+            userID: userId,
+            partnerComment: `${attr.isFirstAuthor ? 'First Author' : ''}${attr.isCoreespondingAuthor ? (attr.isFirstAuthor ? ', ' : '') + 'Corresponding Author' : ''}`.trim(),
+            partnerProportion: attr.participation_percentage !== undefined ? String(attr.participation_percentage) : undefined
+          }
+        })
+
+        const serverMap = new Map(serverEntries.map(e => [makeKey(e), e]))
+        const seen = new Set()
+
+        // upsert each partner from UI
+        for (const p of (partners || [])) {
+          const key = makeKey(p)
+          seen.add(key)
+          const payload = stripUndefined({
+            fullname: p.fullname || undefined,
+            orgName: p.orgName || undefined,
+            participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
+            participant_type: partnerTypeMap[p.partnerType] || undefined,
+            isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
+            isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
+            users_permissions_user: p.userID || undefined,
+            partnerProportion_percentage_custom: (p.partnerProportion_percentage_custom !== undefined && p.partnerProportion_percentage_custom !== '')
+              ? Number(p.partnerProportion_percentage_custom)
+              : undefined,
+            project_fundings: [fundingId],
+          })
+
+          const existing = serverMap.get(key)
+          if (existing?.documentId) {
+            try { await api.put(`/funding-partners/${existing.documentId}`, { data: payload }) } catch { }
+          } else {
+            try { await api.post('/funding-partners', { data: payload }) } catch { }
+          }
+        }
+
+        // delete removed ones
+        for (const [key, entry] of serverMap.entries()) {
+          if (!seen.has(key) && entry?.documentId) {
+            try { await api.delete(`/funding-partners/${entry.documentId}`) } catch { }
+          }
+        }
+      }
+
       let result;
       if (mode === 'edit' && workId) {
         // Using api.put with { data: payload } wrapper, similar to project-partner creation
         result = await api.put(`/project-fundings/${workId}`, { data: cleanPayload })
+        // Persist partners (upsert) after saving funding
+        try {
+          const saved = result?.data || result || {}
+          const fundingId = saved.documentId || saved.id || workRes?.data?.documentId || workId
+          const partners = Array.isArray(formData?.partnersLocal) ? formData.partnersLocal : []
+          await upsertFundingPartners(fundingId, partners)
+        } catch (linkErr) {
+          console.warn('Failed to upsert funding_partners (edit):', linkErr)
+        }
         setSwalProps({ show: true, icon: 'success', title: 'แก้ไขข้อมูลสำเร็จ', timer: 1600, showConfirmButton: false })
       } else {
         // Using api.post with { data: payload } wrapper
@@ -133,32 +231,10 @@ export default function CreateFundingForm({ mode = 'create', workId, initialData
           const created = result?.data || result || {}
           const fundingId = created.documentId || created.id || created?.data?.documentId || created?.data?.id
           const partners = Array.isArray(formData?.partnersLocal) ? formData.partnersLocal : []
-          if (fundingId && partners.length > 0) {
-            const partnerTypeMap = {
-              'หัวหน้าโครงการ': 1,
-              'ที่ปรึกษาโครงการ': 2,
-              'ผู้ประสานงาน': 3,
-              'นักวิจัยร่วม': 4,
-              'อื่นๆ': 99,
-            }
-            // ใช้สัดส่วนภายใน (partnerProportion) ที่คำนวณจากตาราง หากไม่มีให้ข้ามฟิลด์นี้
-            await Promise.all(partners.map(async (p) => {
-              const partnerData = stripUndefined({
-                fullname: p.fullname || undefined,
-                orgName: p.orgName || undefined,
-                participation_percentage: p.partnerProportion ? parseFloat(p.partnerProportion) : undefined,
-                participant_type: partnerTypeMap[p.partnerType] || undefined,
-                isFirstAuthor: String(p.partnerComment || '').includes('First Author') || false,
-                isCoreespondingAuthor: String(p.partnerComment || '').includes('Corresponding Author') || false,
-                users_permissions_user: p.userID || undefined,
-                project_fundings: [fundingId],
-              })
-              await api.post('/funding-partners', { data: partnerData })
-            }))
-          }
+          await upsertFundingPartners(fundingId, partners)
         } catch (linkErr) {
           // หากลิงก์ผู้ร่วมไม่สำเร็จ ให้แสดงเตือน แต่ไม่บล็อกการสร้างคำขอทุน
-          console.warn('Failed to create funding_partners:', linkErr)
+          console.warn('Failed to upsert funding_partners (create):', linkErr)
         }
         setSwalProps({ show: true, icon: 'success', title: 'สร้างข้อมูลสำเร็จ', timer: 1600, showConfirmButton: false })
       }
