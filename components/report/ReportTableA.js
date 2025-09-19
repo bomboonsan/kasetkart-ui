@@ -1,5 +1,5 @@
 import { CSVLink, CSVDownload } from "react-csv";
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 export default function ReportTableA() {
   const csvData = [
     [

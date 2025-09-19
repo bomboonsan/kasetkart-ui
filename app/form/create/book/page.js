@@ -1,4 +1,4 @@
-import CreateBookForm from "@/components/CreateBookForm";
+import CreateBookForm from "@/components/form/BookForm";
 import PageHeader from '@/components/PageHeader'
 
 export default function CreatePage() {

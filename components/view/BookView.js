@@ -6,7 +6,7 @@ import { worksAPI } from '@/lib/api'
 import ViewFormSection from './ViewFormSection'
 import ViewFormField from './ViewFormField'
 // ใช้ path alias (@/) แทน relative path
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 
 export default function BookView({ bookId }) {
   const router = useRouter()

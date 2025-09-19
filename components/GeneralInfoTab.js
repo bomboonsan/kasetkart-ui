@@ -1,7 +1,8 @@
 'use client'
 
 import ProfileImageUpload from './ProfileImageUpload'
-import { FormField, SelectField } from '@/components/ui'
+import FormField from '@/components/FormField'
+import SelectField from '@/components/SelectField'
 
 /**
  * GeneralInfoTab (Presentational Component)

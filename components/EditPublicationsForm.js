@@ -20,7 +20,7 @@ import FormFieldBlock from "./FormFieldBlock";
 import FormField from "./FormField";
 import ProjectPicker from './ProjectPicker'
 import UserPicker from './UserPicker'
-import { FormDoubleInput } from '@/components/ui'
+import FormDoubleInput from '@/components/FormDoubleInput'
 import FormInput from "./FormInput";
 import FormRadio from "./FormRadio";
 import FormCheckbox from "./FormCheckbox";

@@ -3,7 +3,7 @@
 import { useRef } from 'react'
 import UserManagement from '@/components/UserManagement'
 import PageHeader from '@/components/PageHeader'
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 import { useRouter } from 'next/navigation'
 
 export default function ManageUsersPage() {

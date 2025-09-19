@@ -8,20 +8,22 @@ import useSWR, { mutate } from 'swr'
 import { worksAPI, projectAPI, profileAPI, fundingAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
 import { getDocumentId, createHandleChange, stripUndefined } from '@/utils'
-import { FormSection, FormFieldBlock, FormField } from '@/components/ui'
+import FormSection from '@/components/FormSection'
+import FormFieldBlock from '@/components/FormFieldBlock'
+import FormField from '@/components/FormField'
 import ProjectFundingPicker from '@/components/ProjectFundingPicker'
 import FormInput from "@/components/FormInput";
 import FormRadio from "@/components/FormRadio";
-import { FormCheckbox } from '@/components/ui'
-import { FormTextarea } from '@/components/ui'
-import { FormDateSelect } from '@/components/ui'
+import FormCheckbox from '@/components/FormCheckbox'
+import FormTextarea from '@/components/FormTextarea'
+import FormDateSelect from '@/components/FormDateSelect'
 import FormSelect from "@/components/FormSelect";
 import dynamic from 'next/dynamic'
 
 const FileUploadField = dynamic(() => import('@/components/FileUploadField'), { ssr: false });
 import ResearchTeamTable from '@/components/ResearchTeamTable'
 
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 
 // คอมเมนต์ (ไทย): แก้ไขให้ SweetAlert2 โหลดแบบ dynamic เฉพาะฝั่ง client เท่านั้น
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false });

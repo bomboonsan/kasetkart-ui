@@ -1,15 +1,17 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { FormSection, FormFieldBlock, FormField } from "@/components/ui";
-import { FormInput } from "@/components/ui";
+import FormSection from '@/components/FormSection'
+import FormFieldBlock from '@/components/FormFieldBlock'
+import FormField from '@/components/FormField';
+import FormInput from '@/components/FormInput';
 import FormRadio from "@/components/FormRadio";
-import { FormTextarea } from "@/components/ui";
-import { FormDateSelect } from "@/components/ui";
-import { FormSelect } from "@/components/ui";
+import FormTextarea from '@/components/FormTextarea';
+import FormDateSelect from '@/components/FormDateSelect';
+import FormSelect from '@/components/FormSelect';
 import FileUploadField from "@/components/FileUploadField";
 import ResearchTeamTable from "@/components/ResearchTeamTable";
-import { Button } from "@/components/ui";
+import Button from '@/components/Button';
 import Link from "next/link";
 import dynamic from "next/dynamic";
 const SweetAlert2 = dynamic(() => import("react-sweetalert2"), { ssr: false });

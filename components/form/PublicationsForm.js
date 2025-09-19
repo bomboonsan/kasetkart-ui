@@ -13,7 +13,7 @@ import FormFieldBlock from "@/components/FormFieldBlock";
 import FormField from "@/components/FormField";
 import ProjectPicker from '@/components/ProjectPicker'
 import UserPicker from '@/components/UserPicker'
-import { FormDoubleInput } from '@/components/ui'
+import FormDoubleInput from '@/components/FormDoubleInput'
 import FormInput from "@/components/FormInput";
 import FormRadio from "@/components/FormRadio";
 import FormCheckbox from "@/components/FormCheckbox";

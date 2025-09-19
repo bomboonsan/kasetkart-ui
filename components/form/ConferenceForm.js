@@ -7,17 +7,19 @@ import useSWR, { mutate } from "swr";
 // ใช้ path alias (@/) เพื่อให้ import สั้นและชัดเจน
 import { worksAPI, projectAPI, profileAPI } from "@/lib/api";
 import { stripUndefined, getDocumentId, createHandleChange } from "@/utils";
-import { FormSection, FormFieldBlock, FormField } from "@/components/ui";
+import FormSection from '@/components/FormSection'
+import FormFieldBlock from '@/components/FormFieldBlock'
+import FormField from '@/components/FormField';
 import ProjectPicker from "@/components/ProjectPicker";
 import FormInput from "@/components/FormInput";
 import FormRadio from "@/components/FormRadio";
-import { FormCheckbox } from "@/components/ui";
-import { FormTextarea } from "@/components/ui";
-import { FormDateSelect } from "@/components/ui";
+import FormCheckbox from '@/components/FormCheckbox';
+import FormTextarea from '@/components/FormTextarea';
+import FormDateSelect from '@/components/FormDateSelect';
 import FormSelect from "@/components/FormSelect";
 import FileUploadField from "@/components/FileUploadField";
 import ResearchTeamTable from "@/components/ResearchTeamTable";
-import { Button } from "@/components/ui";
+import Button from '@/components/Button';
 import dynamic from "next/dynamic";
 import { api } from "@/lib/api-base";
 import { extractResearchTeam } from "@/utils";

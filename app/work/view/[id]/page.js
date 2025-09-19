@@ -3,7 +3,10 @@
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import PageHeader from '@/components/PageHeader'
-import { FormSection, FormFieldBlock, FormInput, FormTextarea } from '@/components/ui'
+import FormSection from '@/components/FormSection'
+import FormFieldBlock from '@/components/FormFieldBlock'
+import FormInput from '@/components/FormInput'
+import FormTextarea from '@/components/FormTextarea'
 
 function toDash(v) {
   if (v === null || v === undefined) return '-'

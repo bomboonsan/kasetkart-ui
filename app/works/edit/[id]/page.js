@@ -2,10 +2,10 @@
 
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import CreateConferenceForm from '@/components/CreateConferenceForm'
-import CreatePublicationsForm from '@/components/CreatePublicationsForm'
-import CreateFundingForm from '@/components/CreateFundingForm'
-import CreateBookForm from '@/components/CreateBookForm'
+import CreateConferenceForm from '@/components/form/ConferenceForm'
+import CreatePublicationsForm from '@/components/form/PublicationsForm'
+import CreateFundingForm from '@/components/form/FundingForm'
+import CreateBookForm from '@/components/form/BookForm'
 
 export default function EditWorkPage() {
   const params = useParams()

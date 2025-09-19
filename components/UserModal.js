@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FormField, SelectField } from '@/components/ui'
-import { Button } from '@/components/ui'
+import FormField from '@/components/FormField'
+import SelectField from '@/components/SelectField'
+import Button from '@/components/Button'
 import { createHandleChange } from '@/utils'
 
 export default function UserModal({ user, mode, onClose, onSave }) {
