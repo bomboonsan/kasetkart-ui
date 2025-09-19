@@ -2,7 +2,13 @@
 
 import { useState } from 'react'
 import { createHandleChange } from '@/utils'
-import { FormSection, FormField, SelectField, TextAreaField, CheckboxGroup, RadioGroup, Button } from '@/components/ui'
+import FormSection from '@/components/FormSection'
+import FormField from '@/components/FormField'
+import SelectField from '@/components/SelectField'
+import TextAreaField from '@/components/TextAreaField'
+import CheckboxGroup from '@/components/CheckboxGroup'
+import RadioGroup from '@/components/RadioGroup'
+import Button from '@/components/Button'
 import FileUploadField from './FileUploadField'
 import PublicationTeamTable from './PublicationTeamTable'
 

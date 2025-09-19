@@ -2,8 +2,8 @@
 
 import { useState } from 'react'
 import { createHandleChange } from '@/utils'
-import { SelectField } from '@/components/ui'
-import { Button } from '@/components/ui'
+import SelectField from '@/components/SelectField'
+import Button from '@/components/Button'
 
 export default function SystemAccessTab() {
   const [formData, setFormData] = useState({

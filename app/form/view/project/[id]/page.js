@@ -1,6 +1,6 @@
 'use server'
 
-import CreateResearchForm from '@/components/CreateResearchForm'
+import CreateResearchForm from '@/components/form/ProjectForm'
 
 // แก้ไข: แสดง UI เดียวกับหน้าแก้ไข (ใช้ CreateResearchForm) แต่ไม่อนุญาตให้แก้ไข
 // แนวทาง: render ฟอร์มเหมือนหน้า edit แต่ทับด้วย overlay ที่ปิดการรับ input/clicks ทำให้เป็น read-only

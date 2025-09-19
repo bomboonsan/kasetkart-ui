@@ -1,6 +1,8 @@
 "use client"
 
-import { FormSection, FormFieldBlock, DisplayField } from '@/components/ui'
+import FormSection from '@/components/FormSection'
+import FormFieldBlock from '@/components/FormFieldBlock'
+import DisplayField from '@/components/DisplayField'
 
 function formatDate(d) {
   if (!d) return '-'

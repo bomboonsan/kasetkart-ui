@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { projectAPI } from '@/lib/api'
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 import PageHeader from '@/components/PageHeader'
 
 export default function ProjectsPage() {

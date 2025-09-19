@@ -3,7 +3,7 @@
 // ใช้ SWR โหลดรายชื่อผู้ใช้เมื่อ modal เปิด
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 import { api } from '@/lib/api-base'
 
 export default function UserPicker({ label = 'ผู้ร่วมงาน', onSelect, selectedUser }) {

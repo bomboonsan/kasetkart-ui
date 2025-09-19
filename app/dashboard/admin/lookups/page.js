@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from 'react'
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 
 function Manager({ title, path }) {
   // Mock data แทน API calls

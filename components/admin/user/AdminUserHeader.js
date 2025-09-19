@@ -1,6 +1,6 @@
 "use client"
 
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 import Link from 'next/link'
 import { useState } from 'react'
 import useSWR from 'swr'

@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import { FormField, SelectField } from '@/components/ui'
-import { Button } from '@/components/ui'
+import FormField from '@/components/FormField'
+import SelectField from '@/components/SelectField'
+import Button from '@/components/Button'
 import { orgAPI, userAPI, uploadAPI } from '@/lib/api'
 import { API_BASE, api } from '@/lib/api-base'
 import Image from 'next/image';

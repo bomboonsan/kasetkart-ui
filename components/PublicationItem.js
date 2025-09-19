@@ -1,4 +1,4 @@
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 
 export default function PublicationItem({ title, description, year, type, status }) {
   return (

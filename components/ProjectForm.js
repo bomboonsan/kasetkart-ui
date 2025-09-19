@@ -1,13 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { FormSection } from '@/components/ui'
+import FormSection from '@/components/FormSection'
 import FormFieldBlock from "./FormFieldBlock"
 import FormInput from "./FormInput"
 import FormTextarea from "./FormTextarea"
 import ResearchTeamSection from './ResearchTeamSection'
 import FileUploadSection from './FileUploadSection'
-import { Button } from '@/components/ui'
+import Button from '@/components/Button'
 import { projectAPI } from '@/lib/api'
 import { createHandleChange } from '@/utils'
 
