@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import CreateFundingForm from "@/components/CreateFundingForm";
+import FundingForm from "@/components/FundingForm";
 import PageHeader from '@/components/PageHeader'
 
 export default function ViewFundingPage() {
@@ -14,7 +14,7 @@ export default function ViewFundingPage() {
         title="ดูรายละเอียดทุนตำราหรือหนังสือ"
         showAddButton={false}
       />
-      <CreateFundingForm mode="view" workId={id} />
+      <FundingForm mode="edit" workId={id} readonly={true} />
     </div>
   );
 }

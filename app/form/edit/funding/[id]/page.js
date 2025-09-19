@@ -1,7 +1,7 @@
 'use client'
 
 import { useParams } from 'next/navigation'
-import FundingForm from "@/components/form/FundingForm";
+import FundingForm from "@/components/FundingForm";
 import PageHeader from '@/components/PageHeader'
 
 export default function EditFundingPage() {
