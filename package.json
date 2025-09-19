@@ -6,8 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-  "lint": "next lint",
-  "test:team": "node ./test-team-utils.mjs"
+    "lint": "next lint",
+    "test:team": "node ./test-team-utils.mjs"
   },
   "dependencies": {
     "apexcharts": "^5.3.4",
@@ -31,6 +31,7 @@
     "daisyui": "^5.0.54",
     "eslint": "^9",
     "eslint-config-next": "15.4.7",
-    "tailwindcss": "^4"
+    "tailwindcss": "^4",
+    "typescript": "^5.9.2"
   }
 }
