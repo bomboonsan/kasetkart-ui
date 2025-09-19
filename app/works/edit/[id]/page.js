@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
 import CreateConferenceForm from '@/components/CreateConferenceForm'
-import CreatePublicationsForm from '@/components/CreatePublicationsForm'
+import PublicationsForm from '@/components/PublicationsForm'
 import CreateFundingForm from '@/components/CreateFundingForm'
 import CreateBookForm from '@/components/CreateBookForm'
 
@@ -54,7 +54,7 @@ export default function EditWorkPage() {
         <CreateConferenceForm mode="edit" workId={id} initialData={initial} />
       )}
       {work.type === 'PUBLICATION' && (
-        <CreatePublicationsForm mode="edit" workId={id} initialData={initial} />
+        <PublicationsForm mode="edit" workId={id} initialData={initial} />
       )}
       {work.type === 'FUNDING' && (
         <CreateFundingForm mode="edit" workId={id} initialData={initial} />
