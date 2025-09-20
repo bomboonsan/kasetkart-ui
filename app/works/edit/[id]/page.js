@@ -2,10 +2,10 @@
 
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import CreateConferenceForm from '@/components/CreateConferenceForm'
-import CreatePublicationsForm from '@/components/CreatePublicationsForm'
-import CreateFundingForm from '@/components/CreateFundingForm'
-import CreateBookForm from '@/components/CreateBookForm'
+import ConferenceForm from '@/components/ConferenceForm'
+import PublicationsForm from '@/components/PublicationsForm'
+import FundingForm from '@/components/FundingForm'
+import BookForm from '@/components/BookForm'
 
 export default function EditWorkPage() {
   const params = useParams()
@@ -51,16 +51,16 @@ export default function EditWorkPage() {
     <div className="space-y-6">
       <div className="text-2xl font-semibold text-gray-800">แก้ไขผลงานวิจัย ({work.type})</div>
       {work.type === 'CONFERENCE' && (
-        <CreateConferenceForm mode="edit" workId={id} initialData={initial} />
+        <ConferenceForm mode="edit" workId={id} initialData={initial} />
       )}
       {work.type === 'PUBLICATION' && (
-        <CreatePublicationsForm mode="edit" workId={id} initialData={initial} />
+        <PublicationsForm mode="edit" workId={id} initialData={initial} />
       )}
       {work.type === 'FUNDING' && (
-        <CreateFundingForm mode="edit" workId={id} initialData={initial} />
+        <FundingForm mode="edit" workId={id} initialData={initial} />
       )}
       {work.type === 'BOOK' && (
-        <CreateBookForm mode="edit" workId={id} initialData={initial} />
+        <BookForm mode="edit" workId={id} initialData={initial} />
       )}
     </div>
   )

@@ -1,4 +1,4 @@
-import FundingForm from "@/components/form/FundingForm";
+import FundingForm from "@/components/FundingForm";
 import PageHeader from '@/components/PageHeader'
 
 export default function CreatePage() {
@@ -8,7 +8,7 @@ export default function CreatePage() {
         title="ทุนตำราหรือหนังสือ"
         showAddButton={false}
       />
-      <FundingForm />
+      <FundingForm mode="create" />
     </div>
   );
 }
