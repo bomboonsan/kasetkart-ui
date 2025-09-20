@@ -250,21 +250,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -308,7 +293,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.212Z",
+                            "default": "2025-09-20T03:35:50.695Z",
                             "type": "string"
                           },
                           "users": {
@@ -415,21 +400,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -471,7 +441,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.307Z",
+                          "default": "2025-09-20T03:35:50.810Z",
                           "type": "string"
                         },
                         "users": {
@@ -537,7 +507,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.306Z",
+                        "default": "2025-09-20T03:35:50.809Z",
                         "type": "string"
                       },
                       "users": {
@@ -738,21 +708,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -794,7 +749,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.302Z",
+                          "default": "2025-09-20T03:35:50.805Z",
                           "type": "string"
                         },
                         "users": {
@@ -912,21 +867,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -968,7 +908,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.318Z",
+                          "default": "2025-09-20T03:35:50.817Z",
                           "type": "string"
                         },
                         "users": {
@@ -1034,7 +974,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.316Z",
+                        "default": "2025-09-20T03:35:50.816Z",
                         "type": "string"
                       },
                       "users": {
@@ -1152,21 +1092,6 @@
               "additionalProperties": {}
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -1208,7 +1133,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.321Z",
+                          "default": "2025-09-20T03:35:50.820Z",
                           "type": "string"
                         },
                         "users": {
@@ -1544,21 +1469,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -1598,7 +1508,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.329Z",
+                            "default": "2025-09-20T03:35:50.827Z",
                             "type": "string"
                           },
                           "users": {
@@ -1704,21 +1614,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -1756,7 +1651,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.336Z",
+                          "default": "2025-09-20T03:35:50.840Z",
                           "type": "string"
                         },
                         "users": {
@@ -1818,7 +1713,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.335Z",
+                        "default": "2025-09-20T03:35:50.839Z",
                         "type": "string"
                       },
                       "users": {
@@ -2013,21 +1908,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -2065,7 +1945,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.333Z",
+                          "default": "2025-09-20T03:35:50.831Z",
                           "type": "string"
                         },
                         "users": {
@@ -2182,21 +2062,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -2234,7 +2099,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.340Z",
+                          "default": "2025-09-20T03:35:50.846Z",
                           "type": "string"
                         },
                         "users": {
@@ -2296,7 +2161,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.338Z",
+                        "default": "2025-09-20T03:35:50.843Z",
                         "type": "string"
                       },
                       "users": {
@@ -2412,21 +2277,6 @@
               "additionalProperties": {}
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -2464,7 +2314,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.342Z",
+                          "default": "2025-09-20T03:35:50.849Z",
                           "type": "string"
                         },
                         "users": {
@@ -2762,21 +2612,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -2826,7 +2661,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.353Z",
+                            "default": "2025-09-20T03:35:50.857Z",
                             "type": "string"
                           },
                           "education_level": {
@@ -2937,21 +2772,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -2999,7 +2819,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.363Z",
+                          "default": "2025-09-20T03:35:50.867Z",
                           "type": "string"
                         },
                         "education_level": {
@@ -3072,7 +2892,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.362Z",
+                        "default": "2025-09-20T03:35:50.866Z",
                         "type": "string"
                       },
                       "education_level": {
@@ -3284,21 +3104,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -3346,7 +3151,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.358Z",
+                          "default": "2025-09-20T03:35:50.862Z",
                           "type": "string"
                         },
                         "education_level": {
@@ -3468,21 +3273,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -3530,7 +3320,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.368Z",
+                          "default": "2025-09-20T03:35:50.872Z",
                           "type": "string"
                         },
                         "education_level": {
@@ -3603,7 +3393,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.366Z",
+                        "default": "2025-09-20T03:35:50.870Z",
                         "type": "string"
                       },
                       "education_level": {
@@ -3728,21 +3518,6 @@
               "additionalProperties": {}
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -3790,7 +3565,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.373Z",
+                          "default": "2025-09-20T03:35:50.881Z",
                           "type": "string"
                         },
                         "education_level": {
@@ -4071,21 +3846,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -4125,7 +3885,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.380Z",
+                            "default": "2025-09-20T03:35:50.887Z",
                             "type": "string"
                           }
                         },
@@ -4220,21 +3980,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -4272,7 +4017,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.390Z",
+                          "default": "2025-09-20T03:35:50.893Z",
                           "type": "string"
                         }
                       },
@@ -4327,7 +4072,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:11.136Z",
+                        "default": "2025-09-20T03:35:55.135Z",
                         "type": "string"
                       }
                     },
@@ -4509,21 +4254,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -4561,7 +4291,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.383Z",
+                          "default": "2025-09-20T03:35:50.890Z",
                           "type": "string"
                         }
                       },
@@ -4667,21 +4397,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -4719,7 +4434,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.394Z",
+                          "default": "2025-09-20T03:35:50.897Z",
                           "type": "string"
                         }
                       },
@@ -4774,7 +4489,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.392Z",
+                        "default": "2025-09-20T03:35:50.896Z",
                         "type": "string"
                       }
                     },
@@ -4877,21 +4592,6 @@
               "additionalProperties": {}
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -4929,7 +4629,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.398Z",
+                          "default": "2025-09-20T03:35:50.900Z",
                           "type": "string"
                         }
                       },
@@ -5245,7 +4945,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.406Z",
+                            "default": "2025-09-20T03:35:50.905Z",
                             "type": "string"
                           },
                           "users": {
@@ -5388,7 +5088,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.419Z",
+                          "default": "2025-09-20T03:35:50.914Z",
                           "type": "string"
                         },
                         "users": {
@@ -5450,7 +5150,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.418Z",
+                        "default": "2025-09-20T03:35:50.913Z",
                         "type": "string"
                       },
                       "users": {
@@ -5682,7 +5382,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.414Z",
+                          "default": "2025-09-20T03:35:50.909Z",
                           "type": "string"
                         },
                         "users": {
@@ -5836,7 +5536,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.424Z",
+                          "default": "2025-09-20T03:35:50.929Z",
                           "type": "string"
                         },
                         "users": {
@@ -5898,7 +5598,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.423Z",
+                        "default": "2025-09-20T03:35:50.926Z",
                         "type": "string"
                       },
                       "users": {
@@ -6051,7 +5751,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.427Z",
+                          "default": "2025-09-20T03:35:50.934Z",
                           "type": "string"
                         },
                         "users": {
@@ -6416,7 +6116,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.437Z",
+                            "default": "2025-09-20T03:35:50.941Z",
                             "type": "string"
                           },
                           "project_fundings": {
@@ -6581,7 +6281,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.448Z",
+                          "default": "2025-09-20T03:35:50.951Z",
                           "type": "string"
                         },
                         "project_fundings": {
@@ -6661,7 +6361,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.447Z",
+                        "default": "2025-09-20T03:35:50.950Z",
                         "type": "string"
                       },
                       "project_fundings": {
@@ -6935,7 +6635,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.442Z",
+                          "default": "2025-09-20T03:35:50.947Z",
                           "type": "string"
                         },
                         "project_fundings": {
@@ -7111,7 +6811,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.454Z",
+                          "default": "2025-09-20T03:35:50.957Z",
                           "type": "string"
                         },
                         "project_fundings": {
@@ -7191,7 +6891,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.452Z",
+                        "default": "2025-09-20T03:35:50.955Z",
                         "type": "string"
                       },
                       "project_fundings": {
@@ -7370,7 +7070,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.458Z",
+                          "default": "2025-09-20T03:35:50.964Z",
                           "type": "string"
                         },
                         "project_fundings": {
@@ -7771,7 +7471,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.471Z",
+                            "default": "2025-09-20T03:35:50.972Z",
                             "type": "string"
                           },
                           "users_permissions_users": {
@@ -7966,7 +7666,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.483Z",
+                          "default": "2025-09-20T03:35:50.985Z",
                           "type": "string"
                         },
                         "users_permissions_users": {
@@ -8087,7 +7787,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.482Z",
+                        "default": "2025-09-20T03:35:50.983Z",
                         "type": "string"
                       },
                       "users_permissions_users": {
@@ -8408,7 +8108,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.477Z",
+                          "default": "2025-09-20T03:35:50.979Z",
                           "type": "string"
                         },
                         "users_permissions_users": {
@@ -8614,7 +8314,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.489Z",
+                          "default": "2025-09-20T03:35:50.995Z",
                           "type": "string"
                         },
                         "users_permissions_users": {
@@ -8735,7 +8435,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.487Z",
+                        "default": "2025-09-20T03:35:50.988Z",
                         "type": "string"
                       },
                       "users_permissions_users": {
@@ -8947,7 +8647,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.492Z",
+                          "default": "2025-09-20T03:35:50.999Z",
                           "type": "string"
                         },
                         "users_permissions_users": {
@@ -9275,7 +8975,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.504Z",
+                            "default": "2025-09-20T03:35:51.004Z",
                             "type": "string"
                           }
                         },
@@ -9407,7 +9107,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.509Z",
+                          "default": "2025-09-20T03:35:51.009Z",
                           "type": "string"
                         }
                       },
@@ -9462,7 +9162,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:13.368Z",
+                        "default": "2025-09-20T03:35:57.350Z",
                         "type": "string"
                       }
                     },
@@ -9681,7 +9381,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.507Z",
+                          "default": "2025-09-20T03:35:51.007Z",
                           "type": "string"
                         }
                       },
@@ -9824,7 +9524,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.512Z",
+                          "default": "2025-09-20T03:35:51.013Z",
                           "type": "string"
                         }
                       },
@@ -9879,7 +9579,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.511Z",
+                        "default": "2025-09-20T03:35:51.012Z",
                         "type": "string"
                       }
                     },
@@ -10019,7 +9719,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.514Z",
+                          "default": "2025-09-20T03:35:51.016Z",
                           "type": "string"
                         }
                       },
@@ -10331,7 +10031,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.519Z",
+                            "default": "2025-09-20T03:35:51.029Z",
                             "type": "string"
                           }
                         },
@@ -10463,7 +10163,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.524Z",
+                          "default": "2025-09-20T03:35:51.036Z",
                           "type": "string"
                         }
                       },
@@ -10518,7 +10218,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:13.869Z",
+                        "default": "2025-09-20T03:35:57.853Z",
                         "type": "string"
                       }
                     },
@@ -10737,7 +10437,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.522Z",
+                          "default": "2025-09-20T03:35:51.033Z",
                           "type": "string"
                         }
                       },
@@ -10880,7 +10580,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.532Z",
+                          "default": "2025-09-20T03:35:51.039Z",
                           "type": "string"
                         }
                       },
@@ -10935,7 +10635,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.531Z",
+                        "default": "2025-09-20T03:35:51.038Z",
                         "type": "string"
                       }
                     },
@@ -11075,7 +10775,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.534Z",
+                          "default": "2025-09-20T03:35:51.041Z",
                           "type": "string"
                         }
                       },
@@ -11348,21 +11048,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -11402,7 +11087,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.538Z",
+                            "default": "2025-09-20T03:35:51.048Z",
                             "type": "string"
                           }
                         },
@@ -11497,21 +11182,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -11549,7 +11219,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.544Z",
+                          "default": "2025-09-20T03:35:51.053Z",
                           "type": "string"
                         }
                       },
@@ -11604,7 +11274,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:14.520Z",
+                        "default": "2025-09-20T03:35:58.341Z",
                         "type": "string"
                       }
                     },
@@ -11786,21 +11456,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -11838,7 +11493,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.542Z",
+                          "default": "2025-09-20T03:35:51.051Z",
                           "type": "string"
                         }
                       },
@@ -11944,21 +11599,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -11996,7 +11636,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.547Z",
+                          "default": "2025-09-20T03:35:51.056Z",
                           "type": "string"
                         }
                       },
@@ -12051,7 +11691,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.546Z",
+                        "default": "2025-09-20T03:35:51.055Z",
                         "type": "string"
                       }
                     },
@@ -12154,21 +11794,6 @@
               "additionalProperties": {}
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -12206,7 +11831,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.549Z",
+                          "default": "2025-09-20T03:35:51.064Z",
                           "type": "string"
                         }
                       },
@@ -12483,21 +12108,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -12537,7 +12147,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.554Z",
+                            "default": "2025-09-20T03:35:51.069Z",
                             "type": "string"
                           },
                           "users": {
@@ -12643,21 +12253,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -12695,7 +12290,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.567Z",
+                          "default": "2025-09-20T03:35:51.076Z",
                           "type": "string"
                         },
                         "users": {
@@ -12757,7 +12352,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.566Z",
+                        "default": "2025-09-20T03:35:51.075Z",
                         "type": "string"
                       },
                       "users": {
@@ -12952,21 +12547,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -13004,7 +12584,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.563Z",
+                          "default": "2025-09-20T03:35:51.072Z",
                           "type": "string"
                         },
                         "users": {
@@ -13121,21 +12701,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -13173,7 +12738,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.569Z",
+                          "default": "2025-09-20T03:35:51.080Z",
                           "type": "string"
                         },
                         "users": {
@@ -13235,7 +12800,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.568Z",
+                        "default": "2025-09-20T03:35:51.078Z",
                         "type": "string"
                       },
                       "users": {
@@ -13351,21 +12916,6 @@
               "additionalProperties": {}
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -13403,7 +12953,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.571Z",
+                          "default": "2025-09-20T03:35:51.082Z",
                           "type": "string"
                         },
                         "users": {
@@ -13725,21 +13275,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -13803,7 +13338,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.580Z",
+                            "default": "2025-09-20T03:35:51.089Z",
                             "type": "string"
                           },
                           "user": {
@@ -13918,21 +13453,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -13994,7 +13514,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.594Z",
+                          "default": "2025-09-20T03:35:51.106Z",
                           "type": "string"
                         },
                         "user": {
@@ -14081,7 +13601,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.592Z",
+                        "default": "2025-09-20T03:35:51.104Z",
                         "type": "string"
                       },
                       "user": {
@@ -14314,21 +13834,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -14390,7 +13895,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.585Z",
+                          "default": "2025-09-20T03:35:51.101Z",
                           "type": "string"
                         },
                         "user": {
@@ -14516,21 +14021,6 @@
               ]
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -14592,7 +14082,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.599Z",
+                          "default": "2025-09-20T03:35:51.113Z",
                           "type": "string"
                         },
                         "user": {
@@ -14679,7 +14169,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.597Z",
+                        "default": "2025-09-20T03:35:51.110Z",
                         "type": "string"
                       },
                       "user": {
@@ -14809,21 +14299,6 @@
               "additionalProperties": {}
             },
             "x-strapi-serialize": "querystring"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "required": false,
-            "schema": {
-              "$schema": "https://json-schema.org/draft/2020-12/schema",
-              "description": "Fetch documents based on their status. Default to \"published\" if not specified.",
-              "type": "string",
-              "enum": [
-                "draft",
-                "published"
-              ]
-            },
-            "x-strapi-serialize": "querystring"
           }
         ],
         "responses": {
@@ -14885,7 +14360,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.603Z",
+                          "default": "2025-09-20T03:35:51.118Z",
                           "type": "string"
                         },
                         "user": {
@@ -15322,7 +14797,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.612Z",
+                            "default": "2025-09-20T03:35:51.134Z",
                             "type": "string"
                           },
                           "attachments": {
@@ -15561,7 +15036,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.635Z",
+                          "default": "2025-09-20T03:35:51.157Z",
                           "type": "string"
                         },
                         "attachments": {
@@ -15697,7 +15172,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.632Z",
+                        "default": "2025-09-20T03:35:51.153Z",
                         "type": "string"
                       },
                       "attachments": {
@@ -16083,7 +15558,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.624Z",
+                          "default": "2025-09-20T03:35:51.146Z",
                           "type": "string"
                         },
                         "attachments": {
@@ -16333,7 +15808,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.644Z",
+                          "default": "2025-09-20T03:35:51.172Z",
                           "type": "string"
                         },
                         "attachments": {
@@ -16469,7 +15944,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.640Z",
+                        "default": "2025-09-20T03:35:51.169Z",
                         "type": "string"
                       },
                       "attachments": {
@@ -16736,7 +16211,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.656Z",
+                          "default": "2025-09-20T03:35:51.180Z",
                           "type": "string"
                         },
                         "attachments": {
@@ -17182,7 +16657,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.664Z",
+                            "default": "2025-09-20T03:35:51.191Z",
                             "type": "string"
                           },
                           "users_permissions_users": {
@@ -17384,7 +16859,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.675Z",
+                          "default": "2025-09-20T03:35:51.218Z",
                           "type": "string"
                         },
                         "users_permissions_users": {
@@ -17511,7 +16986,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.674Z",
+                        "default": "2025-09-20T03:35:51.214Z",
                         "type": "string"
                       },
                       "users_permissions_users": {
@@ -17844,7 +17319,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.670Z",
+                          "default": "2025-09-20T03:35:51.202Z",
                           "type": "string"
                         },
                         "users_permissions_users": {
@@ -18057,7 +17532,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.689Z",
+                          "default": "2025-09-20T03:35:51.232Z",
                           "type": "string"
                         },
                         "users_permissions_users": {
@@ -18184,7 +17659,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.686Z",
+                        "default": "2025-09-20T03:35:51.226Z",
                         "type": "string"
                       },
                       "users_permissions_users": {
@@ -18404,7 +17879,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.696Z",
+                          "default": "2025-09-20T03:35:51.239Z",
                           "type": "string"
                         },
                         "users_permissions_users": {
@@ -18935,7 +18410,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.713Z",
+                            "default": "2025-09-20T03:35:51.260Z",
                             "type": "string"
                           },
                           "attachments": {
@@ -19230,7 +18705,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.737Z",
+                          "default": "2025-09-20T03:35:51.286Z",
                           "type": "string"
                         },
                         "attachments": {
@@ -19416,7 +18891,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.734Z",
+                        "default": "2025-09-20T03:35:51.282Z",
                         "type": "string"
                       },
                       "attachments": {
@@ -19880,7 +19355,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.727Z",
+                          "default": "2025-09-20T03:35:51.273Z",
                           "type": "string"
                         },
                         "attachments": {
@@ -20186,7 +19661,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.754Z",
+                          "default": "2025-09-20T03:35:51.305Z",
                           "type": "string"
                         },
                         "attachments": {
@@ -20372,7 +19847,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.749Z",
+                        "default": "2025-09-20T03:35:51.299Z",
                         "type": "string"
                       },
                       "attachments": {
@@ -20698,7 +20173,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.760Z",
+                          "default": "2025-09-20T03:35:51.315Z",
                           "type": "string"
                         },
                         "attachments": {
@@ -21196,7 +20671,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.765Z",
+                            "default": "2025-09-20T03:35:51.334Z",
                             "type": "string"
                           }
                         },
@@ -21328,7 +20803,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.771Z",
+                          "default": "2025-09-20T03:35:51.343Z",
                           "type": "string"
                         }
                       },
@@ -21383,7 +20858,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:18.016Z",
+                        "default": "2025-09-20T03:36:01.464Z",
                         "type": "string"
                       }
                     },
@@ -21602,7 +21077,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.769Z",
+                          "default": "2025-09-20T03:35:51.341Z",
                           "type": "string"
                         }
                       },
@@ -21745,7 +21220,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.779Z",
+                          "default": "2025-09-20T03:35:51.349Z",
                           "type": "string"
                         }
                       },
@@ -21800,7 +21275,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.778Z",
+                        "default": "2025-09-20T03:35:51.348Z",
                         "type": "string"
                       }
                     },
@@ -21940,7 +21415,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.781Z",
+                          "default": "2025-09-20T03:35:51.352Z",
                           "type": "string"
                         }
                       },
@@ -22347,7 +21822,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.788Z",
+                            "default": "2025-09-20T03:35:51.359Z",
                             "type": "string"
                           },
                           "project_fundings": {
@@ -22532,7 +22007,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.798Z",
+                          "default": "2025-09-20T03:35:51.378Z",
                           "type": "string"
                         },
                         "project_fundings": {
@@ -22628,7 +22103,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.797Z",
+                        "default": "2025-09-20T03:35:51.376Z",
                         "type": "string"
                       },
                       "project_fundings": {
@@ -22930,7 +22405,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.793Z",
+                          "default": "2025-09-20T03:35:51.368Z",
                           "type": "string"
                         },
                         "project_fundings": {
@@ -23126,7 +22601,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.808Z",
+                          "default": "2025-09-20T03:35:51.384Z",
                           "type": "string"
                         },
                         "project_fundings": {
@@ -23222,7 +22697,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.806Z",
+                        "default": "2025-09-20T03:35:51.383Z",
                         "type": "string"
                       },
                       "project_fundings": {
@@ -23421,7 +22896,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.814Z",
+                          "default": "2025-09-20T03:35:51.388Z",
                           "type": "string"
                         },
                         "project_fundings": {
@@ -23975,7 +23450,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.826Z",
+                            "default": "2025-09-20T03:35:51.406Z",
                             "type": "string"
                           },
                           "project_researches": {
@@ -24244,7 +23719,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.852Z",
+                          "default": "2025-09-20T03:35:51.430Z",
                           "type": "string"
                         },
                         "project_researches": {
@@ -24409,7 +23884,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.848Z",
+                        "default": "2025-09-20T03:35:51.425Z",
                         "type": "string"
                       },
                       "project_researches": {
@@ -24870,7 +24345,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.841Z",
+                          "default": "2025-09-20T03:35:51.418Z",
                           "type": "string"
                         },
                         "project_researches": {
@@ -25150,7 +24625,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.867Z",
+                          "default": "2025-09-20T03:35:51.445Z",
                           "type": "string"
                         },
                         "project_researches": {
@@ -25315,7 +24790,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.858Z",
+                        "default": "2025-09-20T03:35:51.440Z",
                         "type": "string"
                       },
                       "project_researches": {
@@ -25613,7 +25088,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.873Z",
+                          "default": "2025-09-20T03:35:51.452Z",
                           "type": "string"
                         },
                         "project_researches": {
@@ -26265,7 +25740,7 @@
                           },
                           "publishedAt": {
                             "description": "A datetime field",
-                            "default": "2025-09-20T03:08:06.893Z",
+                            "default": "2025-09-20T03:35:51.474Z",
                             "type": "string"
                           },
                           "project_researches": {
@@ -26595,7 +26070,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.923Z",
+                          "default": "2025-09-20T03:35:51.508Z",
                           "type": "string"
                         },
                         "project_researches": {
@@ -26892,7 +26367,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.919Z",
+                        "default": "2025-09-20T03:35:51.502Z",
                         "type": "string"
                       },
                       "project_researches": {
@@ -27459,7 +26934,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.907Z",
+                          "default": "2025-09-20T03:35:51.492Z",
                           "type": "string"
                         },
                         "project_researches": {
@@ -27800,7 +27275,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.936Z",
+                          "default": "2025-09-20T03:35:51.529Z",
                           "type": "string"
                         },
                         "project_researches": {
@@ -28097,7 +27572,7 @@
                       },
                       "publishedAt": {
                         "description": "A datetime field",
-                        "default": "2025-09-20T03:08:06.932Z",
+                        "default": "2025-09-20T03:35:51.519Z",
                         "type": "string"
                       },
                       "project_researches": {
@@ -28457,7 +27932,7 @@
                         },
                         "publishedAt": {
                           "description": "A datetime field",
-                          "default": "2025-09-20T03:08:06.950Z",
+                          "default": "2025-09-20T03:35:51.537Z",
                           "type": "string"
                         },
                         "project_researches": {
@@ -34327,7 +33802,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.226Z",
+            "default": "2025-09-20T03:35:50.708Z",
             "type": "string"
           },
           "role": {
@@ -34379,7 +33854,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.224Z",
+            "default": "2025-09-20T03:35:50.706Z",
             "type": "string"
           },
           "permissions": {
@@ -34487,7 +33962,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.235Z",
+            "default": "2025-09-20T03:35:50.718Z",
             "type": "string"
           },
           "related": {}
@@ -34558,7 +34033,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.230Z",
+            "default": "2025-09-20T03:35:50.712Z",
             "type": "string"
           },
           "user": {
@@ -34605,7 +34080,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.237Z",
+            "default": "2025-09-20T03:35:50.720Z",
             "type": "string"
           }
         },
@@ -34644,7 +34119,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.238Z",
+            "default": "2025-09-20T03:35:50.721Z",
             "type": "string"
           },
           "users": {
@@ -34694,7 +34169,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.240Z",
+            "default": "2025-09-20T03:35:50.724Z",
             "type": "string"
           },
           "users": {
@@ -34740,7 +34215,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.241Z",
+            "default": "2025-09-20T03:35:50.727Z",
             "type": "string"
           },
           "users": {
@@ -34786,7 +34261,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.244Z",
+            "default": "2025-09-20T03:35:50.732Z",
             "type": "string"
           },
           "users": {
@@ -34832,7 +34307,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.249Z",
+            "default": "2025-09-20T03:35:50.739Z",
             "type": "string"
           }
         },
@@ -34881,7 +34356,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.247Z",
+            "default": "2025-09-20T03:35:50.737Z",
             "type": "string"
           },
           "education_level": {
@@ -35068,7 +34543,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.270Z",
+            "default": "2025-09-20T03:35:50.768Z",
             "type": "string"
           },
           "project_researches": {
@@ -35225,7 +34700,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.280Z",
+            "default": "2025-09-20T03:35:50.774Z",
             "type": "string"
           },
           "project_researches": {
@@ -35278,7 +34753,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.282Z",
+            "default": "2025-09-20T03:35:50.776Z",
             "type": "string"
           }
         },
@@ -35317,7 +34792,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.284Z",
+            "default": "2025-09-20T03:35:50.778Z",
             "type": "string"
           }
         },
@@ -35356,7 +34831,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.285Z",
+            "default": "2025-09-20T03:35:50.781Z",
             "type": "string"
           }
         },
@@ -35470,7 +34945,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.263Z",
+            "default": "2025-09-20T03:35:50.761Z",
             "type": "string"
           },
           "attachments": {
@@ -35605,7 +35080,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.254Z",
+            "default": "2025-09-20T03:35:50.751Z",
             "type": "string"
           },
           "users_permissions_users": {
@@ -35687,7 +35162,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.294Z",
+            "default": "2025-09-20T03:35:50.791Z",
             "type": "string"
           },
           "project_fundings": {
@@ -35758,7 +35233,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.297Z",
+            "default": "2025-09-20T03:35:50.799Z",
             "type": "string"
           },
           "project_fundings": {
@@ -35845,7 +35320,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.291Z",
+            "default": "2025-09-20T03:35:50.788Z",
             "type": "string"
           },
           "attachments": {
@@ -35958,7 +35433,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.288Z",
+            "default": "2025-09-20T03:35:50.785Z",
             "type": "string"
           },
           "users_permissions_users": {
@@ -36033,7 +35508,7 @@
           },
           "publishedAt": {
             "description": "A datetime field",
-            "default": "2025-09-20T03:08:06.222Z",
+            "default": "2025-09-20T03:35:50.704Z",
             "type": "string"
           },
           "role": {
