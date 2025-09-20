@@ -191,4 +191,18 @@ await api.put(`/users/${userId}`, {
 1. ใช้ `documentId` สำหรับ API endpoints และ UI
 2. ใช้ `id` สำหรับ relations และการบันทึก
 3. แปลงข้อมูลให้ถูกต้องก่อนส่งไป backend
-4. ใช้ `publicationState=preview` สำหรับ draft content
+4. ⚠️ **อัปเดต**: ไม่ต้องใช้ `status=draft` หรือ `publicationState=preview` อีกต่อไป (เนื่องจากได้ปิดระบบ draft ใน content types แล้ว)
+
+## การอัปเดตสำหรับ Strapi v5 โดยไม่มี Draft Status
+
+### ✅ สิ่งที่เปลี่ยนแปลง
+- ลบ `status=draft` ออกจาก API calls ทั้งหมด
+- ลบ `publicationState=preview` ออกจาก API calls
+- คงการใช้ `populate=*` และ populate syntax ของ Strapi v5
+- คง documentId และ id mapping ไว้เหมือนเดิม
+
+### 🛠️ API Endpoints ที่อัปเดตแล้ว
+- `/users/me?populate=*` (ไม่มี &status=draft)
+- `/organizations`, `/faculties`, `/departments` (ไม่มี ?status=draft)  
+- `/work-books`, `/work-conferences`, `/work-publications` (ไม่มี &status=draft)
+- `/project-researches`, `/project-fundings` (ไม่มี &status=draft)
