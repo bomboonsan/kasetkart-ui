@@ -7,10 +7,11 @@ export default function SelectField({
 	options = [],
 	required = false,
 	disabled = false,
-	className = '' 
+	className = '',
+	wrapClassName = '',
 }) {
 	return (
-		<div className="space-y-1 custom-select-wrapper">
+		<div className={`space-y-1 custom-select-wrapper ${wrapClassName}`}>
 			<label className="block text-sm font-medium text-gray-700">
 				{label}
 				{required && <span className="text-red-500 ml-1">*</span>}
@@ -30,8 +31,8 @@ export default function SelectField({
 					${className}
 				`}
 			>
-				{options.map((option) => (
-					<option key={option.value} value={option.value}>
+				{options.map((option, idx) => (
+					<option key={`${String(option.value ?? option.label)}-${idx}`} value={option.value}>
 						{option.label}
 					</option>
 				))}

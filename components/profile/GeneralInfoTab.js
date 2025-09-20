@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import useSWR, { mutate } from 'swr'
 import { profileAPI, orgAPI, eduAPI } from '@/lib/api'
 import ProfileImageUpload from './ProfileImageUpload'
-import { FormField, FormSelect, SelectField } from '@/components/ui'
+import { SelectField, InputField } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { Trash2 } from 'lucide-react'
 import dynamic from 'next/dynamic'
@@ -245,20 +245,20 @@ export default function GeneralInfoTab({ userId: propUserId }) {
                 </div>
                 <div className="flex-1 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="ชื่อ" value={formData.firstName} onChange={(value) => handleInputChange('firstName', value)} placeholder="กรุณาระบุชื่อ" />
-                    <FormField label="นามสกุล" value={formData.lastName} onChange={(value) => handleInputChange('lastName', value)} placeholder="กรุณาระบุนามสกุล" />
+                      <InputField label="ชื่อ" value={formData.firstName} onChange={(value) => handleInputChange('firstName', value)} placeholder="กรุณาระบุชื่อ" />
+                      <InputField label="นามสกุล" value={formData.lastName} onChange={(value) => handleInputChange('lastName', value)} placeholder="กรุณาระบุนามสกุล" />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="First Name (EN)" value={formData.firstNameEn} onChange={(value) => handleInputChange('firstNameEn', value)} placeholder="First name in English" />
-                    <FormField label="Last Name (EN)" value={formData.lastNameEn} onChange={(value) => handleInputChange('lastNameEn', value)} placeholder="Last name in English" />
+                      <InputField label="First Name (EN)" value={formData.firstNameEn} onChange={(value) => handleInputChange('firstNameEn', value)} placeholder="First name in English" />
+                      <InputField label="Last Name (EN)" value={formData.lastNameEn} onChange={(value) => handleInputChange('lastNameEn', value)} placeholder="Last name in English" />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="เบอร์ติดต่อ" value={formData.phone} onChange={(value) => handleInputChange('phone', value)} placeholder="" />
-                    <FormField label="อีเมล" type="email" value={formData.email} onChange={(value) => handleInputChange('email', value)} placeholder="กรุณาระบุอีเมล" />
+                      <InputField label="เบอร์ติดต่อ" value={formData.phone} onChange={(value) => handleInputChange('phone', value)} placeholder="" />
+                      <InputField label="อีเมล" type="email" value={formData.email} onChange={(value) => handleInputChange('email', value)} placeholder="กรุณาระบุอีเมล" />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField label="ตำแหน่งทางวิชาการ" value={formData.academicPosition} onChange={(value) => handleInputChange('academicPosition', value)} placeholder="" />
-                    <FormField label="HighDegree" value={formData.highDegree} onChange={(value) => handleInputChange('highDegree', value)} placeholder="เช่น Ph.D., M.Sc., B.Eng." />
+                      <InputField label="ตำแหน่งทางวิชาการ" value={formData.academicPosition} onChange={(value) => handleInputChange('academicPosition', value)} placeholder="" />
+                      <InputField label="HighDegree" value={formData.highDegree} onChange={(value) => handleInputChange('highDegree', value)} placeholder="เช่น Ph.D., M.Sc., B.Eng." />
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <SelectField label="ประเภทอาจารย์" value={formData.academic_type} onChange={(value) => handleInputChange('academic_type', value)} options={[{ value: '', label: 'เลือกประเภทอาจารย์' }, ...academicTypes.map(at => ({ value: at.id, label: at.name }))]} />
@@ -294,13 +294,13 @@ export default function GeneralInfoTab({ userId: propUserId }) {
                   </select>
                 </div>
                 <div className="col-span-12 md:col-span-4">
-                  <FormField label="ชื่อสถาบันการศึกษา" value={edu.name} onChange={(value) => updateEducation(idx, 'name', value)} placeholder="กรุณาระบุชื่อสถาบันการศึกษา" />
+                  <InputField label="ชื่อสถาบันการศึกษา" value={edu.name} onChange={(value) => updateEducation(idx, 'name', value)} placeholder="กรุณาระบุชื่อสถาบันการศึกษา" />
                 </div>
                 <div className="col-span-12 md:col-span-3">
-                  <FormField label="คณะ/สาขา" value={edu.faculty} onChange={(value) => updateEducation(idx, 'faculty', value)} placeholder="กรุณาระบุสาขาวิชา" />
+                  <InputField label="คณะ/สาขา" value={edu.faculty} onChange={(value) => updateEducation(idx, 'faculty', value)} placeholder="กรุณาระบุสาขาวิชา" />
                 </div>
                 <div className="col-span-9 md:col-span-1">
-                  <FormField label="ปีที่สำเร็จ" value={edu.year} onChange={(value) => updateEducation(idx, 'year', value)} placeholder="ปี" />
+                  <InputField label="ปีที่สำเร็จ" value={edu.year} onChange={(value) => updateEducation(idx, 'year', value)} placeholder="ปี" />
                 </div>
                 <div className="col-span-3 md:col-span-1 flex justify-end">
                   <button type="button" onClick={() => removeEducation(idx)} className="w-10 h-10 inline-flex items-center justify-center rounded-md bg-gray-100 hover:bg-gray-200" aria-label={`ลบวุฒิการศึกษา ${idx + 1}`}><Trash2 className="h-4 w-4 text-gray-600" /></button>

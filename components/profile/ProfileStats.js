@@ -57,7 +57,7 @@ export default function ProfileStats() {
         try {
           const me = await api.get('/users/me')
           userId = me?.data?.id || me?.id || null
-  } catch (e) { /* ignore */ }
+        } catch (e) { /* ignore */ }
 
         if (userId) {
           // Get funding-partners where this user is involved
@@ -67,7 +67,7 @@ export default function ProfileStats() {
             populate: 'project_fundings'
           })
           const fundingPartners = fundingPartnersRes?.data || []
-          
+
           // Extract unique project-funding IDs
           const fundingIds = new Set()
           fundingPartners.forEach(partner => {
@@ -94,7 +94,7 @@ export default function ProfileStats() {
 
         if (!mounted) return
         setCounts({ projects: projectCount, conferences: confCount, publications: pubCount, fundings: fundingCount, books: bookCount })
-  } catch (err) { /* ignore */ } finally {
+      } catch (err) { /* ignore */ } finally {
         if (mounted) setLoading(false)
       }
     }

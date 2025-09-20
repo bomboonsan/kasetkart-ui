@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 export default function UserTableRow({ user, onAction }) {
+  // console.log("Rendering UserTableRow for user:", user);
   const [showDropdown, setShowDropdown] = useState(false);
   
   const getStatusBadge = (status) => {
@@ -56,7 +57,7 @@ export default function UserTableRow({ user, onAction }) {
         <div className="flex items-center">
           <div className="flex-shrink-0 h-10 w-10">
             {user.avatarUrl ? (
-                            <Image src={user.avatarUrl} alt="avatar" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
+              <Image src={user.avatarUrl} alt="avatar" width={40} height={40} className="h-10 w-10 rounded-full object-cover" />
             ) : (
               <div className="h-10 w-10 rounded-full bg-gray-300 flex items-center justify-center text-sm font-medium text-gray-700">
                 {user.avatar}

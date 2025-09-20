@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import { FormField, SelectField } from '@/components/ui'
+import { FormField, SelectField, InputField } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { orgAPI, userAPI, uploadAPI, profileAPI } from '@/lib/api'
 import { API_BASE, api } from '@/lib/api-base'
@@ -263,22 +263,22 @@ export default function AdminUserEditForm({ userId }) {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField label="ชื่อ" value={form.firstName} onChange={(v) => onChange('firstName', v)} />
-        <FormField label="นามสกุล" value={form.lastName} onChange={(v) => onChange('lastName', v)} />
+        <InputField label="ชื่อ" value={form.firstName} onChange={(v) => onChange('firstName', v)} />
+        <InputField label="นามสกุล" value={form.lastName} onChange={(v) => onChange('lastName', v)} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField label="First Name (EN)" value={form.firstNameEn} onChange={(v) => onChange('firstNameEn', v)} />
-        <FormField label="Last Name (EN)" value={form.lastNameEn} onChange={(v) => onChange('lastNameEn', v)} />
+        <InputField label="First Name (EN)" value={form.firstNameEn} onChange={(v) => onChange('firstNameEn', v)} />
+        <InputField label="Last Name (EN)" value={form.lastNameEn} onChange={(v) => onChange('lastNameEn', v)} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField label="อีเมล" type="email" value={form.email} onChange={(v) => onChange('email', v)} disabled />
-        <FormField label="ตำแหน่งทางวิชาการ" value={form.academicRank} onChange={(v) => onChange('academicRank', v)} />
+        <InputField label="อีเมล" type="email" value={form.email} onChange={(v) => onChange('email', v)} disabled />
+        <InputField label="ตำแหน่งทางวิชาการ" value={form.academicRank} onChange={(v) => onChange('academicRank', v)} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FormField label="เบอร์ติดต่อ" value={form.phone} onChange={(v) => onChange('phone', v)} />
+        <InputField label="เบอร์ติดต่อ" value={form.phone} onChange={(v) => onChange('phone', v)} />
         {/* คอมเมนต์ (ไทย): แสดง Select สำหรับ Academic Type (relation จริงใน Strapi) และสำรอง JOB_TYPES ไว้ถ้าจำเป็น */}
         <div>
           <SelectField label="ประเภทอาจารย์ (Academic Type)" value={form.academic_type || ''} onChange={(v) => onChange('academic_type', v)} options={academicTypes.length ? academicTypes : JOB_TYPES} />
@@ -288,14 +288,14 @@ export default function AdminUserEditForm({ userId }) {
 
       {/* คอมเมนต์ (ไทย): แก้ไขช่อง "ตำแหน่งทางวิชาการ" ที่ซ้ำซ้อน เป็นช่องสำหรับเปลี่ยนรหัสผ่าน */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6 mt-6 border-gray-200">
-        <FormField 
+        <InputField 
           label="ตั้งรหัสผ่านใหม่" 
           type="password"
           value={form.password} 
           onChange={(v) => onChange('password', v)} 
           placeholder="ปล่อยว่างไว้หากไม่ต้องการเปลี่ยน"
         />
-        <FormField 
+        <InputField 
           label="ยืนยันรหัสผ่านใหม่" 
           type="password"
           value={form.confirmPassword} 

@@ -75,7 +75,7 @@ const UserManagement = forwardRef((props, ref) => {
   // โหลดรายชื่อผู้ใช้ด้วย SWR - populate relations เพื่อได้ department, role, faculty
   const { data: usersRes, error: usersErr, isLoading } = useSWR(
     'users-all', 
-    () => api.get('/users?populate[department]=*&populate[role]=*&populate[faculty]=*&populate[academic_type]=*&populate[organization]=*&populate[profile]=*&pagination[pageSize]=100'),
+    () => api.get('/users?populate[department]=*&populate[role]=*&populate[faculty]=*&populate[academic_type]=*&populate[organization]=*&populate[profile][populate][avatarUrl]=*&pagination[pageSize]=30'),
     { revalidateOnFocus: false, dedupingInterval: 30000 }
   )
 
@@ -99,11 +99,14 @@ const UserManagement = forwardRef((props, ref) => {
         const faculty = u.faculty?.name || '-';
         const organization = u.organization?.name || '-';
 
-  // mapping completed for user
+        // mapping completed for user
         
         // Map status from user fields
         const status = u.blocked ? 'Inactive' : 
-                      u.confirmed ? 'Active' : 'Pending';
+          u.confirmed ? 'Active' : 'Pending';
+    
+    
+        console.log("Mapped user:", profile, displayName, roleType, roleLabel, department, faculty, status);
 
         return {
           id: u.id,

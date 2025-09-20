@@ -8,7 +8,7 @@ export default function Button({
 	className = '' 
 }) {
 	const baseClasses = `
-		font-medium py-2 px-4 rounded-md transition-colors duration-200
+		font-medium py-1.5 px-5 rounded-md transition-colors duration-200
 		focus:outline-none focus:ring-2 focus:ring-offset-2
 		disabled:opacity-50 disabled:cursor-not-allowed
 	`
@@ -19,8 +19,8 @@ export default function Button({
 			focus:ring-green-500
 		`,
 		secondary: `
-			bg-green-500 hover:bg-green-400 text-white border border-green-400
-			focus:ring-green-500
+			bg-[#B2BB1E] hover:bg-[#A3A829] text-white border border-[#B2BB1E]
+			focus:ring-[#B2BB1E]
 		`,
 		outline: `
 			bg-white hover:bg-gray-50 text-gray-700 border border-gray-300

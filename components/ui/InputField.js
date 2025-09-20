@@ -6,6 +6,7 @@ export default function InputField({
 	placeholder,
 	required = false,
 	className = '',
+	wrapClassName = '',
 	value,
 	onChange,
 	disabled = false,
@@ -17,7 +18,7 @@ export default function InputField({
 	}
 
 	return (
-		<div className="space-y-1">
+		<div className={`space-y-1 ${wrapClassName}`}>
 			<label 
 				htmlFor={id}
 				className="block text-sm font-medium text-gray-700"
@@ -35,7 +36,7 @@ export default function InputField({
 				disabled={disabled}
 				className={`
 						text-zinc-800
-					block w-full px-3 py-2 border border-gray-300 rounded-md
+					block w-full px-3 py-1.5 border border-gray-300 rounded-md
 					placeholder-gray-400 focus:outline-none focus:ring-2 
 					focus:ring-blue-500 focus:border-blue-500
 					transition-colors duration-200

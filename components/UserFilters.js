@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import useSWR from 'swr'
-import { FormField, SelectField } from '@/components/ui'
+import { FormField , InputField , SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { api } from '@/lib/api-base'
 
@@ -47,9 +47,10 @@ export default function UserFilters({ onFilter }) {
   }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 flex gap-4">
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <FormField
+    <div className="bg-white rounded-lg shadow p-6 flex gap-4 items-center">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4 flex-1">
+        <InputField
+          wrapClassName='md:col-span-2'
           label="ค้นหา"
           value={filters.search}
           onChange={(value) => handleFilterChange('search', value)}
@@ -62,9 +63,9 @@ export default function UserFilters({ onFilter }) {
           onChange={(value) => handleFilterChange('role', value)}
           options={[
             { value: 'all', label: 'ทั้งหมด' },
-            { value: 'Admin', label: 'ผู้ดูแลระบบ' },
-            { value: 'Moderator', label: 'ผู้ดูแล' },
-            { value: 'User', label: 'ผู้ใช้' }
+            { value: 'Super admin', label: 'Super Admin' },
+            { value: 'Admin', label: 'Admin' },
+            { value: 'User', label: 'User' }
           ]}
         />
 
@@ -88,8 +89,8 @@ export default function UserFilters({ onFilter }) {
         />
       </div>
 
-      <div className="mt-4 flex justify-end">
-        <Button variant="outline" onClick={handleReset}>
+      <div className="mt-5 flex justify-end">
+        <Button variant="secondary" onClick={handleReset}>
           รีเซ็ต
         </Button>
       </div>
