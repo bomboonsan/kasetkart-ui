@@ -54,12 +54,12 @@ export default function AdminUserEditForm({ userId }) {
   const onChange = (field, value) => setForm(prev => ({ ...prev, [field]: value }))
 
   // --- SWR Hooks ---
-  const { data: u, error: uErr } = useSWR(userId ? `/users/${userId}?populate[profile][populate]=*&populate[organization]=*&populate[faculty]=*&populate[department]=*&populate[academic_type]=*&populate[participation_type]=*&populate[role]=*` : null, (k) => api.get(k))
-  const { data: orgRes } = useSWR('/organizations', (k) => api.get(k))
-  const { data: facRes } = useSWR('/faculties', (k) => api.get(k))
-  const { data: deptRes } = useSWR('/departments', (k) => api.get(k))
-  const { data: academicTypeRes } = useSWR('/academic-types', (k) => api.get(k))
-  const { data: rolesRes } = useSWR('/users-permissions/roles', (k) => api.get(k))
+  const { data: u, error: uErr } = useSWR(userId ? `user-${userId}` : null, userId ? () => profileAPI.getUserById(userId) : null)
+  const { data: orgRes } = useSWR('organizations', () => orgAPI.getOrganizations())
+  const { data: facRes } = useSWR('faculties', () => orgAPI.getFaculties())
+  const { data: deptRes } = useSWR('departments', () => orgAPI.getDepartments())
+  const { data: academicTypeRes } = useSWR('academic-types', () => orgAPI.getAcademicTypes())
+  const { data: rolesRes } = useSWR('/users-permissions/roles', (k) => api.get(k)) // Keep this as REST since it's a special endpoint
 
   // --- useEffects ---
   useEffect(() => {

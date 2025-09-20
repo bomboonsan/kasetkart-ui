@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import useSWR from 'swr'
 import { FormField , InputField , SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
-import { api } from '@/lib/api-base'
+import { orgAPI } from '@/lib/api'
 
 export default function UserFilters({ onFilter }) {
   const [filters, setFilters] = useState({
@@ -14,10 +14,10 @@ export default function UserFilters({ onFilter }) {
     department: 'all'
   })
 
-  // Load departments from API
+  // Load departments from API using GraphQL
   const { data: departmentsRes } = useSWR(
     'departments', 
-    () => api.get('/departments'),
+    () => orgAPI.getDepartments(),
     { revalidateOnFocus: false, dedupingInterval: 300000 } // cache for 5 minutes
   )
 

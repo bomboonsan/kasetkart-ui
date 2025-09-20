@@ -7,6 +7,7 @@ import UserTable from "./UserTable";
 import UserFilters from "./UserFilters";
 import UserModal from "./UserModal";
 import { api, API_BASE } from "@/lib/api";
+import { executeGraphQL, GET_USERS } from "@/lib/graphql";
 
 // คอมเมนต์ (ไทย): สร้าง Base URL สำหรับไฟล์โดยเฉพาะ
 const API_PUBLIC_URL = API_BASE.replace('/api', '');
@@ -72,10 +73,18 @@ const UserManagement = forwardRef((props, ref) => {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // โหลดรายชื่อผู้ใช้ด้วย SWR - populate relations เพื่อได้ department, role, faculty
+  // โหลดรายชื่อผู้ใช้ด้วย SWR - ใช้ GraphQL query แทน REST
   const { data: usersRes, error: usersErr, isLoading } = useSWR(
     'users-all', 
-    () => api.get('/users?populate[department]=*&populate[role]=*&populate[faculty]=*&populate[academic_type]=*&populate[organization]=*&populate[profile][populate][avatarUrl]=*&pagination[pageSize]=30'),
+    async () => {
+      const result = await executeGraphQL(GET_USERS, {
+        pagination: { pageSize: 30 }
+      })
+      return {
+        data: result.usersPermissionsUsers.data,
+        meta: result.usersPermissionsUsers.meta
+      }
+    },
     { revalidateOnFocus: false, dedupingInterval: 30000 }
   )
 
