@@ -16,7 +16,7 @@ import {
 import { projectAPI } from '@/lib/api'
 import { api } from '@/lib/api-base'
 import { authAPI } from '@/lib/api'
-import { stripUndefined } from '@/utils'
+import { stripUndefined, getDocumentId } from '@/utils'
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
   const [swalProps, setSwalProps] = useState({})
@@ -156,6 +156,59 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [localPartners])
 
+  // API functions for real-time partner CRUD operations
+  async function createPartnerAPI(partnerData) {
+    if (!projectId) {
+      throw new Error('Project ID is required for partner operations')
+    }
+    
+    const response = await projectAPI.createPartner(partnerData)
+    return response
+  }
+
+  async function updatePartnerAPI(partnerId, partnerData) {
+    const response = await projectAPI.updatePartner(partnerId, partnerData)
+    return response
+  }
+
+  async function deletePartnerAPI(partnerId) {
+    const response = await projectAPI.deletePartner(partnerId)
+    return response
+  }
+
+  // Helper function to convert UI partner data to API format
+  function convertPartnerToAPIFormat(partner, order = 0) {
+    // Map partner type labels to numbers
+    const partnerTypeMap = {
+      'หัวหน้าโครงการ': 1,
+      'ที่ปรึกษาโครงการ': 2,
+      'ผู้ประสานงาน': 3,
+      'นักวิจัยร่วม': 4,
+      'อื่นๆ': 99,
+    }
+
+    const commentField = partner.partnerComment || ''
+    const userIdField = partner.userID
+
+    const apiData = {
+      order: order,
+      fullname: partner.fullname || '',
+      orgName: partner.orgName || '',
+      participation_percentage: partner.partnerProportion ? parseFloat(partner.partnerProportion) : undefined,
+      participant_type: partnerTypeMap[partner.partnerType] || undefined,
+      isFirstAuthor: String(commentField).includes('First Author') || false,
+      isCoreespondingAuthor: String(commentField).includes('Corresponding Author') || false,
+      users_permissions_users: userIdField ? [userIdField] : [],
+      project_researches: [getDocumentId(projectId)],
+      participation_percentage_custom: partner.partnerProportion_percentage_custom ? 
+        parseFloat(partner.partnerProportion_percentage_custom) : undefined,
+      partnerProportion_percentage_custom: partner.partnerProportion_percentage_custom ? 
+        parseFloat(partner.partnerProportion_percentage_custom) : undefined,
+    }
+
+    return stripUndefined(apiData)
+  }
+
   // NOTE: server sync was moved to ProjectForm submit to avoid repeated network
   // calls on every local edit. ResearchTeamTable now only manages local state
   // (localPartners) and updates parent `formData.partnersLocal` via setFormData.
@@ -213,19 +266,107 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       } : undefined,
     }
 
-    setLocalPartners(prev => {
-      const base = prev || []
-      let next
-      if (editingIndex !== null && editingIndex >= 0 && editingIndex < base.length) {
-        const updated = base.slice()
-        updated[editingIndex] = { ...updated[editingIndex], ...partner }
-        next = recomputeProportions(updated)
+    // Handle both edit and create scenarios
+    const isEdit = editingIndex !== null && editingIndex >= 0
+    
+    if (projectId) {
+      // Real-time API operations when projectId is available
+      setSaving(true)
+      setSaveError('')
+      
+      if (isEdit) {
+        // Update existing partner
+        const existingPartner = localPartners[editingIndex]
+        if (existingPartner?.id) {
+          const apiData = convertPartnerToAPIFormat(partner, editingIndex)
+          updatePartnerAPI(existingPartner.id, apiData)
+            .then((response) => {
+              // Update local state with the response data
+              setLocalPartners(prev => {
+                const updated = prev.slice()
+                updated[editingIndex] = { 
+                  ...partner, 
+                  id: existingPartner.id,
+                  // Merge any additional data from API response
+                  ...(response?.data || {})
+                }
+                return recomputeProportions(updated)
+              })
+              
+              setSwalProps({
+                show: true,
+                icon: "success",
+                title: "อัปเดตสมาชิกสำเร็จ",
+                timer: 1600,
+                showConfirmButton: false,
+              })
+            })
+            .catch((err) => {
+              setSaveError(err?.message || 'Failed to update partner')
+              setSwalProps({
+                show: true,
+                icon: "error",
+                title: "อัปเดตสมาชิกไม่สำเร็จ",
+                text: err?.message || "",
+                timer: 2200,
+              })
+            })
+            .finally(() => {
+              setSaving(false)
+            })
+        }
       } else {
-        next = recomputeProportions([...(base || []), partner])
+        // Create new partner
+        const apiData = convertPartnerToAPIFormat(partner, localPartners.length)
+        createPartnerAPI(apiData)
+          .then((response) => {
+            // Add new partner to local state with the ID from response
+            const newPartner = {
+              ...partner,
+              id: response?.data?.id || response?.data?.documentId,
+              // Merge any additional data from API response
+              ...(response?.data || {})
+            }
+            
+            setLocalPartners(prev => recomputeProportions([...prev, newPartner]))
+            
+            setSwalProps({
+              show: true,
+              icon: "success",
+              title: "เพิ่มสมาชิกสำเร็จ",
+              timer: 1600,
+              showConfirmButton: false,
+            })
+          })
+          .catch((err) => {
+            setSaveError(err?.message || 'Failed to create partner')
+            setSwalProps({
+              show: true,
+              icon: "error",
+              title: "เพิ่มสมาชิกไม่สำเร็จ",
+              text: err?.message || "",
+              timer: 2200,
+            })
+          })
+          .finally(() => {
+            setSaving(false)
+          })
       }
-      // Note: server sync is handled by ProjectForm on submit
-      return next
-    })
+    } else {
+      // Fallback to local-only operations when no projectId (for create forms)
+      setLocalPartners(prev => {
+        const base = prev || []
+        let next
+        if (isEdit && editingIndex < base.length) {
+          const updated = base.slice()
+          updated[editingIndex] = { ...updated[editingIndex], ...partner }
+          next = recomputeProportions(updated)
+        } else {
+          next = recomputeProportions([...(base || []), partner])
+        }
+        return next
+      })
+    }
 
     const dlg = document.getElementById('my_modal_2');
     if (dlg && dlg.close) dlg.close()
@@ -241,6 +382,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     const tmp = arr[idx - 1]
     arr[idx - 1] = arr[idx]
     arr[idx] = tmp
+    
     // Convert any me entries into normal partner objects so they are persisted
     const newLocal = arr
       .filter(p => true)
@@ -257,7 +399,34 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
       }) : p)
       .filter(p => true)
 
-    setLocalPartners(() => recomputeProportions(newLocal))
+    const reordered = recomputeProportions(newLocal)
+    
+    if (projectId) {
+      // Update order in API for partners with IDs
+      setSaving(true)
+      const updatePromises = reordered
+        .filter(p => p.id) // Only update existing partners with IDs
+        .map((partner, order) => {
+          const apiData = convertPartnerToAPIFormat(partner, order)
+          return updatePartnerAPI(partner.id, apiData).catch(err => {
+            console.warn(`Failed to update order for partner ${partner.id}:`, err)
+            return null
+          })
+        })
+      
+      Promise.all(updatePromises)
+        .then(() => {
+          setLocalPartners(reordered)
+        })
+        .catch(err => {
+          setSaveError(err?.message || 'Failed to update order')
+        })
+        .finally(() => {
+          setSaving(false)
+        })
+    } else {
+      setLocalPartners(reordered)
+    }
   }
 
   // ย้ายลำดับลง
@@ -269,6 +438,7 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
     const tmp = arr[idx + 1]
     arr[idx + 1] = arr[idx]
     arr[idx] = tmp
+    
     const newLocal = arr
       .map(p => p.isMe ? ({
         isInternal: true,
@@ -282,18 +452,84 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
         User: p.User
       }) : p)
 
-    setLocalPartners(() => recomputeProportions(newLocal))
+    const reordered = recomputeProportions(newLocal)
+    
+    if (projectId) {
+      // Update order in API for partners with IDs
+      setSaving(true)
+      const updatePromises = reordered
+        .filter(p => p.id) // Only update existing partners with IDs
+        .map((partner, order) => {
+          const apiData = convertPartnerToAPIFormat(partner, order)
+          return updatePartnerAPI(partner.id, apiData).catch(err => {
+            console.warn(`Failed to update order for partner ${partner.id}:`, err)
+            return null
+          })
+        })
+      
+      Promise.all(updatePromises)
+        .then(() => {
+          setLocalPartners(reordered)
+        })
+        .catch(err => {
+          setSaveError(err?.message || 'Failed to update order')
+        })
+        .finally(() => {
+          setSaving(false)
+        })
+    } else {
+      setLocalPartners(reordered)
+    }
   }
 
   function handleRemovePartner(idx) {
     // idx refers to displayRows; map to localPartners by filtering out me
     const current = displayRows
     const target = current[idx]
+    
     // if the target is me, we can't remove the creator; ignore
     if (target && target.isMe) return
-    const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
-    const next = recomputeProportions(newLocal)
-    setLocalPartners(next)
+    
+    if (projectId && target?.id) {
+      // Real-time API deletion when projectId and partner ID are available
+      setSaving(true)
+      setSaveError('')
+      
+      deletePartnerAPI(target.id)
+        .then(() => {
+          // Remove from local state
+          const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
+          const next = recomputeProportions(newLocal)
+          setLocalPartners(next)
+          
+          setSwalProps({
+            show: true,
+            icon: "success",
+            title: "ลบสมาชิกสำเร็จ",
+            timer: 1600,
+            showConfirmButton: false,
+          })
+        })
+        .catch((err) => {
+          setSaveError(err?.message || 'Failed to delete partner')
+          setSwalProps({
+            show: true,
+            icon: "error",
+            title: "ลบสมาชิกไม่สำเร็จ",
+            text: err?.message || "",
+            timer: 2200,
+          })
+        })
+        .finally(() => {
+          setSaving(false)
+        })
+    } else {
+      // Fallback to local-only operations when no projectId or partner ID
+      const newLocal = current.filter((_, i) => i !== idx).filter(p => !p.isMe)
+      const next = recomputeProportions(newLocal)
+      setLocalPartners(next)
+    }
+    
     // รีเซ็ตฟอร์มใน dialog
     setFormData(prev => ({
       ...prev,
@@ -513,8 +749,8 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
             </div>
           </FormFieldBlock>
           <div className="modal-action">
-            <button onClick={handleAddPartner} type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700">
-              {editingIndex !== null ? 'บันทึก' : 'เพิ่ม'}
+            <button onClick={handleAddPartner} type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed" disabled={saving}>
+              {saving ? 'กำลังบันทึก...' : (editingIndex !== null ? 'บันทึก' : 'เพิ่ม')}
             </button>
             <button
               type="button"
@@ -538,6 +774,12 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
             เมื่อเลือกโครงการแล้ว ระบบจะบันทึกรายชื่อผู้ร่วมโดยอัตโนมัติ
           </div>
         )}
+        {saving && (
+          <div className="text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded p-2 flex items-center gap-2">
+            <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
+            กำลังดำเนินการ...
+          </div>
+        )}
         {saveError && (
           <div className="text-sm text-red-700 bg-red-50 border border-red-200 rounded p-2">{saveError}</div>
         )}
@@ -547,10 +789,10 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
             แก้บั๊ก: ปุ่มเปิด modal อยู่ภายในฟอร์มหลัก ถ้าไม่กำหนด type จะเป็นค่า default "submit"
             ทำให้เมื่อกดแล้วฟอร์มใหญ่ถูก submit ไปด้วย --> กำหนด type="button" เพื่อป้องกัน
           */}
-          <button type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700" onClick={() => {
+          <button type="button" className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed" onClick={() => {
             resetForm();
             document.getElementById('my_modal_2').showModal();
-          }}>
+          }} disabled={saving}>
             เพิ่มสมาชิก
           </button>
         </div>
@@ -603,16 +845,16 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                             <button
                               type="button"
                               onClick={() => moveUp(i)}
-                              disabled={i === 0}
-                              className={`px-2 py-1 rounded bg-gray-100 text-xs ${i === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+                              disabled={i === 0 || saving}
+                              className={`px-2 py-1 rounded bg-gray-100 text-xs ${i === 0 || saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}`}
                             >
                               <ChevronUp />
                             </button>
                             <button
                               type="button"
                               onClick={() => moveDown(i)}
-                              disabled={i === displayRows.length - 1}
-                              className={`px-2 py-1 rounded bg-gray-100 text-xs ${i === displayRows.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}`}
+                              disabled={i === displayRows.length - 1 || saving}
+                              className={`px-2 py-1 rounded bg-gray-100 text-xs ${i === displayRows.length - 1 || saving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-200'}`}
                             >
                               <ChevronDown />
                             </button>
@@ -668,11 +910,11 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
                     <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                       {(displayRows.length >= 2) && (
                         <div className="flex items-center gap-3 justify-end">
-                          <button type="button" onClick={() => handleEditPartner(i)} className="text-blue-600 hover:text-blue-900">
+                          <button type="button" onClick={() => handleEditPartner(i)} className="text-blue-600 hover:text-blue-900 disabled:opacity-50 disabled:cursor-not-allowed" disabled={saving}>
                             แก้ไข
                           </button>
-                          <button type="button" onClick={() => handleRemovePartner(i)} className="text-red-600 hover:text-red-900">
-                            ลบ
+                          <button type="button" onClick={() => handleRemovePartner(i)} className="text-red-600 hover:text-red-900 disabled:opacity-50 disabled:cursor-not-allowed" disabled={saving}>
+                            {saving ? 'กำลังลบ...' : 'ลบ'}
                           </button>
                         </div>
                       )}
