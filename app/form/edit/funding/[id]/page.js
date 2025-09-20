@@ -2,7 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import FundingForm from "@/components/FundingForm";
-import PageHeader from '@/components/PageHeader'
+import PageHeader from '@/components/layout/PageHeader'
 
 export default function EditFundingPage() {
   const params = useParams()

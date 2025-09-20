@@ -1,6 +1,6 @@
 // ใช้ path alias (@/) แทน relative path เพื่อความชัดเจนและยืดหยุ่น
-import Sidebar from '@/components/Sidebar'
-import Header from '@/components/Header'
+import Sidebar from '@/components/layout/Sidebar'
+import Header from '@/components/layout/Header'
 
 export default function DashboardLayout({ children }) {
   return (

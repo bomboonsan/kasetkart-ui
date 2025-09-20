@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'next/navigation'
 import { projectAPI } from '@/lib/api'
-import PageHeader from '@/components/PageHeader'
+import PageHeader from '@/components/layout/PageHeader'
 import { FormSection, FormFieldBlock, FormInput, FormTextarea } from '@/components/ui'
 import ResearchTeamReadonly from '@/components/ResearchTeamReadonly'
 

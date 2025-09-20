@@ -16,12 +16,12 @@ import FormField from "@/components/FormField";
 import ProjectPicker from '@/components/ProjectPicker'
 import UserPicker from '@/components/UserPicker'
 import { FormDoubleInput } from '@/components/ui'
-import FormInput from "@/components/FormInput";
+import { FormInput } from "@/components/ui";
 import FormRadio from "@/components/FormRadio";
 import FormCheckbox from "@/components/FormCheckbox";
 import FormTextarea from "@/components/FormTextarea";
 import FormDateSelect from "@/components/FormDateSelect";
-import FormSelect from "@/components/FormSelect";
+import { FormSelect } from "@/components/ui";
 import FileUploadField from "@/components/FileUploadField";
 import ResearchTeamTable from "@/components/ResearchTeamTable";
 import Button from "@/components/Button";

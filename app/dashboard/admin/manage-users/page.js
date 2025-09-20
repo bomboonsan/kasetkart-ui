@@ -2,7 +2,7 @@
 
 import { useRef } from 'react'
 import UserManagement from '@/components/UserManagement'
-import PageHeader from '@/components/PageHeader'
+import PageHeader from '@/components/layout/PageHeader'
 import { Button } from '@/components/ui'
 import { useRouter } from 'next/navigation'
 
