@@ -556,6 +556,7 @@ export default function ProjectForm({
           orgName: orgField || undefined,
           participation_percentage: proportionField,
           participation_percentage_custom: proportionCustomField,
+          partnerProportion_percentage_custom: proportionCustomField ? parseInt(proportionCustomField) : undefined,
           participant_type: partnerTypeMap[p.partnerType] || undefined,
           isFirstAuthor: String(commentField).includes("First Author") || false,
           isCoreespondingAuthor:
