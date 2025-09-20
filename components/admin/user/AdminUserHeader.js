@@ -1,3 +1,4 @@
+import { STRAPI_REST_ENDPOINT } from "@/lib/config/api"
 "use client"
 
 import { Button } from '@/components/ui'
@@ -5,7 +6,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import useSWR from 'swr'
 import Image from 'next/image'
-import { API_BASE } from '@/lib/api-base'
+import { STRAPI_REST_ENDPOINT } // Removed deprecated api-base import
 import { profileAPI } from '@/lib/api'
 import AdminUserStats from '@/components/admin/user/AdminUserStats'
 
@@ -57,7 +58,7 @@ export default function AdminUserHeader({ userId }) {
     }
 
     if (avatarUrl && !/^https?:\/\//i.test(avatarUrl)) {
-      const mediaBase = (API_BASE || 'http://localhost:1337/api').replace(/\/api\/?$/, '')
+      const mediaBase = (STRAPI_REST_ENDPOINT || 'http://localhost:1337/api').replace(/\/api\/?$/, '')
       avatarUrl = `${mediaBase}${avatarUrl}`
     }
   } catch (e) {

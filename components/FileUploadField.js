@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { API_BASE } from '@/lib/api-base'
+import { STRAPI_REST_ENDPOINT } from '@/lib/config/api'
 
 export default function FileUploadField({ 
   label, 
@@ -49,7 +49,7 @@ export default function FileUploadField({
       })
 
       const token = typeof window !== 'undefined' ? localStorage.getItem('jwt') : null
-      const response = await fetch(`${API_BASE}/upload`, {
+      const response = await fetch(`${STRAPI_REST_ENDPOINT}/upload`, {
         method: 'POST',
         headers: {
           ...(token && { Authorization: `Bearer ${token}` }),

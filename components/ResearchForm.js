@@ -15,9 +15,8 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 const SweetAlert2 = dynamic(() => import("react-sweetalert2"), { ssr: false });
 // ใช้ path alias (@/) เพื่อให้ import ชัดเจนและลดความซ้ำซ้อนของ path
-import { projectAPI } from "@/lib/api";
-import { api } from "@/lib/api-base";
-import { authAPI, valueFromAPI } from "@/lib/api";
+import { projectAPI, valueFromAPI } from "@/lib/api";
+import { useSession } from 'next-auth/react';
 // ยูทิลิตี้สำหรับจัดการ payload ให้สะอาด
 import { stripUndefined } from "@/utils";
 // ใช้ path alias (@/) สำหรับ helper
