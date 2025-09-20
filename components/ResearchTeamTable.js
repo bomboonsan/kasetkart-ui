@@ -13,12 +13,12 @@ import {
   ChevronDown
 } from "lucide-react";
 // ใช้ path alias (@/) เพื่อลด relative path และทำให้แก้ไขได้ง่ายขึ้น
-import { projectAPI } from '@/lib/api'
-import { api } from '@/lib/api-base'
-import { authAPI } from '@/lib/api'
+import { projectAPI, profileAPI } from '@/lib/api'
 import { stripUndefined, getDocumentId } from '@/utils'
+import { useSession } from 'next-auth/react'
 
 export default function ResearchTeamTable({ projectId, formData, handleInputChange, setFormData }) {
+  const { data: session } = useSession();
   const [swalProps, setSwalProps] = useState({})
 
   // Real data from API
@@ -124,15 +124,17 @@ export default function ResearchTeamTable({ projectId, formData, handleInputChan
   useEffect(() => {
     async function loadMe() {
       try {
-        const u = await authAPI.me()
-        setMe(u?.data || u || null)
+        if (session?.user) {
+          const u = await profileAPI.getMyProfile()
+          setMe(u?.data || null)
+        }
       } catch (err) {
         // do not log to console; surface via state if needed
         setSaveError(err?.message || 'Failed to load current user')
       }
     }
     loadMe()
-  }, [])
+  }, [session])
 
   // Initialize from parent partnersLocal once (for create/edit initial fill) when no project is loaded
   useEffect(() => {

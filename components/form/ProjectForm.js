@@ -13,9 +13,8 @@ import { Button } from "@/components/ui";
 import Link from "next/link";
 import dynamic from "next/dynamic";
 const SweetAlert2 = dynamic(() => import("react-sweetalert2"), { ssr: false });
-import { projectAPI } from "@/lib/api";
-import { api } from "@/lib/api-base";
-import { authAPI, valueFromAPI } from "@/lib/api";
+import { projectAPI, profileAPI, valueFromAPI } from "@/lib/api";
+import { useSession } from "next-auth/react";
 import { stripUndefined } from "@/utils";
 import useSWR, { mutate } from "swr";
 import { createHandleChange } from "@/utils";
@@ -25,6 +24,7 @@ export default function ProjectForm({
   projectId: propProjectId,
   workId,
 }) {
+  const { data: session } = useSession();
   const projectId = propProjectId || workId || null;
 
   ////////////////////////////////////////////////////////
@@ -381,8 +381,11 @@ export default function ProjectForm({
       // Load current authenticated user to be project leader
       let meObj = null;
       try {
-        const meResp = await authAPI.me();
-        meObj = meResp?.data || meResp || null;
+        if (session?.user) {
+          // Get user profile via GraphQL
+          const meResp = await profileAPI.getMyProfile();
+          meObj = meResp?.data || null;
+        }
       } catch (e) {
         // proceed without explicit leader user; do not log to console
       }
@@ -492,17 +495,18 @@ export default function ProjectForm({
 
         // IMPORTANT: Remove existing project-partners of this project to prevent duplicates
         try {
-          const existingPartners = await api.get(`/project-partners?filters[project_researches][documentId][$eq]=${realProjectId}`)
+          const existingPartners = await projectAPI.getProjectPartners(realProjectId)
           const partnersToDelete = existingPartners?.data || []
           for (const partner of partnersToDelete) {
-            await api.delete(`/project-partners/${partner.documentId || partner.id}`)
+            await projectAPI.deletePartner(partner.documentId || partner.id)
           }
         } catch (delErr) {
           // Don't block submit; continue to recreate latest list
         }
 
       } else {
-        const resp = await projectAPI.createProjectWithRelations(payload);
+        // For creation, use regular createProject since we haven't implemented createProjectWithRelations in GraphQL
+        const resp = await projectAPI.createProject(payload);
         // parse created id from Strapi response shape
         createdProjectId =
           resp?.data?.id ||
@@ -567,7 +571,7 @@ export default function ProjectForm({
         });
 
         try {
-          await api.post("/project-partners", { data: partnerData });
+          await projectAPI.createPartner(partnerData);
         } catch (err) {
           // collect partner creation errors silently
           partnerErrors.push({

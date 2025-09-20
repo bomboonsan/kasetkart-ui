@@ -3,20 +3,20 @@
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 // ใช้ path alias (@/) เพื่อลดความยาวของ path และทำให้จัดการได้ง่าย
-import { api } from '@/lib/api-base'
+import { fundingAPI } from '@/lib/api'
 import { Button } from '@/components/ui'
 
 export default function ProjectFundingPicker({ label = 'โครงการขอทุน', onSelect, selectedProject, required = false }) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState('')
 
-  // Load user's project-fundings from API
+  // Load user's project-fundings from API using GraphQL
   const { data: projectsRes, error: projectsError, isLoading } = useSWR(
     open ? 'my-project-fundings' : null,
-    () => api.get('/project-fundings?populate=*'),
+    () => fundingAPI.getMyFundings(),
     {
       onError: (error) => {
-        const msg = error?.response?.data?.error?.message || error?.message || 'โหลดโครงการขอทุนไม่สำเร็จ'
+        const msg = error?.message || 'โหลดโครงการขอทุนไม่สำเร็จ'
         setError(msg)
       }
     }
