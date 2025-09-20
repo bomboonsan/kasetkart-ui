@@ -10,21 +10,21 @@ import { extractResearchTeam } from '@/utils/team'
 import dynamic from 'next/dynamic'
 
 // UI Components
-import FormSection from "@/components/FormSection";
-import FormFieldBlock from "@/components/FormFieldBlock";
-import FormField from "@/components/FormField";
+import { FormSection } from "@/components/ui";
+import { FormFieldBlock } from "@/components/ui";
+import { FormField } from "@/components/ui";
 import ProjectPicker from '@/components/ProjectPicker'
 import UserPicker from '@/components/UserPicker'
 import { FormDoubleInput } from '@/components/ui'
 import { FormInput } from "@/components/ui";
 import FormRadio from "@/components/FormRadio";
-import FormCheckbox from "@/components/FormCheckbox";
-import FormTextarea from "@/components/FormTextarea";
-import FormDateSelect from "@/components/FormDateSelect";
+import { FormCheckbox } from "@/components/ui";
+import { FormTextarea } from "@/components/ui";
+import { FormDateSelect } from "@/components/ui";
 import { FormSelect } from "@/components/ui";
 import FileUploadField from "@/components/FileUploadField";
 import ResearchTeamTable from "@/components/ResearchTeamTable";
-import Button from "@/components/Button";
+import { Button } from "@/components/ui";
 
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 
