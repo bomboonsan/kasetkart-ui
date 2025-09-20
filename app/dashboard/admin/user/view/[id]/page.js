@@ -21,8 +21,8 @@ export default async function AdminUserViewPage({ params }) {
   if (resolvedParams?.id && !/^[0-9]+$/.test(String(resolvedParams.id))) {
     try {
       const lookup = (typeof serverGet === 'function')
-        ? await serverGet(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams.id)}&publicationState=preview&populate=`)
-        : await api.get(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams.id)}&publicationState=preview&populate=`)
+        ? await serverGet(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams.id)}&populate=`)
+        : await api.get(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams.id)}&populate=`)
       const arr = lookup?.data || lookup || []
       const found = Array.isArray(arr) ? (arr[0] || null) : (arr || null)
       if (found && (found.id || found.data?.id)) resolvedUserId = found.id || found.data.id
@@ -35,7 +35,7 @@ export default async function AdminUserViewPage({ params }) {
     try {
       try {
         if (typeof serverGet === 'function') {
-          const p = await serverGet(`/profiles?filters[user][id][$eq]=${resolvedUserId}&publicationState=preview&populate=*`)
+          const p = await serverGet(`/profiles?filters[user][id][$eq]=${resolvedUserId}&populate=*`)
           const parr = p?.data || p || []
           profileData = Array.isArray(parr) ? (parr[0] || null) : (parr || null)
         } else {
@@ -46,7 +46,7 @@ export default async function AdminUserViewPage({ params }) {
         profileData = null
       }
 
-      const baseEndpoint = `/users/${resolvedUserId}?populate=*&publicationState=preview`
+      const baseEndpoint = `/users/${resolvedUserId}?populate=*`
       if (typeof serverGet === 'function') {
         const u = await serverGet(baseEndpoint)
         userData = u?.data || u || null
@@ -62,8 +62,8 @@ export default async function AdminUserViewPage({ params }) {
     } catch (e) {
       try {
         const r = (typeof serverGet === 'function')
-          ? await serverGet(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams?.id)}&populate=*&publicationState=preview`)
-          : await api.get(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams?.id)}&populate=*&publicationState=preview`)
+          ? await serverGet(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams?.id)}&populate=*`)
+          : await api.get(`/users?filters[documentId][$eq]=${encodeURIComponent(resolvedParams?.id)}&populate=*`)
         const arr = r?.data || r || []
         userData = Array.isArray(arr) ? (arr[0] || null) : (arr || null)
       } catch (e2) {
@@ -73,7 +73,7 @@ export default async function AdminUserViewPage({ params }) {
     }
 
     try {
-      const eduEndpoint = `/users/${resolvedUserId}?populate[educations][populate]=education_level&publicationState=preview`
+      const eduEndpoint = `/users/${resolvedUserId}?populate[educations][populate]=education_level`
       if (typeof serverGet === 'function') {
         const uEdu = await serverGet(eduEndpoint)
         userEduData = uEdu?.data || uEdu || null
