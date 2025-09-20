@@ -1,6 +1,6 @@
 'use server'
 
-import CreateResearchForm from '@/components/CreateResearchForm'
+import ResearchForm from '@/components/ResearchForm'
 import ProjectForm from '@/components/form/ProjectForm'
 
 // แก้ไข: เปลี่ยนเป็น Server Component และ await params ก่อนใช้งาน

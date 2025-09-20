@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { worksAPI } from '@/lib/api'
 import { Button } from '@/components/ui'
-import PageHeader from '@/components/PageHeader'
+import PageHeader from '@/components/layout/PageHeader'
 
 export default function PublicationsPage() {
   const router = useRouter()

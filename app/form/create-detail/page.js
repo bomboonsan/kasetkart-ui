@@ -1,5 +1,5 @@
 import PublicationForm from '@/components/PublicationForm'
-import PageHeader from '@/components/PageHeader'
+import PageHeader from '@/components/layout/PageHeader'
 
 export default function CreateDetailPage() {
   return (

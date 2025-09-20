@@ -2,8 +2,8 @@
 
 import { FormFieldBlock } from '@/components/ui'
 import UserPicker from './UserPicker'
-import FormInput from "./FormInput";
-import FormSelect from "./FormSelect";
+import { FormInput } from "@/components/ui";
+import { FormSelect } from "@/components/ui";
 import { FormCheckbox } from '@/components/ui';
 import { useEffect, useMemo, useState } from 'react'
 import dynamic from 'next/dynamic'

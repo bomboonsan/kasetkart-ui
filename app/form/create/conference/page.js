@@ -1,5 +1,5 @@
 import ConferenceForm from "@/components/ConferenceForm";
-import PageHeader from '@/components/PageHeader'
+import PageHeader from '@/components/layout/PageHeader'
 
 export default function CreatePage() {
   return (

@@ -2,7 +2,7 @@
 
 import { useMemo } from 'react'
 import { useParams } from 'next/navigation'
-import PageHeader from '@/components/PageHeader'
+import PageHeader from '@/components/layout/PageHeader'
 import { FormSection, FormFieldBlock, FormInput, FormTextarea } from '@/components/ui'
 
 function toDash(v) {

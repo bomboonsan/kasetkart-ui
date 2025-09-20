@@ -12,10 +12,10 @@ import dynamic from "next/dynamic";
 // UI Components
 import { FormSection, FormFieldBlock, FormField, Button } from "@/components/ui";
 import ProjectPicker from "@/components/ProjectPicker";
-import FormInput from "@/components/FormInput";
+import { FormInput } from "@/components/ui";
 import FormRadio from "@/components/FormRadio";
 import { FormCheckbox, FormTextarea, FormDateSelect } from "@/components/ui";
-import FormSelect from "@/components/FormSelect";
+import { FormSelect } from "@/components/ui";
 import FileUploadField from "@/components/FileUploadField";
 import ResearchTeamTable from "@/components/ResearchTeamTable";
 
