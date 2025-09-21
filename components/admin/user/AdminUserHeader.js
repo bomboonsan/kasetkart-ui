@@ -1,4 +1,3 @@
-import { STRAPI_REST_ENDPOINT } from "@/lib/config/api"
 "use client"
 
 import { Button } from '@/components/ui'
@@ -6,7 +5,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 import useSWR from 'swr'
 import Image from 'next/image'
-import { STRAPI_REST_ENDPOINT } // Removed deprecated api-base import
+import { STRAPI_REST_ENDPOINT } from '@/lib/config/api'
 import { profileAPI } from '@/lib/api'
 import AdminUserStats from '@/components/admin/user/AdminUserStats'
 
