@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import SectionCard from '@/components/SectionCard'
 import EducationItem from '@/components/EducationItem'
-import { api } // Removed deprecated api-base import
+import { api } from '@/lib/api-base'
 
 export default function AdminEducationSection({ userId }) {
   const [items, setItems] = useState([])

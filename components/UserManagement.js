@@ -6,7 +6,7 @@ import useSWR, { mutate } from 'swr'
 import UserTable from "./UserTable";
 import UserFilters from "./UserFilters";
 import UserModal from "./UserModal";
-import { api, API_BASE } from "@/lib/api";
+import { api, API_BASE } from "@/lib/api-base";
 
 // คอมเมนต์ (ไทย): สร้าง Base URL สำหรับไฟล์โดยเฉพาะ
 const API_PUBLIC_URL = API_BASE.replace('/api', '');

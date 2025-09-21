@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { projectAPI, worksAPI } from '@/lib/api'
-import { api } // Removed deprecated api-base import
+import { api } from '@/lib/api-base'
 
 export default function AdminUserStats({ userId }) {
   const [counts, setCounts] = useState({
