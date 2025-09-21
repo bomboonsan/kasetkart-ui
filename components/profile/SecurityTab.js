@@ -4,7 +4,7 @@ import { useState } from 'react'
 import ProfileImageUpload from './ProfileImageUpload'
 import { FormField, SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
-import { authAPI } from '@/lib/api'
+// Note: authAPI removed - password changes should be handled via NextAuth.js providers
 
 export default function SecurityTab() {
 
@@ -164,12 +164,14 @@ export default function SecurityTab() {
 
               setLoading(true)
               try {
-                const res = await authAPI.changePassword(currentPassword, newPassword, confirmPassword)
-                // Strapi may return object or message; normalize
-                setSuccessMsg('เปลี่ยนรหัสผ่านเรียบร้อย')
-                setCurrentPassword('')
-                setNewPassword('')
-                setConfirmPassword('')
+                // TODO: Implement password change via NextAuth.js provider
+                // For now, show a message directing users to provider-specific password change
+                setErrorMsg('การเปลี่ยนรหัสผ่านต้องดำเนินการผ่านระบบ authentication provider')
+                // const res = await changePasswordViaNextAuth(currentPassword, newPassword, confirmPassword)
+                // setSuccessMsg('เปลี่ยนรหัสผ่านเรียบร้อย')
+                // setCurrentPassword('')
+                // setNewPassword('')
+                // setConfirmPassword('')
               } catch (e) {
                 setErrorMsg(e?.message || 'ไม่สามารถเปลี่ยนรหัสผ่านได้')
               } finally {

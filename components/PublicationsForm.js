@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation'
 import useSWR, { mutate } from 'swr'
 import { worksAPI, projectAPI, profileAPI } from '@/lib/api'
 import { stripUndefined, getDocumentId, createHandleChange } from '@/utils'
-import { api } from '@/lib/api-base'
 import { extractResearchTeam } from '@/utils/team'
 import dynamic from 'next/dynamic'
 

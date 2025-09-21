@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR, { mutate } from 'swr';
 import { worksAPI, projectAPI, fundingAPI } from '@/lib/api';
-import { api } from '@/lib/api-base';
 import { getDocumentId, createHandleChange, stripUndefined } from '@/utils';
 import dynamic from 'next/dynamic';
 

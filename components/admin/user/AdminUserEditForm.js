@@ -1,16 +1,16 @@
 'use client'
 
+import { STRAPI_REST_ENDPOINT } from "@/lib/config/api"
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import { FormField, SelectField, InputField } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { orgAPI, userAPI, uploadAPI, profileAPI } from '@/lib/api'
-import { API_BASE, api } from '@/lib/api-base'
 import Image from 'next/image';
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
 
-const API_PUBLIC_URL = API_BASE.replace('/api', '');
+const API_PUBLIC_URL = STRAPI_REST_ENDPOINT.replace('/api', '');
 
 const JOB_TYPES = [
   { value: '', label: 'เลือกประเภทอาจารย์' },

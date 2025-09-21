@@ -1,11 +1,12 @@
 'use client'
 
+import { STRAPI_REST_ENDPOINT } from "@/lib/config/api"
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
 import { FormField, SelectField } from '@/components/ui'
 import { Button } from '@/components/ui'
 import { orgAPI, userAPI, uploadAPI } from '@/lib/api'
-import { API_BASE, api } from '@/lib/api-base'
+import { STRAPI_REST_ENDPOINT } from '@/lib/config/api'
 import Image from 'next/image';
 import dynamic from 'next/dynamic'
 const SweetAlert2 = dynamic(() => import('react-sweetalert2'), { ssr: false })
@@ -166,7 +167,7 @@ export default function AddUserForm() {
               if (!f) return
               try {
                 const [att] = await uploadAPI.uploadFiles([f])
-                const full = `${API_BASE}${att.url}`
+                const full = `${STRAPI_REST_ENDPOINT}${att.url}`
                 onChange('avatarUrl', full)
               } catch (err) {
                 setError(err.message || 'อัปโหลดรูปไม่สำเร็จ')

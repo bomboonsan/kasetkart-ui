@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import ResearchTopicRow from './ResearchTopicRow'
-import { api } from '@/lib/api-base'
+import { api } // Removed deprecated api-base import
 
 export default function ResearchTopicsTable({ tab = 1 }) {
   const [items, setItems] = useState([])

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import SectionCard from '@/components/SectionCard'
 import PublicationItem from '@/components/PublicationItem'
 import { projectAPI, worksAPI } from '@/lib/api'
-import { api } from '@/lib/api-base'
+import { api } // Removed deprecated api-base import
 
 const TYPE_TABS = [
   { key: 'PROJECT', label: 'โครงการวิจัย' },
